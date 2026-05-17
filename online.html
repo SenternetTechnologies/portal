@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTERNET P2P Connect - Dynamic Global Multiplayer Hub</title>
+    <title>SENTERNET P2P Connect - Ultimate Real-time Multiplayer Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -13,558 +13,505 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- PeerJS Library -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #f8fafc;
-            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
-            background-size: 24px 24px;
         }
         .canvas-container {
             touch-action: none;
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .shimmer-active {
+            background: linear-gradient(90deg, #eff6ff 25%, #dbeafe 50%, #eff6ff 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        /* Call Pulse Wave */
-        @keyframes voice-wave {
-            0%, 100% { transform: scaleY(0.3); }
-            50% { transform: scaleY(1); }
-        }
-        .wave-bar {
-            animation: voice-wave 1s ease-in-out infinite;
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-800 flex flex-col pb-6">
+<body class="min-h-screen text-slate-800 flex flex-col">
 
-    <!-- Top Premium Navigation Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
-        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
-            
-            <!-- Branding -->
+    <!-- Header Section -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2.5 rounded-2xl shadow-lg shadow-blue-100">
-                    <i class="fa-solid fa-cloud-lightning text-xl"></i>
+                <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-200">
+                    <i class="fa-solid fa-circle-nodes text-2xl animate-pulse"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-extrabold text-xl text-slate-900 tracking-tight">SENTERNET P2P Connect</h1>
-                        <span class="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase border border-indigo-100">V2.0 PRO</span>
-                    </div>
-                    <p class="text-xs text-slate-500 font-medium">Real-Time Global Lobby, Shared Stream, Audio Calls & Board</p>
+                    <h1 class="font-extrabold text-xl text-slate-900 tracking-tight flex items-center gap-2">
+                        SENTERNET P2P Connect <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">v2.0 PRO</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium">Serverless Peer-to-Peer Real-Time Hub & Global Lobby</p>
                 </div>
             </div>
 
-            <!-- Profile Badge & Connection Metrics -->
-            <div class="flex flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
-                <!-- User Profile Summary Display -->
-                <div id="headerProfileSummary" class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition" onclick="openProfileModal()">
-                    <img id="headerAvatar" src="https://picsum.photos/id/64/80/80" alt="Avatar" class="w-6 h-6 rounded-full border border-blue-500">
-                    <span id="headerUsername" class="text-xs font-bold text-slate-700">Set Username</span>
-                    <i class="fa-solid fa-pen text-[10px] text-slate-400"></i>
+            <!-- Profile and Connection Status Panel -->
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+                <div id="profileBadge" class="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-1.5 text-xs font-bold text-indigo-700 flex items-center gap-2">
+                    <i class="fa-solid fa-user-astronaut text-sm text-indigo-500"></i>
+                    <span>Profile: <span id="myProfileName" class="text-slate-800">Generating...</span></span>
                 </div>
 
-                <!-- WebRTC ID Info -->
-                <div class="bg-blue-50 border border-blue-100 rounded-xl px-3 py-1.5 text-xs font-semibold text-blue-700 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>P2P ID: <span id="myPeerId" class="font-bold select-all">Generating...</span></span>
-                    <button onclick="copyMyId()" class="hover:text-blue-800 transition ml-1" title="Copy My ID">
+                <div id="myIdContainer" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Your ID: <span id="myPeerId" class="text-blue-600 select-all font-mono font-bold">Generating...</span></span>
+                    <button id="copyIdBtn" class="hover:text-blue-600 transition ml-1" title="Copy My ID">
                         <i class="fa-regular fa-copy"></i>
                     </button>
                 </div>
                 
-                <span id="connectionBadge" class="bg-red-50 text-red-700 border border-red-200 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle text-[8px]"></i> Lobby Offline
+                <span id="connectionBadge" class="bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-circle text-[8px]"></i> Offline
                 </span>
             </div>
         </div>
     </header>
 
-    <!-- Main Live Workspace Layout -->
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Left Sidebar Section: Profile Setup & Live Active Users (Lg: 4/12) -->
+        <!-- Left Panel: Connection Controller & Real-time Chat -->
         <div class="lg:col-span-4 flex flex-col gap-6">
             
-            <!-- User Profile & Status Setup Card -->
-            <div id="profileSetupCard" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-sm font-extrabold text-slate-900 tracking-wide uppercase flex items-center gap-2">
-                        <i class="fa-regular fa-user-circle text-blue-600"></i> Local Profile Identity
-                    </h2>
-                    <span class="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-bold">Lobby Broadcast</span>
-                </div>
+            <!-- Connection Setup & Active Peer Session -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-link text-blue-600"></i> Manual Connection
+                </h2>
                 
                 <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <div class="relative group cursor-pointer" onclick="openProfileModal()">
-                            <img id="currentAvatarImg" src="https://picsum.photos/id/64/80/80" alt="Avatar" class="w-14 h-14 rounded-2xl object-cover border-2 border-indigo-100 group-hover:border-blue-500 transition shadow">
-                            <div class="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                <i class="fa-solid fa-camera text-white text-xs"></i>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Connect with Peer ID</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="peerIdInput" placeholder="Enter Friend's Peer ID" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <button id="connectBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm px-4 rounded-xl shadow-md shadow-blue-200 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plug"></i> Connect
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Current Active Peer Display -->
+                    <div id="activeSessionCard" class="bg-slate-50 border border-slate-200 rounded-xl p-3 hidden">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Connected Session</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span id="activePeerName" class="text-xs font-bold text-slate-800">Friend</span>
                             </div>
-                        </div>
-                        <div class="flex-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Display Name</label>
-                            <input type="text" id="usernameInput" value="Netizen" placeholder="Enter custom username..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">My Bio / Custom Status</label>
-                        <input type="text" id="bioInput" value="Hey! Let's whiteboard & connect" placeholder="Short bio description..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
-                    </div>
-
-                    <button id="saveProfileBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Save & Go Online in Lobby
-                    </button>
-                </div>
-            </div>
-
-            <!-- Global Live Lobby List (Dynamic Realtime Firestore) -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col min-h-[350px]">
-                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                    <h3 class="text-sm font-extrabold text-slate-900 tracking-wide uppercase flex items-center gap-2">
-                        <i class="fa-solid fa-users text-indigo-600 animate-pulse"></i> Global Active Lobby
-                    </h3>
-                    <span id="activeCountBadge" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full border border-indigo-100">0 Online</span>
-                </div>
-
-                <p class="text-[11px] text-slate-500 font-semibold mb-3">
-                    Click "Connect & Chat" on any online card to link up peer-to-peer instantly.
-                </p>
-
-                <!-- Users List Area -->
-                <div id="globalLobbyList" class="flex-grow space-y-3 overflow-y-auto max-h-[250px] pr-1">
-                    <div class="text-center text-slate-400 text-xs py-10 flex flex-col items-center justify-center gap-2">
-                        <i class="fa-solid fa-hourglass-start text-slate-300 text-2xl animate-spin"></i>
-                        <p class="italic">Publishing your profile to active lobby...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Direct Quick Connection Setup Fallback -->
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-inner">
-                <h4 class="text-xs font-extrabold text-slate-700 uppercase mb-2">Direct Connection Fallback</h4>
-                <div class="flex gap-2">
-                    <input type="text" id="directPeerId" placeholder="Paste Direct Peer ID" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                    <button id="directConnectBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 rounded-xl transition shadow flex items-center gap-1">
-                        <i class="fa-solid fa-link"></i> Link
-                    </button>
-                </div>
-            </div>
-
-            <!-- Footer SENTERNET Meta Details -->
-            <div class="text-center p-3 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                <p class="text-xs text-slate-800 font-extrabold tracking-tight">SENTERNET TECHNOLOGIES</p>
-                <p class="text-[10px] text-slate-500 font-medium">Aranthangi, Pudukkottai | WhatsApp: +91 81900 38085</p>
-                <div class="flex justify-center gap-3 mt-2 text-[11px]">
-                    <a href="https://rebrand.ly/senternet" target="_blank" class="text-blue-600 hover:underline font-bold">Website</a>
-                    <span class="text-slate-300">•</span>
-                    <a href="https://www.youtube.com/@senternet-technologies" target="_blank" class="text-red-600 hover:underline font-bold">YouTube</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Working Area Panel (Lg: 8/12) -->
-        <div class="lg:col-span-8 flex flex-col gap-6">
-
-            <!-- Shared Active Peer & Voice Calling Widget -->
-            <div id="activePeerCard" class="bg-white border-2 border-slate-200 p-4 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm relative overflow-hidden transition-all duration-300">
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <div id="activePeerAvatarWrap" class="relative">
-                        <img id="activePeerAvatar" src="https://picsum.photos/id/1012/80/80" alt="Peer Avatar" class="w-12 h-12 rounded-2xl object-cover border border-slate-200">
-                        <span class="absolute bottom-[-2px] right-[-2px] w-3.5 h-3.5 bg-slate-400 border-2 border-white rounded-full" id="activePeerStatusDot"></span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Connected Session Partner</p>
-                        <h3 id="activePeerName" class="font-extrabold text-slate-900 text-base leading-tight">No Active Partner</h3>
-                        <p id="activePeerBio" class="text-xs text-slate-500 font-medium truncate max-w-xs">Establish P2P connection to communicate.</p>
-                    </div>
-                </div>
-
-                <!-- WebRTC Realtime Interactive Actions Block -->
-                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-3 sm:pt-0">
-                    <!-- Realtime Voice Call controls -->
-                    <button id="voiceCallBtn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl px-4 py-2.5 text-xs font-bold flex items-center gap-2 transition disabled:opacity-50 shadow-sm" disabled>
-                        <i id="voiceCallIcon" class="fa-solid fa-phone"></i> <span id="voiceCallText">Start Voice Call</span>
-                    </button>
-                    
-                    <button id="endSessionBtn" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl p-2.5 text-xs font-bold flex items-center gap-1 transition shadow-sm hidden">
-                        <i class="fa-solid fa-phone-slash"></i> Hang Up
-                    </button>
-
-                    <!-- Animated Voice Activity waves -->
-                    <div id="voiceCallVisualizer" class="hidden items-end gap-1 h-6 px-2">
-                        <div class="w-1 bg-indigo-500 h-4 rounded-full wave-bar" style="animation-delay: 0.1s"></div>
-                        <div class="w-1 bg-indigo-500 h-6 rounded-full wave-bar" style="animation-delay: 0.3s"></div>
-                        <div class="w-1 bg-indigo-500 h-3 rounded-full wave-bar" style="animation-delay: 0.5s"></div>
-                        <div class="w-1 bg-indigo-500 h-5 rounded-full wave-bar" style="animation-delay: 0.2s"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab Switching Nav System -->
-            <div class="bg-white border border-slate-200 p-2 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
-                <div class="flex flex-wrap gap-1.5">
-                    <button id="tabCanvasBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-blue-600 flex items-center gap-2 transition" onclick="switchTab('canvas')">
-                        <i class="fa-solid fa-palette"></i> Shared Board
-                    </button>
-                    <button id="tabStreamBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition" onclick="switchTab('stream')">
-                        <i class="fa-solid fa-circle-play text-indigo-600"></i> Co-Watch & Web Sync
-                    </button>
-                    <button id="tabGameBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition" onclick="switchTab('game')">
-                        <i class="fa-solid fa-gamepad"></i> Tic-Tac-Toe
-                    </button>
-                    <button id="tabChatBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition lg:hidden" onclick="switchTab('chat')">
-                        <i class="fa-regular fa-comments"></i> Chat Box
-                    </button>
-                </div>
-                <div class="text-[11px] font-bold text-slate-400 pr-2">
-                    App Mode: <span id="interactiveStatus" class="text-slate-500">Standby</span>
-                </div>
-            </div>
-
-            <!-- TAB 1: Real-Time Shared Whiteboard Canvas -->
-            <div id="canvasTabContent" class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-col min-h-[500px]">
-                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">Dynamic Sketch Board</h3>
-                        <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-100">P2P Vector Sync</span>
-                    </div>
-
-                    <!-- Enhanced Board Toolbar Panel -->
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
-                            <button onclick="changeColor('#3b82f6')" class="w-6 h-6 rounded-lg bg-blue-500 border-2 border-white ring-2 ring-blue-500 transition-all hover:scale-110 color-swatch" title="Blue"></button>
-                            <button onclick="changeColor('#ef4444')" class="w-6 h-6 rounded-lg bg-red-500 border-2 border-white transition-all hover:scale-110 color-swatch" title="Red"></button>
-                            <button onclick="changeColor('#10b981')" class="w-6 h-6 rounded-lg bg-emerald-500 border-2 border-white transition-all hover:scale-110 color-swatch" title="Emerald"></button>
-                            <button onclick="changeColor('#1e293b')" class="w-6 h-6 rounded-lg bg-slate-800 border-2 border-white transition-all hover:scale-110 color-swatch" title="Dark Slate"></button>
-                            <button onclick="activateEraser()" id="eraserBtn" class="w-6 h-6 rounded-lg bg-slate-200 border border-slate-300 flex items-center justify-center hover:bg-slate-300 transition-all" title="Eraser">
-                                <i class="fa-solid fa-eraser text-xs text-slate-600"></i>
-                            </button>
-                        </div>
-
-                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase">Brush Size:</label>
-                            <select id="lineWidth" class="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer">
-                                <option value="2">2px (Thin)</option>
-                                <option value="4" selected>4px (Normal)</option>
-                                <option value="8">8px (Medium)</option>
-                                <option value="16">16px (Thick)</option>
-                            </select>
-                        </div>
-
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="clearCanvas(true)" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 transition">
-                                <i class="fa-regular fa-trash-can"></i> Reset
-                            </button>
-                            <button onclick="saveCanvasLocally()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 transition" title="Download Canvas Sketch">
-                                <i class="fa-solid fa-download"></i> Save Image
+                            <button id="disconnectBtn" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-xmark"></i> Disconnect
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Canvas Component Frame -->
-                <div class="flex-grow bg-slate-50 border border-slate-200 rounded-2xl relative overflow-hidden canvas-container min-h-[350px]">
-                    <canvas id="sharedCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
-                    
-                    <!-- Peer Tracker Marker -->
-                    <div id="peerCursor" class="absolute pointer-events-none hidden" style="left: -100px; top: -100px; z-10;">
-                        <i class="fa-solid fa-location-arrow text-indigo-600 drop-shadow-md text-lg transform -rotate-90"></i>
-                        <span id="peerCursorLabel" class="ml-2 bg-indigo-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap">Collaborator</span>
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                        <span>New to lobby?</span>
+                        <button id="instructionsBtn" class="text-blue-600 hover:underline font-bold">View User Guide</button>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 2: Live Co-Watch & Sync Panel -->
-            <div id="streamTabContent" class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-col min-h-[500px] hidden">
-                <div class="mb-4">
-                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                        <i class="fa-solid fa-circle-play text-red-600 animate-pulse"></i> SENTERNET Co-Watch & Web Sync
-                    </h3>
-                    <p class="text-xs text-slate-500 font-medium">
-                        Paste a YouTube video link or compatible web URL below. Your screen partner will instantly see the same screen synced real-time!
-                    </p>
-                </div>
-
-                <!-- Inputs & Control center -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4 bg-slate-50 p-4 border border-slate-200 rounded-2xl">
-                    <div class="md:col-span-3">
-                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Stream Mode</label>
-                        <select id="streamMode" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                            <option value="youtube">YouTube Embed Stream</option>
-                            <option value="web">General Web Page View</option>
-                        </select>
-                    </div>
-
-                    <div class="md:col-span-6">
-                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Video or Website Link</label>
-                        <input type="text" id="streamUrlInput" placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-
-                    <div class="md:col-span-3 flex items-end">
-                        <button id="broadcastStreamBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5" disabled>
-                            <i class="fa-solid fa-rotate-right"></i> BroadCast Sync
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Viewport Panel Frame -->
-                <div class="flex-grow border border-slate-200 rounded-2xl overflow-hidden bg-slate-950 relative min-h-[300px] flex items-center justify-center">
-                    <iframe id="coWatchIframe" src="about:blank" class="w-full h-full border-none hidden" allow="autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    
-                    <!-- Pre-connection Placeholder -->
-                    <div id="coWatchPlaceholder" class="text-center text-slate-400 p-6 flex flex-col items-center justify-center gap-3">
-                        <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center text-indigo-500 text-3xl shadow-xl">
-                            <i class="fa-solid fa-tv"></i>
-                        </div>
-                        <div>
-                            <p class="font-extrabold text-sm text-slate-300">No Stream Broadcasted Yet</p>
-                            <p class="text-xs text-slate-500 mt-1 max-w-sm">Connect with a peer, enter a URL link in the control center, and hit BroadCast Sync to play video or show web content together!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: Classic Tic-Tac-Toe Live Board -->
-            <div id="gameTabContent" class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center min-h-[500px] hidden">
-                <div class="text-center mb-6">
-                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center justify-center gap-2 uppercase tracking-wider">
-                        <i class="fa-solid fa-gamepad text-indigo-600"></i> Classic Tic-Tac-Toe Matchup
-                    </h3>
-                    <p class="text-xs text-slate-500 font-semibold mt-1">Play live with your connected peer instantly</p>
-                </div>
-
-                <!-- Match Info -->
-                <div class="flex items-center gap-8 mb-6 text-xs font-bold bg-slate-50 border border-slate-200 px-5 py-3 rounded-2xl shadow-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-extrabold">X</span>
-                        <div class="text-left">
-                            <p class="text-[9px] text-slate-400 uppercase leading-none font-black">Host</p>
-                            <p id="playerXName">You</p>
-                        </div>
-                    </div>
-                    <div class="text-slate-300 font-medium text-base">vs</div>
-                    <div class="flex items-center gap-2">
-                        <div class="text-right">
-                            <p class="text-[9px] text-slate-400 uppercase leading-none font-black">Opponent</p>
-                            <p id="playerOName">Opponent</p>
-                        </div>
-                        <span class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold">O</span>
-                    </div>
-                </div>
-
-                <div id="gameStatusIndicator" class="text-xs font-bold text-slate-700 bg-amber-50 border border-amber-100 px-4 py-1.5 rounded-full mb-6">
-                    Connect to a Peer in the lobby to begin match
-                </div>
-
-                <!-- Game Grid layout -->
-                <div class="grid grid-cols-3 gap-3 w-64 h-64 mx-auto mb-6">
-                    <button data-index="0" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="1" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="2" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="3" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="4" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="5" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="6" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="7" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                    <button data-index="8" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition" disabled></button>
-                </div>
-
-                <button id="resetGameBtn" class="bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition shadow-md flex items-center gap-1.5" disabled>
-                    <i class="fa-solid fa-rotate-right"></i> Restart Match
-                </button>
-            </div>
-
-            <!-- TAB 4: Mobile View Real-Time Chat Box -->
-            <div id="chatTabContent" class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-col min-h-[500px] hidden">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                        <i class="fa-regular fa-comments text-blue-600"></i> Partner Communication
-                    </h3>
-                </div>
+            <!-- Real-Time Chat Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col flex-1 min-h-[350px]">
+                <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-regular fa-comments text-blue-600"></i> Direct P2P Chat
+                    </span>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Encrypted</span>
+                </h3>
                 
-                <div id="mobileChatMessages" class="flex-grow overflow-y-auto space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100 max-h-[350px] text-sm">
-                    <p class="text-center text-slate-400 text-xs py-8 italic">Please use the side chat box or connect with peer to begin exchange.</p>
-                </div>
-            </div>
-
-            <!-- Persistent Standard Chat Frame (Visible inside main block always except mobile canvas screens) -->
-            <div id="mainDesktopChat" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col min-h-[250px]">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-xs font-extrabold uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                        <i class="fa-regular fa-comments text-blue-500"></i> Live P2P Text Channel
-                    </h3>
-                    <span class="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-100">End-To-End Direct</span>
-                </div>
-
-                <!-- Chat Messages Feed Box -->
-                <div id="chatMessages" class="flex-grow overflow-y-auto space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-100 max-h-[160px] min-h-[100px] text-xs">
-                    <div class="text-center text-slate-400 text-[10px] py-4 italic">
-                        No active conversation messages. Say hello to your linked buddy!
+                <!-- Chat Message Box -->
+                <div id="chatMessages" class="flex-grow overflow-y-auto space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100 max-h-[250px] min-h-[180px] text-sm">
+                    <div class="text-center text-slate-400 text-xs py-10 italic">
+                        No messages yet. Select an online user from the lobby, connect, and start chatting directly!
                     </div>
                 </div>
 
-                <!-- Send Chat Frame -->
-                <div class="mt-2.5 flex gap-2">
-                    <input type="text" id="chatInput" placeholder="Write message..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" disabled>
-                    <button id="sendChatBtn" class="bg-slate-100 text-slate-400 px-3.5 rounded-xl transition text-xs font-bold" disabled>
+                <!-- Chat Input -->
+                <div class="mt-3 flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" disabled>
+                    <button id="sendChatBtn" class="bg-slate-100 text-slate-400 px-3.5 rounded-xl transition shadow-sm" disabled>
                         <i class="fa-regular fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
 
+            <!-- Footer Meta Info -->
+            <div class="text-center p-3 bg-slate-50 rounded-xl border border-slate-200/50">
+                <p class="text-xs text-slate-800 font-extrabold tracking-wide uppercase">SENTERNET TECHNOLOGIES</p>
+                <p class="text-[10px] text-slate-500 mt-1">Aranthangi, Pudukkottai | WhatsApp: +91 81900 38085</p>
+                <p class="text-[9px] text-blue-500 hover:underline mt-0.5"><a href="https://rebrand.ly/senternet" target="_blank">rebrand.ly/senternet</a></p>
+            </div>
         </div>
-    </main>
 
-    <!-- Modal: Choose Custom User Avatar & Register Details -->
-    <div id="profileModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-3xl border border-slate-200 p-6 max-w-md w-full shadow-2xl relative">
-            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            
-            <h3 class="text-base font-extrabold text-slate-950 mb-4 flex items-center gap-2">
-                <i class="fa-regular fa-id-card text-blue-500"></i> Edit Profile Avatar & Card
-            </h3>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2">Select Avatar</label>
-                    <div class="grid grid-cols-4 gap-3" id="avatarSelectorGrid">
-                        <!-- Filled by JS -->
+        <!-- Right Panel: Tabs, Matchmaker Lobby, Whiteboard, and Games -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+
+            <!-- Tab Switching Header -->
+            <div class="bg-white border border-slate-200 p-2 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                <div class="flex flex-wrap gap-1.5">
+                    <button id="tabLobbyBtn" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center gap-2 transition shadow-md shadow-blue-100">
+                        <i class="fa-solid fa-users"></i> Online Lobby <span id="lobbyCountBadge" class="bg-white text-blue-600 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
+                    <button id="tabCanvasBtn" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition">
+                        <i class="fa-solid fa-palette"></i> Shared Board
+                    </button>
+                    <button id="tabGameBtn" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition">
+                        <i class="fa-solid fa-gamepad"></i> Tic-Tac-Toe
+                    </button>
+                </div>
+                <div class="text-[11px] font-bold text-slate-500 pr-2 flex items-center gap-1.5">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    Lobby Connection: <span id="interactiveStatus" class="text-red-500">Offline</span>
+                </div>
+            </div>
+
+            <!-- TAB 1: Online Matchmaker Lobby -->
+            <div id="lobbyTabContent" class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col flex-grow min-h-[450px]">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-globe text-blue-600"></i> Global Online Players
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Click on any player's "Instantly Connect" button to initiate a direct peer channel match!</p>
+                    </div>
+                    <button id="refreshLobbyBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-rotate"></i> Sync List
+                    </button>
+                </div>
+
+                <!-- Online Users Grid Card -->
+                <div id="lobbyGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow min-h-[300px]">
+                    <!-- Shimmer Loaders initially -->
+                    <div class="shimmer-active rounded-2xl border border-slate-200/50 p-4 h-24 flex items-center justify-center">
+                        <p class="text-xs font-semibold text-slate-400">Syncing lobby database state...</p>
+                    </div>
+                    <div class="shimmer-active rounded-2xl border border-slate-200/50 p-4 h-24 flex items-center justify-center"></div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Whiteboard Canvas -->
+            <div id="canvasTabContent" class="bg-white rounded-3xl border border-slate-200 p-4 shadow-sm flex flex-col flex-grow min-h-[450px] hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-bold text-slate-900">Live Shared Whiteboard</h3>
+                        <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Real-time Draw</span>
+                    </div>
+
+                    <!-- Canvas Toolbar Controls -->
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg">
+                            <button id="colorBtn1" class="w-6 h-6 rounded-full bg-blue-500 border-2 border-white ring-2 ring-blue-500 transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                            <button id="colorBtn2" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                            <button id="colorBtn3" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                            <button id="colorBtn4" class="w-6 h-6 rounded-full bg-slate-800 border-2 border-white transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                            <button id="eraserBtn" class="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 color-swatch" title="Eraser">
+                                <i class="fa-solid fa-eraser text-[10px] text-slate-600"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-semibold text-slate-500">Width:</label>
+                            <select id="lineWidth" class="bg-slate-50 border border-slate-200 rounded-lg text-xs p-1 font-semibold focus:outline-none">
+                                <option value="2">2px</option>
+                                <option value="4" selected>4px</option>
+                                <option value="8">8px</option>
+                                <option value="12">12px</option>
+                                <option value="20">20px (Bold)</option>
+                            </select>
+                        </div>
+
+                        <button id="clearBtn" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg p-2 text-xs font-bold flex items-center gap-1 transition shadow-sm">
+                            <i class="fa-regular fa-trash-can"></i> Clear Screen
+                        </button>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Upload Profile URL (Optional)</label>
-                    <input type="text" id="customAvatarInputUrl" placeholder="Enter custom image path..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <!-- Drawing Canvas -->
+                <div class="flex-grow bg-slate-50 border border-slate-200/60 rounded-2xl relative overflow-hidden canvas-container min-h-[300px]">
+                    <canvas id="sharedCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                    
+                    <!-- Dynamic Live Cursor Markers -->
+                    <div id="peerCursor" class="absolute pointer-events-none hidden" style="left: 0px; top: 0px; z-index: 10;">
+                        <i class="fa-solid fa-arrow-pointer text-indigo-600 drop-shadow-md text-lg transform -rotate-90"></i>
+                        <span id="peerCursorLabel" class="ml-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap">Friend</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Tic-Tac-Toe Game -->
+            <div id="gameTabContent" class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center min-h-[450px] hidden">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-gamepad text-indigo-600 animate-bounce"></i> Classic Tic-Tac-Toe
+                    </h3>
+                    <p class="text-xs text-slate-500 font-semibold mt-1">Play live with your connected peer instantly</p>
                 </div>
 
-                <button onclick="confirmProfileSelection()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md">
-                    Confirm Updates
+                <!-- Match Info -->
+                <div class="flex items-center gap-8 mb-6 text-sm font-bold bg-slate-50 border border-slate-200 px-5 py-3 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-extrabold text-sm">X</span>
+                        <div class="text-left">
+                            <p class="text-[10px] text-slate-400 uppercase leading-none font-extrabold">Host</p>
+                            <p id="playerXName" class="text-slate-800 text-xs">You</p>
+                        </div>
+                    </div>
+                    <div class="text-slate-300 font-medium text-lg">vs</div>
+                    <div class="flex items-center gap-2">
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-400 uppercase leading-none font-extrabold">Joiner</p>
+                            <p id="playerOName" class="text-slate-800 text-xs">Opponent</p>
+                        </div>
+                        <span class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-sm">O</span>
+                    </div>
+                </div>
+
+                <div id="gameStatusIndicator" class="text-sm font-semibold text-slate-700 bg-amber-50 border border-amber-100 px-4 py-1.5 rounded-full mb-6">
+                    Waiting for peer connection to begin...
+                </div>
+
+                <!-- Tic Tac Toe Grid -->
+                <div class="grid grid-cols-3 gap-3 w-64 h-64 mx-auto mb-6">
+                    <button data-index="0" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="1" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="2" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="3" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="4" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="5" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="6" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="7" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                    <button data-index="8" class="game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition focus:outline-none" disabled></button>
+                </div>
+
+                <button id="resetGameBtn" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition shadow-md flex items-center gap-1.5" disabled>
+                    <i class="fa-solid fa-rotate-right"></i> Restart Match
                 </button>
             </div>
+
+        </div>
+    </main>
+
+    <!-- App Instructions Modal -->
+    <div id="instructionsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-3xl border border-slate-200 p-6 max-w-md w-full shadow-2xl relative">
+            <button id="closeInstructionsBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-950 mb-4 flex items-center gap-2">
+                <i class="fa-regular fa-lightbulb text-amber-500"></i> Easy Connection Guide
+            </h3>
+            <div class="space-y-4 text-sm text-slate-600 font-medium">
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs shrink-0 font-bold">1</span>
+                    <p>Open this app on two screens. Real-time Firestore lobby will dynamically display all online players.</p>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs shrink-0 font-bold">2</span>
+                    <p>Click on any player's <strong>Instantly Connect</strong> button in the lobby list, or manually enter their ID.</p>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs shrink-0 font-bold">3</span>
+                    <p>Draw dynamically together, converse on direct P2P chat, and switch tabs to play zero-latency Tic-Tac-Toe!</p>
+                </div>
+            </div>
+            <button id="gotItBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-2.5 rounded-xl mt-6 transition shadow-md">
+                Got it, Let's Go!
+            </button>
         </div>
     </div>
 
     <!-- Toast Notification Message -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-2 z-50">
-        <i class="fa-solid fa-circle-check text-emerald-400" id="toastIcon"></i>
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastMessage">Done successfully!</span>
     </div>
 
-    <!-- Hidden Audio element for voice calls -->
-    <audio id="remoteAudio" autoplay class="hidden"></audio>
-
-    <!-- Embedded Firebase Config modules -->
+    <!-- Firebase Imports and Logic (ESM module) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global state storage configurations
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'senternet-p2p-multiplayer';
-        const firebaseConfig = JSON.parse(__firebase_config);
-        
-        // Initialize Firebase services
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // State control variables
-        let user = null;
+        // Global State variables
         let peer = null;
         let conn = null;
-        let localStream = null;
-        let currentCallObj = null;
-        let myId = "";
         let isHost = false; 
-        let activeTab = "canvas";
-        
-        // Custom Local profile
-        let myProfile = {
-            username: "User_" + Math.floor(1000 + Math.random() * 9000),
-            avatar: "https://picsum.photos/id/64/80/80",
-            bio: "Active inside SENTERNET Lobby",
-            peerId: ""
-        };
+        let myId = "";
+        let activeTab = "lobby";
+        let activeUserUid = null;
+        let myUsername = "";
+        let db = null;
+        let auth = null;
 
-        // Active Partner info
-        let partnerProfile = null;
-
-        // Custom Avatar preset configurations
-        const avatarList = [
-            "https://picsum.photos/id/64/80/80",
-            "https://picsum.photos/id/91/80/80",
-            "https://picsum.photos/id/1012/80/80",
-            "https://picsum.photos/id/338/80/80",
-            "https://picsum.photos/id/177/80/80",
-            "https://picsum.photos/id/324/80/80",
-            "https://picsum.photos/id/633/80/80",
-            "https://picsum.photos/id/342/80/80"
-        ];
-
-        // Canvas drawing state
+        // Drawing & canvas variables
         const canvas = document.getElementById('sharedCanvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
         let currentColor = "#3b82f6";
-        let currentLineWidth = 4;
-        let isErasing = false;
+        let currentBrushWidth = 4;
 
-        // Tic Tac Toe State
+        // Tic Tac Toe Game State
         let gameActive = false;
         let gameState = ["", "", "", "", "", "", "", "", ""];
-        let mySymbol = ""; 
+        let mySymbol = ""; // "X" (initiator) or "O" (receiver)
         let currentTurn = "X";
 
-        // Core Initializer Lifecycle
-        window.addEventListener('DOMContentLoaded', async () => {
-            setupCanvas();
-            renderAvatarSelectionGrid();
-            loadProfileFromLocalStorage();
-            await initAuthAndLobby();
-            setupEventListeners();
-        });
+        // List of random cool usernames
+        const prefixes = ["Speedy", "Hyper", "Neo", "Quantum", "Shadow", "Apex", "Pixel", "Cosmic", "Senternet", "Tech"];
+        const suffixes = ["Coder", "Rider", "Ninja", "Wizard", "Gamer", "hacker", "Alpha", "Slayer", "Dev", "Master"];
+        const randomName = `${prefixes[Math.floor(Math.random() * prefixes.length)]}_${suffixes[Math.floor(Math.random() * suffixes.length)]}_${Math.floor(Math.random() * 900 + 100)}`;
+        myUsername = randomName;
+        document.getElementById('myProfileName').innerText = myUsername;
 
-        // Setup Authentication first prior to making any DB Firestore transactions
-        async function initAuthAndLobby() {
+        // Synthetic Audio Effects Generator
+        function playSynthSound(type) {
             try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (type === 'connect') {
+                    // Ascending note melody
+                    oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'click') {
+                    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'win') {
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                    oscillator.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.3); // G5
+                    gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.6);
+                } else if (type === 'lose') {
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(293.66, audioCtx.currentTime); // D4
+                    oscillator.frequency.exponentialRampToValueAtTime(110.00, audioCtx.currentTime + 0.5); // A2
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.5);
+                }
+            } catch (err) {
+                console.warn('Audio synthesis not initialized yet.');
+            }
+        }
+
+        // Initialize Firebase & Firestore Dynamic Sync Lobby (RULE 1 & 3)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'senternet-p2p-lobby-app';
+        let firebaseConfigObj = null;
+
+        if (typeof __firebase_config !== 'undefined') {
+            try {
+                firebaseConfigObj = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.error("Firebase parsing failed:", e);
+            }
+        }
+
+        // Fallback or initialization
+        if (firebaseConfigObj) {
+            const firebaseApp = initializeApp(firebaseConfigObj);
+            auth = getAuth(firebaseApp);
+            db = getFirestore(firebaseApp);
+
+            // Strict Custom / Anonymous Auth Flow
+            const initAuth = async () => {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
+            };
 
-                onAuthStateChanged(auth, (authUser) => {
-                    if (authUser) {
-                        user = authUser;
-                        initPeer(); // Initialize PeerJS signaling node
-                        listenToLobbyUpdates(); // Read real-time lobby state
+            initAuth();
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    activeUserUid = user.uid;
+                    document.getElementById('interactiveStatus').innerText = "Lobby Active";
+                    document.getElementById('interactiveStatus').className = "text-emerald-600 font-bold";
+                    initPeerAndLobby();
+                } else {
+                    document.getElementById('interactiveStatus').innerText = "Offline";
+                    document.getElementById('interactiveStatus').className = "text-red-500 font-bold";
+                }
+            });
+        } else {
+            // Local sandbox fallback for demo purposes
+            document.getElementById('interactiveStatus').innerText = "Sandbox Active (No DB Connection)";
+            document.getElementById('interactiveStatus').className = "text-amber-600 font-bold";
+            initPeer();
+        }
+
+        // Initialize peer, register current state, and start snapshot listener
+        function initPeerAndLobby() {
+            initPeer();
+            
+            // Listen to dynamic lobby collection (RULE 1, 2)
+            // Strict path used: /artifacts/{appId}/public/data/{collectionName}
+            const lobbyCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'lobby_peers');
+            
+            onSnapshot(lobbyCollectionRef, (snapshot) => {
+                const lobbyList = [];
+                const currentTime = Date.now();
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    // Filter stale peers active > 15 minutes locally to fulfill RULE 2 (no complex query filters)
+                    if (data && data.peerId && data.uid !== activeUserUid && (currentTime - data.lastActive < 900000)) {
+                        lobbyList.push({
+                            uid: docSnap.id,
+                            peerId: data.peerId,
+                            username: data.username || "Anonymous Coder",
+                            status: data.status || "available"
+                        });
                     }
                 });
-            } catch (error) {
-                console.error("Authentication init failed: ", error);
-                showToast("Lobby authorization failed. Retry...", true);
+                renderLobbyGrid(lobbyList);
+            }, (error) => {
+                console.error("Lobby listening failed: ", error);
+            });
+
+            // Heartbeat update every 30 seconds to stay online
+            setInterval(updateHeartbeat, 30000);
+        }
+
+        async function updateHeartbeat() {
+            if (!db || !activeUserUid || !myId) return;
+            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'lobby_peers', activeUserUid);
+            try {
+                await setDoc(userDocRef, {
+                    uid: activeUserUid,
+                    peerId: myId,
+                    username: myUsername,
+                    lastActive: Date.now(),
+                    status: conn ? 'busy' : 'available'
+                }, { merge: true });
+            } catch (err) {
+                console.error("Heartbeat sync error:", err);
             }
         }
 
-        // Initialize PeerJS framework
+        // Initialize PeerJS
         function initPeer() {
             peer = new Peer({
                 host: '0.peerjs.com',
@@ -575,161 +522,43 @@
 
             peer.on('open', (id) => {
                 myId = id;
-                myProfile.peerId = id;
                 document.getElementById('myPeerId').innerText = id;
+                showToast("Your direct P2P connection tunnel is ready!");
                 
-                // Set default displays
-                document.getElementById('usernameInput').value = myProfile.username;
-                document.getElementById('headerUsername').innerText = myProfile.username;
-                document.getElementById('headerAvatar').src = myProfile.avatar;
-                document.getElementById('currentAvatarImg').src = myProfile.avatar;
-
-                // Sync current user state to global online directory lobby
-                broadcastProfileToLobby();
-                showToast("Your serverless P2P node is live!");
-                
-                // Periodically update active state pulse heartbeat
-                setInterval(broadcastProfileToLobby, 20000);
+                // Immediately register peer status in Firebase
+                updateHeartbeat();
             });
 
             peer.on('error', (err) => {
-                console.error("Peer network error: ", err);
-                showToast("P2P server offline. Retrying...", true);
+                console.error("PeerJS signaling broker error:", err);
+                showToast("Relay connection timed out. Refreshing...");
+                document.getElementById('myPeerId').innerText = "Click to retry";
             });
 
-            // Listen to direct incoming connection requests from other nodes
-            peer.on('connection', (incomingConnection) => {
+            // Handle incoming connections
+            peer.on('connection', (incomingConn) => {
                 if (conn) {
-                    // Close extra incoming calls to maintain strict 1v1 sandbox
-                    incomingConnection.close();
+                    // Auto-deny if already connected to another player
+                    incomingConn.send({ type: 'lobby-busy' });
+                    incomingConn.close();
                     return;
                 }
                 isHost = true;
-                mySymbol = "X"; // Host is 'X'
-                setupConnectionPipe(incomingConnection);
-            });
-
-            // Listen for direct incoming voice calls
-            peer.on('call', (call) => {
-                navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-                    localStream = stream;
-                    call.answer(stream);
-                    handleActiveVoiceCall(call);
-                }).catch((err) => {
-                    console.error("Failed to access local microphone for call: ", err);
-                    showToast("Microphone access denied.", true);
-                });
+                mySymbol = "X"; // Host gets 'X'
+                setupConnection(incomingConn);
             });
         }
 
-        // Update active profile in Lobby collection
-        async function broadcastProfileToLobby() {
-            if (!user || !myId) return;
-            const lobbyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'lobby', myId);
-            await setDoc(lobbyDocRef, {
-                username: myProfile.username,
-                avatar: myProfile.avatar,
-                bio: myProfile.bio,
-                peerId: myId,
-                lastSeen: serverTimestamp()
-            }, { merge: true });
-
-            document.getElementById('connectionBadge').innerHTML = `<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Lobby Online`;
-            document.getElementById('connectionBadge').className = "bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5";
-        }
-
-        // Real-time listener for current Online lobby
-        function listenToLobbyUpdates() {
-            if (!user) return;
-            const lobbyColl = collection(db, 'artifacts', appId, 'public', 'data', 'lobby');
-            
-            onSnapshot(lobbyColl, (snapshot) => {
-                const lobbyListContainer = document.getElementById('globalLobbyList');
-                lobbyListContainer.innerHTML = '';
-                
-                let activeCount = 0;
-                const now = Date.now();
-
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    
-                    // Filter offline users (who haven't been seen in over 50 seconds)
-                    const lastSeenTime = data.lastSeen?.seconds ? (data.lastSeen.seconds * 1000) : now;
-                    if (now - lastSeenTime > 50000) {
-                        return; 
-                    }
-
-                    if (data.peerId === myId) {
-                        return; // Exclude self profile card from feed
-                    }
-
-                    activeCount++;
-                    
-                    // Render custom active lobby user profile card
-                    const userCard = document.createElement('div');
-                    userCard.className = "bg-slate-50 border border-slate-200 hover:border-blue-300 rounded-xl p-3 flex items-center justify-between gap-3 transition shadow-sm hover:shadow-md";
-                    userCard.innerHTML = `
-                        <div class="flex items-center gap-2.5 overflow-hidden">
-                            <img src="${data.avatar || 'https://picsum.photos/id/64/80/80'}" alt="Avatar" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0">
-                            <div class="overflow-hidden">
-                                <h4 class="font-extrabold text-xs text-slate-800 truncate">${data.username || 'Netizen'}</h4>
-                                <p class="text-[10px] text-slate-500 font-medium truncate">${data.bio || 'Available to chat'}</p>
-                            </div>
-                        </div>
-                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[10px] px-2.5 py-1.5 rounded-lg shrink-0 transition flex items-center gap-1 lobby-connect-btn" data-target-id="${data.peerId}">
-                            <i class="fa-solid fa-plug"></i> Connect
-                        </button>
-                    `;
-                    lobbyListContainer.appendChild(userCard);
-                });
-
-                document.getElementById('activeCountBadge').innerText = `${activeCount} Online`;
-
-                if (activeCount === 0) {
-                    lobbyListContainer.innerHTML = `
-                        <div class="text-center text-slate-400 py-10">
-                            <i class="fa-solid fa-satellite-dish text-2xl text-slate-300 animate-bounce mb-2"></i>
-                            <p class="text-xs italic font-semibold">No other random users are online.</p>
-                            <p class="text-[10px] text-slate-400 mt-1">Open another window/screen to join!</p>
-                        </div>
-                    `;
-                }
-
-                // Attach dynamically generated click triggers
-                document.querySelectorAll('.lobby-connect-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const targetId = e.currentTarget.getAttribute('data-target-id');
-                        initiateOutboundConnection(targetId);
-                    });
-                });
-
-            }, (error) => {
-                console.error("Firestore Lobby sync error: ", error);
-            });
-        }
-
-        // Establish connection to targeted Peer ID
-        function initiateOutboundConnection(targetId) {
-            if (!targetId || targetId === myId) return;
-            isHost = false;
-            mySymbol = "O"; // Joiner is 'O'
-            
-            showToast("Connecting peer-to-peer...");
-            const outboundConn = peer.connect(targetId);
-            setupConnectionPipe(outboundConn);
-        }
-
-        // Configure connected peer channels
-        function setupConnectionPipe(connection) {
+        // Setup newly connected peer events
+        function setupConnection(connection) {
             conn = connection;
+            playSynthSound('connect');
             
-            conn.on('open', async () => {
-                // Fetch user data from firestore to display their clean card
-                await fetchAndDisplayPartnerProfile(conn.peer);
-                
-                updateUIPeerActiveState();
-                syncStartupState();
+            conn.on('open', () => {
+                updateUIForConnectedState();
+                sendWelcomeSync();
                 startGameHub();
+                updateHeartbeat(); // Update online state status to "busy"
             });
 
             conn.on('data', (data) => {
@@ -741,106 +570,118 @@
             });
 
             conn.on('error', (err) => {
-                console.error("Connection error: ", err);
+                console.error("Peer connection channel error:", err);
                 handlePeerDisconnect();
             });
         }
 
-        // Fetch detailed data of currently linked partner
-        async function fetchAndDisplayPartnerProfile(peerId) {
-            if (!peerId) return;
-            try {
-                const partnerDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lobby', peerId));
-                if (partnerDoc.exists()) {
-                    partnerProfile = partnerDoc.data();
-                } else {
-                    partnerProfile = {
-                        username: "Friend Node",
-                        avatar: "https://picsum.photos/id/1012/80/80",
-                        bio: "Online and active in session"
-                    };
-                }
-            } catch (err) {
-                partnerProfile = {
-                    username: "Friend Node",
-                    avatar: "https://picsum.photos/id/1012/80/80",
-                    bio: "Online and active in session"
-                };
-            }
-
-            // Update DOM displays for session state
-            document.getElementById('activePeerName').innerText = partnerProfile.username;
-            document.getElementById('activePeerBio').innerText = partnerProfile.bio;
-            document.getElementById('activePeerAvatar').src = partnerProfile.avatar;
-            document.getElementById('activePeerStatusDot').className = "absolute bottom-[-2px] right-[-2px] w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse";
-        }
-
-        // Action controls update
-        function updateUIPeerActiveState() {
-            document.getElementById('interactiveStatus').innerText = `Session Connected`;
-            document.getElementById('interactiveStatus').className = "text-emerald-600 font-bold";
+        // Render real-time cards in Lobby
+        function renderLobbyGrid(lobbyList) {
+            const lobbyGrid = document.getElementById('lobbyGrid');
+            const countBadge = document.getElementById('lobbyCountBadge');
             
-            // Activate Controls
-            document.getElementById('chatInput').removeAttribute('disabled');
-            document.getElementById('sendChatBtn').removeAttribute('disabled');
-            document.getElementById('sendChatBtn').className = "bg-indigo-600 text-white hover:bg-indigo-700 px-4 rounded-xl transition shadow-md text-xs font-bold";
-            document.getElementById('voiceCallBtn').removeAttribute('disabled');
-            document.getElementById('endSessionBtn').classList.remove('hidden');
-            document.getElementById('broadcastStreamBtn').removeAttribute('disabled');
+            countBadge.innerText = lobbyList.length;
 
-            // Clear chat empty screen placeholder
-            const msgBox = document.getElementById('chatMessages');
-            if(msgBox.innerText.includes("No active conversation")) {
-                msgBox.innerHTML = '';
+            if (lobbyList.length === 0) {
+                lobbyGrid.innerHTML = `
+                    <div class="col-span-1 sm:col-span-2 flex flex-col items-center justify-center p-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-center">
+                        <i class="fa-solid fa-people-arrows text-4xl text-slate-300 mb-3"></i>
+                        <h4 class="font-extrabold text-slate-800 text-sm">Lobby is currently empty</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs">Open this page on another browser/device to view dynamic multiplayer lobby cards instantly!</p>
+                    </div>
+                `;
+                return;
             }
 
-            appendChatMessage("System", `Successfully connected to ${partnerProfile?.username}! You can draw, play games, voice call, or co-watch video.`, "text-indigo-600 font-bold italic");
-            showToast(`Connected with ${partnerProfile?.username}!`);
-        }
+            lobbyGrid.innerHTML = "";
+            lobbyList.forEach((user) => {
+                const card = document.createElement('div');
+                card.className = "bg-white border border-slate-200 hover:border-blue-500 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition shadow-sm hover:shadow-md";
+                
+                // Generate consistent colored avatar placeholders based on username
+                const colorIndex = Math.abs(user.username.charCodeAt(0) % 5);
+                const gradients = [
+                    "from-indigo-500 to-purple-500",
+                    "from-emerald-400 to-teal-500",
+                    "from-blue-500 to-indigo-500",
+                    "from-amber-400 to-orange-500",
+                    "from-rose-500 to-pink-500"
+                ];
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr ${gradients[colorIndex]} text-white flex items-center justify-center font-extrabold text-sm shadow-md">
+                            ${user.username.substring(0,2).toUpperCase()}
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                                ${user.username}
+                                ${user.status === 'busy' ? 
+                                    '<span class="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">In Match</span>' : 
+                                    '<span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">Available</span>'
+                                }
+                            </h4>
+                            <p class="text-[10px] text-slate-500 mt-0.5 font-mono">ID: ${user.peerId}</p>
+                        </div>
+                    </div>
+                    <button class="connect-lobby-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 transition shadow-md shadow-blue-100" data-peer-id="${user.peerId}">
+                        <i class="fa-solid fa-paper-plane"></i> Invite & Play
+                    </button>
+                `;
 
-        // Send initial synchronizations to match states
-        function syncStartupState() {
-            if (!conn) return;
-            conn.send({
-                type: 'sync-setup',
-                canvasSnapshot: canvas.toDataURL()
+                // Connect button event
+                card.querySelector('.connect-lobby-btn').addEventListener('click', (e) => {
+                    playSynthSound('click');
+                    const targetId = e.currentTarget.getAttribute('data-peer-id');
+                    initiateDirectConnection(targetId);
+                });
+
+                lobbyGrid.appendChild(card);
             });
         }
 
-        // Central P2P communications parser
-        function handleIncomingP2PData(data) {
-            if (!data) return;
-
-            switch (data.type) {
-                case 'canvas':
-                    handleRemoteDrawingStroke(data);
-                    break;
-                case 'cursor':
-                    updatePeerMouseIndicator(data);
-                    break;
-                case 'clear':
-                    clearCanvas(false);
-                    showToast("Board cleared by peer.", false);
-                    break;
-                case 'chat':
-                    appendChatMessage(partnerProfile?.username || "Friend", data.text, "text-indigo-700 font-semibold");
-                    break;
-                case 'sync-setup':
-                    loadRemoteCanvasSnapshot(data.canvasSnapshot);
-                    break;
-                case 'game-move':
-                    executeOpponentGameMove(data.index, data.symbol);
-                    break;
-                case 'game-reset':
-                    triggerResetGameAction(false);
-                    break;
-                case 'stream-broadcast':
-                    handleSharedStreamPlayback(data.mode, data.url);
-                    break;
+        // Direct connect logic
+        function initiateDirectConnection(targetId) {
+            if (targetId === myId) {
+                showToast("You cannot play with yourself!");
+                return;
             }
+            isHost = false;
+            mySymbol = "O"; // Joiner gets 'O'
+            showToast(`Sending connect request to ID: ${targetId}...`);
+            
+            const outboundConn = peer.connect(targetId);
+            setupConnection(outboundConn);
         }
 
-        // Drawing workspace controllers
+        // Active connection update in DOM
+        function updateUIForConnectedState() {
+            document.getElementById('connectionBadge').innerHTML = `<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Connected`;
+            document.getElementById('connectionBadge').className = "bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm";
+            
+            // Switch current active display card
+            document.getElementById('activeSessionCard').classList.remove('hidden');
+            document.getElementById('activePeerName').innerText = conn.metadata?.username || "Active Player";
+            
+            // Enable interactive direct messaging controls
+            document.getElementById('chatInput').removeAttribute('disabled');
+            document.getElementById('sendChatBtn').removeAttribute('disabled');
+            document.getElementById('sendChatBtn').className = "bg-blue-600 text-white hover:bg-blue-700 px-3.5 py-2 rounded-xl transition shadow-md shadow-blue-100";
+            
+            // Clear status in direct chat panel
+            const msgBox = document.getElementById('chatMessages');
+            if(msgBox.innerText.includes("No messages yet")) {
+                msgBox.innerHTML = '';
+            }
+            
+            appendChatMessage("System", "Zero-latency direct WebRTC data connection initialized successfully!", "text-blue-600 font-bold italic");
+            showToast("Player match established!");
+            
+            // Play tab shift automatically to Interactive Canvas
+            switchTab('canvas');
+        }
+
+        // Setup drawing canvas properties and responsive layout
         function setupCanvas() {
             const dpr = window.devicePixelRatio || 1;
             const container = canvas.parentElement;
@@ -853,45 +694,153 @@
             ctx.lineJoin = "round";
             
             window.addEventListener('resize', () => {
-                const prevSnapshot = canvas.toDataURL();
-                const image = new Image();
-                image.onload = () => {
+                const prevDataUrl = canvas.toDataURL();
+                const img = new Image();
+                img.onload = () => {
                     canvas.width = container.clientWidth * dpr;
                     canvas.height = container.clientHeight * dpr;
                     ctx.scale(dpr, dpr);
                     ctx.lineCap = "round";
                     ctx.lineJoin = "round";
-                    ctx.drawImage(image, 0, 0, container.clientWidth, container.clientHeight);
+                    ctx.drawImage(img, 0, 0, container.clientWidth, container.clientHeight);
                 };
-                image.src = prevSnapshot;
+                img.src = prevDataUrl;
             });
         }
 
-        // Pencil stroke color change
-        window.changeColor = function(color) {
+        // Color toolbar handler
+        function changeColor(color, isEraser = false) {
             currentColor = color;
-            isErasing = false;
-            
-            // De-select eraser design element
-            document.getElementById('eraserBtn').className = "w-6 h-6 rounded-lg bg-slate-200 border border-slate-300 flex items-center justify-center hover:bg-slate-300 transition-all";
-            
-            const swatches = document.querySelectorAll('.color-swatch');
-            swatches.forEach(btn => {
-                btn.classList.remove('ring-2', 'ring-blue-500');
-            });
-            event.target.classList.add('ring-2', 'ring-blue-500');
-        };
-
-        // Eraser logic
-        window.activateEraser = function() {
-            isErasing = true;
-            document.getElementById('eraserBtn').className = "w-6 h-6 rounded-lg bg-indigo-100 border-2 border-indigo-500 flex items-center justify-center transition-all";
+            isDrawing = false;
             
             const swatches = document.querySelectorAll('.color-swatch');
             swatches.forEach(btn => btn.classList.remove('ring-2', 'ring-blue-500'));
-        };
+            
+            if (isEraser) {
+                document.getElementById('eraserBtn').classList.add('ring-2', 'ring-blue-500');
+            } else {
+                event.currentTarget.classList.add('ring-2', 'ring-blue-500');
+            }
+        }
 
-        // Pointer event monitors
+        // App Event Listeners
+        function setupEventListeners() {
+            // Manual connections
+            document.getElementById('connectBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                const targetId = document.getElementById('peerIdInput').value.trim();
+                if(targetId) initiateDirectConnection(targetId);
+            });
+
+            // Disconnect manually
+            document.getElementById('disconnectBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                if (conn) conn.close();
+            });
+
+            // Color Swatches
+            document.getElementById('colorBtn1').addEventListener('click', () => changeColor('#3b82f6'));
+            document.getElementById('colorBtn2').addEventListener('click', () => changeColor('#ef4444'));
+            document.getElementById('colorBtn3').addEventListener('click', () => changeColor('#10b981'));
+            document.getElementById('colorBtn4').addEventListener('click', () => changeColor('#1e293b'));
+            document.getElementById('eraserBtn').addEventListener('click', () => changeColor('#f8fafc', true)); // Matches background color
+
+            // Whiteboard Clear Event
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                clearCanvas(true);
+            });
+
+            // Canvas drawing touch & mouse interactions
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', () => {
+                stopDrawing();
+                sendCursorPosition(-100, -100);
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const mouseEvent = new MouseEvent("mousedown", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', () => {
+                canvas.dispatchEvent(new MouseEvent("mouseup", {}));
+            }, { passive: true });
+
+            // Chat handlers
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+            document.getElementById('sendChatBtn').addEventListener('click', sendChatMessage);
+
+            // Tic Tac Toe Interactions
+            document.querySelectorAll('.game-cell').forEach(cell => {
+                cell.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.getAttribute('data-index'));
+                    handleGameCellSelection(idx);
+                });
+            });
+
+            document.getElementById('resetGameBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                triggerResetGameAction(true);
+            });
+
+            // Copy Personal Peer ID
+            document.getElementById('copyIdBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                copyMyId();
+            });
+
+            // Instructions modal
+            document.getElementById('instructionsBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                document.getElementById('instructionsModal').classList.remove('hidden');
+            });
+            document.getElementById('closeInstructionsBtn').addEventListener('click', () => {
+                document.getElementById('instructionsModal').classList.add('hidden');
+            });
+            document.getElementById('gotItBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                document.getElementById('instructionsModal').classList.add('hidden');
+            });
+
+            // Tabs navigation
+            document.getElementById('tabLobbyBtn').addEventListener('click', () => switchTab('lobby'));
+            document.getElementById('tabCanvasBtn').addEventListener('click', () => switchTab('canvas'));
+            document.getElementById('tabGameBtn').addEventListener('click', () => switchTab('game'));
+
+            document.getElementById('refreshLobbyBtn').addEventListener('click', () => {
+                playSynthSound('click');
+                updateHeartbeat();
+                showToast("Refreshing matching lobby...");
+            });
+
+            // Auto-clean on disconnect or closing page
+            window.addEventListener('beforeunload', async () => {
+                if (db && activeUserUid) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lobby_peers', activeUserUid));
+                }
+            });
+        }
+
+        // Draw helper functions
         function startDrawing(e) {
             isDrawing = true;
             const rect = canvas.getBoundingClientRect();
@@ -901,7 +850,7 @@
             ctx.beginPath();
             ctx.moveTo(x, y);
             
-            sendDrawData('start', x, y, isErasing ? '#f8fafc' : currentColor, getBrushWidth());
+            sendDrawData('start', x, y, currentColor, getLineWidth());
         }
 
         function draw(e) {
@@ -909,17 +858,16 @@
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // Share local pointer coordinate to companion screen
             sendCursorPosition(x, y);
 
             if (!isDrawing) return;
 
             ctx.lineTo(x, y);
-            ctx.strokeStyle = isErasing ? '#f8fafc' : currentColor;
-            ctx.lineWidth = getBrushWidth();
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = getLineWidth();
             ctx.stroke();
 
-            sendDrawData('draw', x, y, isErasing ? '#f8fafc' : currentColor, getBrushWidth());
+            sendDrawData('draw', x, y, currentColor, getLineWidth());
         }
 
         function stopDrawing() {
@@ -930,29 +878,18 @@
             }
         }
 
-        function getBrushWidth() {
-            return isErasing ? 20 : parseInt(document.getElementById('lineWidth').value) || 4;
+        function getLineWidth() {
+            return parseInt(document.getElementById('lineWidth').value) || 4;
         }
 
-        // Shared screen clean up
-        window.clearCanvas = function(notifyPeer = false) {
+        function clearCanvas(notifyPeer = false) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (notifyPeer && conn) {
                 conn.send({ type: 'clear' });
             }
-        };
+        }
 
-        // Save board sketch canvas locally
-        window.saveCanvasLocally = function() {
-            const imageUri = canvas.toDataURL("image/png");
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.download = `SENTERNET_Sketch_${Date.now()}.png`;
-            downloadAnchor.href = imageUri;
-            downloadAnchor.click();
-            showToast("Canvas image saved to downloads!");
-        };
-
-        // Share dynamic drawing properties to matching peer connection
+        // Data sync communications
         function sendDrawData(action, x, y, color, width) {
             if (!conn) return;
             conn.send({
@@ -974,8 +911,79 @@
             });
         }
 
-        // Render draw coordinate updates from remote peer
-        function handleRemoteDrawingStroke(data) {
+        function sendWelcomeSync() {
+            if (!conn) return;
+            conn.send({
+                type: 'sync-setup',
+                canvasSnapshot: canvas.toDataURL(),
+                username: myUsername
+            });
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            playSynthSound('click');
+            appendChatMessage("You", message, "text-slate-800");
+            input.value = "";
+
+            if (conn) {
+                conn.send({
+                    type: 'chat',
+                    sender: myUsername,
+                    text: message
+                });
+            }
+        }
+
+        function appendChatMessage(sender, text, styleClass = "text-slate-800") {
+            const msgBox = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-2 rounded-xl bg-white border border-slate-100 shadow-sm ${styleClass} text-xs leading-relaxed`;
+            messageDiv.innerHTML = `<span class="font-extrabold text-slate-900 block mb-0.5 text-[10px] uppercase tracking-wide">${sender}</span> ${text}`;
+            msgBox.appendChild(messageDiv);
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }
+
+        // P2P Signal Router
+        function handleIncomingP2PData(data) {
+            if (!data) return;
+
+            switch (data.type) {
+                case 'canvas':
+                    handleRemoteCanvasDrawing(data);
+                    break;
+                case 'cursor':
+                    handleRemoteCursorPosition(data);
+                    break;
+                case 'clear':
+                    clearCanvas(false);
+                    showToast("Workspace whiteboard cleared by your partner.");
+                    break;
+                case 'chat':
+                    appendChatMessage(data.sender, data.text, "text-blue-600");
+                    break;
+                case 'sync-setup':
+                    loadRemoteCanvasSnapshot(data.canvasSnapshot);
+                    if (data.username) {
+                        document.getElementById('activePeerName').innerText = data.username;
+                    }
+                    break;
+                case 'game-move':
+                    executeOpponentGameMove(data.index, data.symbol);
+                    break;
+                case 'game-reset':
+                    triggerResetGameAction(false);
+                    break;
+                case 'lobby-busy':
+                    showToast("The requested peer is currently in another match.");
+                    break;
+            }
+        }
+
+        function handleRemoteCanvasDrawing(data) {
             if (data.action === 'start') {
                 ctx.beginPath();
                 ctx.moveTo(data.x, data.y);
@@ -989,8 +997,7 @@
             }
         }
 
-        // Position pointer indicator tag representing peer cursor
-        function updatePeerMouseIndicator(data) {
+        function handleRemoteCursorPosition(data) {
             const cursorElem = document.getElementById('peerCursor');
             if (data.x === -100 && data.y === -100) {
                 cursorElem.classList.add('hidden');
@@ -999,8 +1006,6 @@
             cursorElem.classList.remove('hidden');
             cursorElem.style.left = `${data.x}px`;
             cursorElem.style.top = `${data.y}px`;
-            
-            document.getElementById('peerCursorLabel').innerText = partnerProfile ? partnerProfile.username : "Friend";
         }
 
         function loadRemoteCanvasSnapshot(dataUrl) {
@@ -1012,142 +1017,22 @@
             img.src = dataUrl;
         }
 
-        // P2P Voice Call Handler
-        document.getElementById('voiceCallBtn').addEventListener('click', () => {
-            if (currentCallObj) {
-                // Terminate call
-                hangUpActiveVoiceCall();
-            } else {
-                // Initiate call
-                startOutboundVoiceCall();
-            }
-        });
-
-        function startOutboundVoiceCall() {
-            if (!conn) return;
-            showToast("Requesting voice call channel...");
-            
-            navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-                localStream = stream;
-                const call = peer.call(conn.peer, stream);
-                handleActiveVoiceCall(call);
-            }).catch((err) => {
-                console.error("Audio stream acquisition failed: ", err);
-                showToast("Microphone access is required.", true);
-            });
-        }
-
-        function handleActiveVoiceCall(call) {
-            currentCallObj = call;
-            
-            // Visual indicator state updates
-            document.getElementById('voiceCallText').innerText = "End Call";
-            document.getElementById('voiceCallIcon').className = "fa-solid fa-phone-slash";
-            document.getElementById('voiceCallBtn').className = "bg-red-500 hover:bg-red-600 text-white border-none rounded-xl px-4 py-2.5 text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-red-100";
-            document.getElementById('voiceCallVisualizer').classList.remove('hidden');
-            document.getElementById('voiceCallVisualizer').classList.add('flex');
-            
-            call.on('stream', (remoteStream) => {
-                const remoteAudioElem = document.getElementById('remoteAudio');
-                remoteAudioElem.srcObject = remoteStream;
-                showToast("Voice Call Channel established!", false);
-            });
-
-            call.on('close', () => {
-                resetVoiceCallWidgetState();
-            });
-        }
-
-        function hangUpActiveVoiceCall() {
-            if (currentCallObj) {
-                currentCallObj.close();
-            }
-            resetVoiceCallWidgetState();
-        }
-
-        function resetVoiceCallWidgetState() {
-            currentCallObj = null;
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-            document.getElementById('remoteAudio').srcObject = null;
-            document.getElementById('voiceCallText').innerText = "Start Voice Call";
-            document.getElementById('voiceCallIcon').className = "fa-solid fa-phone";
-            document.getElementById('voiceCallBtn').className = "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl px-4 py-2.5 text-xs font-bold flex items-center gap-2 transition shadow-sm";
-            document.getElementById('voiceCallVisualizer').classList.remove('flex');
-            document.getElementById('voiceCallVisualizer').classList.add('hidden');
-        }
-
-        // Shared Streaming Co-Watch Web system logic
-        document.getElementById('broadcastStreamBtn').addEventListener('click', () => {
-            const mode = document.getElementById('streamMode').value;
-            const rawUrl = document.getElementById('streamUrlInput').value.trim();
-
-            if (!rawUrl) {
-                showToast("Please input link to synchronize.", true);
-                return;
-            }
-
-            let finalUrl = rawUrl;
-            if (mode === 'youtube') {
-                finalUrl = extractYoutubeEmbedUrl(rawUrl);
-            }
-
-            // Sync with local frame first
-            handleSharedStreamPlayback(mode, finalUrl);
-
-            // Broadcast data to connected companion
-            if (conn) {
-                conn.send({
-                    type: 'stream-broadcast',
-                    mode: mode,
-                    url: finalUrl
-                });
-                showToast("Broadcasting stream configuration to companion!");
-            }
-        } );
-
-        function extractYoutubeEmbedUrl(url) {
-            let videoId = "";
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            if (match && match[2].length === 11) {
-                videoId = match[2];
-            } else {
-                videoId = url; // assume ID was directly input
-            }
-            return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-        }
-
-        function handleSharedStreamPlayback(mode, url) {
-            const iframe = document.getElementById('coWatchIframe');
-            const placeholder = document.getElementById('coWatchPlaceholder');
-
-            placeholder.classList.add('hidden');
-            iframe.classList.remove('hidden');
-            iframe.src = url;
-
-            showToast("Screen playback updated successfully.");
-        }
-
-        // Tic Tac Toe Game module
+        // Tic Tac Toe Gameplay Hub
         function startGameHub() {
             gameActive = true;
             gameState = ["", "", "", "", "", "", "", "", ""];
-            currentTurn = "X"; // Default host plays first
+            currentTurn = "X"; // Host always moves first
             
             document.querySelectorAll('.game-cell').forEach(cell => {
                 cell.innerText = "";
-                cell.className = "game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition";
+                cell.className = "game-cell w-full h-full bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-slate-700 transition hover:bg-slate-100 cursor-pointer";
                 cell.removeAttribute('disabled');
             });
 
             document.getElementById('resetGameBtn').removeAttribute('disabled');
             
-            // Username mappings
-            document.getElementById('playerXName').innerText = isHost ? "You (X)" : (partnerProfile?.username || "Friend") + " (X)";
-            document.getElementById('playerOName').innerText = isHost ? (partnerProfile?.username || "Friend") + " (O)" : "You (O)";
+            document.getElementById('playerXName').innerText = isHost ? "You (X)" : "Friend (X)";
+            document.getElementById('playerOName').innerText = isHost ? "Friend (O)" : "You (O)";
             
             updateGameTurnIndicator();
         }
@@ -1155,11 +1040,10 @@
         function handleGameCellSelection(index) {
             if (!gameActive || gameState[index] !== "" || currentTurn !== mySymbol) return;
 
-            // Register choice
+            playSynthSound('click');
             gameState[index] = mySymbol;
             updateGameBoardUI();
             
-            // Broadcast moves
             if (conn) {
                 conn.send({
                     type: 'game-move',
@@ -1182,7 +1066,7 @@
             checkGameVerdictStatus();
 
             if (gameActive) {
-                currentTurn = mySymbol; 
+                currentTurn = mySymbol;
                 updateGameTurnIndicator();
             }
         }
@@ -1202,11 +1086,11 @@
         function updateGameTurnIndicator() {
             const turnIndicator = document.getElementById('gameStatusIndicator');
             if (currentTurn === mySymbol) {
-                turnIndicator.innerText = "⭐ Your Turn! Make a Move.";
-                turnIndicator.className = "text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-4 py-1.5 rounded-full mb-6 animate-pulse";
+                turnIndicator.innerText = "⭐ It's Your Turn! Make a move.";
+                turnIndicator.className = "text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-4 py-1.5 rounded-full mb-6 animate-pulse";
             } else {
-                turnIndicator.innerText = "Waiting for companion decision move...";
-                turnIndicator.className = "text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full mb-6";
+                turnIndicator.innerText = "Opponent is deciding on a move...";
+                turnIndicator.className = "text-sm font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full mb-6";
             }
         }
 
@@ -1241,11 +1125,15 @@
 
                 const turnIndicator = document.getElementById('gameStatusIndicator');
                 if (isWinnerMe) {
-                    turnIndicator.innerText = "🎉 Match Won! You defeated opponent!";
-                    turnIndicator.className = "text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-5 py-2 rounded-full mb-6 shadow-md";
+                    playSynthSound('win');
+                    turnIndicator.innerText = "🎉 Victory! You won the game.";
+                    turnIndicator.className = "text-sm font-semibold text-emerald-800 bg-emerald-100 border border-emerald-200 px-5 py-2 rounded-full mb-6 shadow-md";
+                    showToast("You won the match!");
                 } else {
-                    turnIndicator.innerText = "😔 Defeat! Opponent takes the round.";
-                    turnIndicator.className = "text-xs font-bold text-red-800 bg-red-100 border border-red-200 px-5 py-2 rounded-full mb-6 shadow-md";
+                    playSynthSound('lose');
+                    turnIndicator.innerText = "😔 Defeat! Opponent won the game.";
+                    turnIndicator.className = "text-sm font-semibold text-red-800 bg-red-100 border border-red-200 px-5 py-2 rounded-full mb-6 shadow-md";
+                    showToast("Opponent won the match.");
                 }
                 return;
             }
@@ -1254,8 +1142,9 @@
             if (isBoardFilled) {
                 gameActive = false;
                 const turnIndicator = document.getElementById('gameStatusIndicator');
-                turnIndicator.innerText = "🤝 Match Draw! Try again.";
-                turnIndicator.className = "text-xs font-bold text-blue-800 bg-blue-100 border border-blue-200 px-5 py-2 rounded-full mb-6 shadow-md";
+                turnIndicator.innerText = "🤝 Match Drawn! Great game.";
+                turnIndicator.className = "text-sm font-semibold text-blue-800 bg-blue-100 border border-blue-200 px-5 py-2 rounded-full mb-6 shadow-md";
+                showToast("It is a draw!");
             }
         }
 
@@ -1266,308 +1155,103 @@
             updateGameBoardUI();
             updateGameTurnIndicator();
 
-            const cells = document.querySelectorAll('.game-cell');
-            cells.forEach(c => c.classList.remove('ring-4', 'ring-emerald-400'));
-
             if (isLocalAction && conn) {
                 conn.send({ type: 'game-reset' });
-                showToast("Sent game restart proposal!");
+                showToast("Sent game restart request to peer!");
             } else if (!isLocalAction) {
-                showToast("Match restarted by partner!");
+                showToast("Game restarted by your friend!");
             }
         }
 
-        // Send Text Chats
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            appendChatMessage("You", message, "text-slate-800 font-medium");
-            input.value = "";
-
-            if (conn) {
-                conn.send({
-                    type: 'chat',
-                    text: message
-                });
-            }
-        }
-
-        function appendChatMessage(sender, text, styleClass = "text-slate-800") {
-            const msgFeed = document.getElementById('chatMessages');
-            const mobileFeed = document.getElementById('mobileChatMessages');
-
-            const makeMsgDiv = () => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `p-2 rounded-xl bg-white border border-slate-100 shadow-sm ${styleClass} text-xs leading-relaxed`;
-                messageDiv.innerHTML = `<span class="font-extrabold text-slate-900 block mb-0.5 text-[9px] uppercase tracking-wide">${sender}</span> ${text}`;
-                return messageDiv;
-            };
-
-            // Feed desktop
-            msgFeed.appendChild(makeMsgDiv());
-            msgFeed.scrollTop = msgFeed.scrollHeight;
-
-            // Feed mobile tab
-            if(mobileFeed) {
-                if(mobileFeed.innerText.includes("Please use the side")) {
-                    mobileFeed.innerHTML = '';
-                }
-                mobileFeed.appendChild(makeMsgDiv());
-                mobileFeed.scrollTop = mobileFeed.scrollHeight;
-            }
-        }
-
-        // User Identity profile config modal logic
-        window.openProfileModal = function() {
-            document.getElementById('profileModal').classList.remove('hidden');
-        };
-
-        window.closeProfileModal = function() {
-            document.getElementById('profileModal').classList.add('hidden');
-        };
-
-        function renderAvatarSelectionGrid() {
-            const grid = document.getElementById('avatarSelectorGrid');
-            grid.innerHTML = '';
-            avatarList.forEach(url => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.className = "w-12 h-12 rounded-xl object-cover cursor-pointer border-2 border-transparent hover:border-indigo-500 transition-all avatar-preset-option";
-                img.addEventListener('click', (e) => {
-                    document.querySelectorAll('.avatar-preset-option').forEach(i => i.classList.remove('border-indigo-500'));
-                    e.target.classList.add('border-indigo-500');
-                    document.getElementById('customAvatarInputUrl').value = url;
-                });
-                grid.appendChild(img);
-            });
-        }
-
-        window.confirmProfileSelection = function() {
-            const customUrl = document.getElementById('customAvatarInputUrl').value.trim();
-            if(customUrl) {
-                myProfile.avatar = customUrl;
-            }
-            closeProfileModal();
-            saveProfileUpdateLocal();
-        };
-
-        // Profile Storage & Registration Updates
-        document.getElementById('saveProfileBtn').addEventListener('click', () => {
-            saveProfileUpdateLocal();
-        });
-
-        function saveProfileUpdateLocal() {
-            const userText = document.getElementById('usernameInput').value.trim();
-            const bioText = document.getElementById('bioInput').value.trim();
-            
-            if (userText) myProfile.username = userText;
-            if (bioText) myProfile.bio = bioText;
-
-            // Save to localStorage
-            localStorage.setItem('senternet_profile', JSON.stringify(myProfile));
-
-            // Sync visuals
-            document.getElementById('headerUsername').innerText = myProfile.username;
-            document.getElementById('headerAvatar').src = myProfile.avatar;
-            document.getElementById('currentAvatarImg').src = myProfile.avatar;
-
-            // Sync to lobby database
-            broadcastProfileToLobby();
-            showToast("Profile details updated globally!");
-        }
-
-        function loadProfileFromLocalStorage() {
-            const data = localStorage.getItem('senternet_profile');
-            if (data) {
-                try {
-                    const parsed = JSON.parse(data);
-                    myProfile.username = parsed.username || myProfile.username;
-                    myProfile.avatar = parsed.avatar || myProfile.avatar;
-                    myProfile.bio = parsed.bio || myProfile.bio;
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        }
-
-        // Direct fallback connect button
-        document.getElementById('directConnectBtn').addEventListener('click', () => {
-            const targetId = document.getElementById('directPeerId').value.trim();
-            initiateOutboundConnection(targetId);
-        });
-
-        // Close peer link clean up action
-        document.getElementById('endSessionBtn').addEventListener('click', () => {
-            if (conn) {
-                conn.close();
-            }
-            handlePeerDisconnect();
-        });
-
-        function handlePeerDisconnect() {
+        // Handle disconnect cleanup
+        async function handlePeerDisconnect() {
             conn = null;
-            partnerProfile = null;
+            document.getElementById('connectionBadge').innerHTML = `<i class="fa-solid fa-circle text-[8px]"></i> Offline`;
+            document.getElementById('connectionBadge').className = "bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm";
+            document.getElementById('activeSessionCard').classList.add('hidden');
             
-            document.getElementById('activePeerName').innerText = "No Active Partner";
-            document.getElementById('activePeerBio').innerText = "Establish P2P connection to communicate.";
-            document.getElementById('activePeerAvatar').src = "https://picsum.photos/id/1012/80/80";
-            document.getElementById('activePeerStatusDot').className = "absolute bottom-[-2px] right-[-2px] w-3.5 h-3.5 bg-slate-400 border-2 border-white rounded-full";
-            
-            document.getElementById('interactiveStatus').innerText = "Standby";
-            document.getElementById('interactiveStatus').className = "text-slate-500 font-bold";
-
-            // Disable controls
             document.getElementById('chatInput').setAttribute('disabled', 'true');
             document.getElementById('sendChatBtn').setAttribute('disabled', 'true');
-            document.getElementById('sendChatBtn').className = "bg-slate-100 text-slate-400 px-3.5 rounded-xl transition text-xs font-bold";
-            document.getElementById('voiceCallBtn').setAttribute('disabled', 'true');
-            document.getElementById('endSessionBtn').classList.add('hidden');
-            document.getElementById('broadcastStreamBtn').setAttribute('disabled', 'true');
-
-            // Game disable
+            document.getElementById('sendChatBtn').className = "bg-slate-100 text-slate-400 px-3.5 py-2 rounded-xl transition shadow-sm";
+            
             document.querySelectorAll('.game-cell').forEach(cell => {
                 cell.setAttribute('disabled', 'true');
                 cell.innerText = "";
             });
             document.getElementById('resetGameBtn').setAttribute('disabled', 'true');
-            document.getElementById('gameStatusIndicator').innerText = "Connect to a Peer in the lobby to begin match";
-            document.getElementById('gameStatusIndicator').className = "text-xs font-semibold text-slate-700 bg-amber-50 border border-amber-100 px-4 py-1.5 rounded-full mb-6";
+            document.getElementById('gameStatusIndicator').innerText = "Waiting for peer connection to begin...";
+            document.getElementById('gameStatusIndicator').className = "text-sm font-semibold text-slate-700 bg-amber-50 border border-amber-100 px-4 py-1.5 rounded-full mb-6";
 
-            // Close call
-            hangUpActiveVoiceCall();
-
-            showToast("Companion disconnected.");
+            showToast("Peer disconnected.");
+            updateHeartbeat(); // Set state back to "available"
+            switchTab('lobby');
         }
 
-        // Clean lobby item on page unload
-        window.addEventListener('beforeunload', async () => {
-            if (myId) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lobby', myId));
-            }
-        });
-
-        // Drawing workspace listeners integration
-        function setupEventListeners() {
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseleave', () => {
-                stopDrawing();
-                sendCursorPosition(-100, -100);
-            });
-
-            // Touch events support for mobile devices
-            canvas.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent("mousedown", {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            }, { passive: true });
-
-            canvas.addEventListener('touchmove', (e) => {
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent("mousemove", {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            }, { passive: true });
-
-            canvas.addEventListener('touchend', () => {
-                const mouseEvent = new MouseEvent("mouseup", {});
-                canvas.dispatchEvent(mouseEvent);
-            }, { passive: true });
-
-            // Chat send keys
-            document.getElementById('chatInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendChatMessage();
-            });
-            document.getElementById('sendChatBtn').addEventListener('click', sendChatMessage);
-
-            // Tic Tac Toe Actions
-            document.querySelectorAll('.game-cell').forEach(cell => {
-                cell.addEventListener('click', (e) => {
-                    const idx = parseInt(e.target.getAttribute('data-index'));
-                    handleGameCellSelection(idx);
-                });
-            });
-
-            document.getElementById('resetGameBtn').addEventListener('click', () => {
-                triggerResetGameAction(true);
-            });
-        }
-
-        // Layout Navigation switches
-        window.switchTab = function(tabId) {
+        // Tab Switcher Controller
+        function switchTab(tabId) {
             activeTab = tabId;
-            const canvasTab = document.getElementById('canvasTabContent');
-            const streamTab = document.getElementById('streamTabContent');
-            const gameTab = document.getElementById('gameTabContent');
-            const chatTab = document.getElementById('chatTabContent');
+            playSynthSound('click');
             
+            const lobbyTab = document.getElementById('lobbyTabContent');
+            const canvasTab = document.getElementById('canvasTabContent');
+            const gameTab = document.getElementById('gameTabContent');
+            
+            const lobbyBtn = document.getElementById('tabLobbyBtn');
             const canvasBtn = document.getElementById('tabCanvasBtn');
-            const streamBtn = document.getElementById('tabStreamBtn');
             const gameBtn = document.getElementById('tabGameBtn');
-            const chatBtn = document.getElementById('tabChatBtn');
 
             // Hide all tabs
-            [canvasTab, streamTab, gameTab, chatTab].forEach(t => t?.classList.add('hidden'));
-            
-            // De-activate all buttons
-            [canvasBtn, streamBtn, gameBtn, chatBtn].forEach(b => {
-                if(b) b.className = "px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition";
-            });
+            lobbyTab.classList.add('hidden');
+            canvasTab.classList.add('hidden');
+            gameTab.classList.add('hidden');
 
-            if (tabId === 'canvas') {
+            // Reset buttons style
+            const defaultBtnClass = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition";
+            lobbyBtn.className = defaultBtnClass;
+            canvasBtn.className = defaultBtnClass;
+            gameBtn.className = defaultBtnClass;
+
+            if (tabId === 'lobby') {
+                lobbyTab.classList.remove('hidden');
+                lobbyBtn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center gap-2 transition shadow-md shadow-blue-100";
+            } else if (tabId === 'canvas') {
                 canvasTab.classList.remove('hidden');
-                canvasBtn.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-blue-600 flex items-center gap-2 transition";
-            } else if (tabId === 'stream') {
-                streamTab.classList.remove('hidden');
-                streamBtn.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-600 flex items-center gap-2 transition";
-            } else if (tabId === 'game') {
-                gameTab.classList.remove('hidden');
-                gameBtn.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-600 flex items-center gap-2 transition";
-            } else if (tabId === 'chat') {
-                chatTab.classList.remove('hidden');
-                chatBtn.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-blue-600 flex items-center gap-2 transition";
-            }
-        };
-
-        window.copyMyId = function() {
-            if (myId) {
-                const tempTextArea = document.createElement('textarea');
-                tempTextArea.value = myId;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempTextArea);
-                showToast("My Peer ID copied to Clipboard!");
-            }
-        };
-
-        window.showToast = function(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toastIcon');
-            
-            document.getElementById('toastMessage').innerText = message;
-            
-            if (isError) {
-                toastIcon.className = "fa-solid fa-circle-exclamation text-red-500";
+                canvasBtn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center gap-2 transition shadow-md shadow-blue-100";
             } else {
-                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+                gameTab.classList.remove('hidden');
+                gameBtn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center gap-2 transition shadow-md shadow-blue-100";
             }
+        }
 
+        // Helper Tools
+        function copyMyId() {
+            if (myId) {
+                const el = document.createElement('textarea');
+                el.value = myId;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                showToast("My Peer ID Copied!");
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
             toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-0 opacity-100 flex items-center gap-2 z-50";
             
             setTimeout(() => {
                 toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-2 z-50";
             }, 3000);
-        };
+        }
 
+        // Fire initialization sequence on DOM content load
+        window.addEventListener('DOMContentLoaded', () => {
+            setupCanvas();
+            setupEventListeners();
+        });
     </script>
 </body>
 </html>
+
