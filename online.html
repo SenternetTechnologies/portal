@@ -1,0 +1,1421 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTERNET P2P Connect - Ultimate Serverless Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PeerJS Library -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- MQTT Client Library for serverless decentralized room listing and lobbies -->
+    <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .lobby-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .lobby-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(59, 130, 246, 0.15);
+        }
+        .gift-bounce {
+            animation: bounceGift 0.8s ease-out infinite alternate;
+        }
+        @keyframes bounceGift {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-8px) scale(1.05); }
+        }
+        .floating-emoji {
+            position: absolute;
+            bottom: 20px;
+            font-size: 2.5rem;
+            pointer-events: none;
+            animation: floatUp 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            z-index: 50;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(-50px) scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: translateY(-400px) scale(0.8) rotate(-20deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2.5 rounded-2xl shadow-lg shadow-blue-200">
+                    <i class="fa-solid fa-headset text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl text-slate-900 tracking-tight flex items-center gap-2">
+                        SENTERNET P2P Connect
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-bold">V2.0 LIVE</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-semibold">Databaseless Multi-User Voice & Collaborative Arena</p>
+                </div>
+            </div>
+
+            <!-- Profile & Global Lobby Status -->
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+                <div id="lobbyStatusBadge" class="bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-notch animate-spin"></i> Connecting Lobby...
+                </div>
+                
+                <div class="bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 flex items-center gap-2">
+                    <span id="userAvatarDisp" class="text-base">👤</span>
+                    <span id="userNameDisp" class="text-blue-600">Anonymous</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Setup Modal (For Username selection) -->
+    <div id="setupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl border border-slate-100 p-8 max-w-md w-full shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                    🚀
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900">Welcome to SENTERNET Arena</h3>
+                <p class="text-xs text-slate-500 font-semibold mt-1">Set up your username for automatic lobby discovery</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">Select Avatar Emoji</label>
+                    <div class="grid grid-cols-6 gap-2" id="avatarSelector">
+                        <button onclick="selectAvatar('😎')" class="avatar-btn text-2xl p-2 bg-slate-50 border-2 border-transparent rounded-xl hover:bg-blue-50 transition active:scale-95">😎</button>
+                        <button onclick="selectAvatar('🦊')" class="avatar-btn text-2xl p-2 bg-slate-50 border-2 border-transparent rounded-xl hover:bg-blue-50 transition active:scale-95">🦊</button>
+                        <button onclick="selectAvatar('👾')" class="avatar-btn text-2xl p-2 bg-slate-50 border-2 border-transparent rounded-xl hover:bg-blue-50 transition active:scale-95">👾</button>
+                        <button onclick="selectAvatar('🦁')" class="avatar-btn text-2xl p-2 bg-slate-50 border-2 border-transparent rounded-xl hover:bg-blue-50 transition active:scale-95">🦁</button>
+                        <button onclick="selectAvatar('🚀')" class="avatar-btn text-2xl p-2 bg-slate-50 border-2 border-transparent rounded-xl hover:bg-blue-50 transition active:scale-95">🚀</button>
+                        <button onclick="selectAvatar('⭐')" class="avatar-btn text-2xl p-2 bg-slate-50 border-2 border-transparent rounded-xl hover:bg-blue-50 transition active:scale-95">⭐</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">Display Username</label>
+                    <input type="text" id="usernameInput" placeholder="Enter Cool Username..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+
+                <button id="saveProfileBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm py-3 rounded-xl transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
+                    Enter Decentralized Lobby <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dynamic Application Window -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
+        
+        <!-- LOBBY SCREEN (Grid layout: Users directory and Public Room directory) -->
+        <div id="lobbyScreen" class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Lobby Panel (Online directory) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- User Profile & Manual Discovery -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-passport text-blue-600"></i> My P2P Passport
+                    </h3>
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-xl mb-3">
+                        <div class="text-xs font-bold text-slate-600">Your PeerJS ID:</div>
+                        <div class="flex items-center gap-1.5 overflow-hidden">
+                            <span id="p2pRawId" class="text-[10px] font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded select-all truncate max-w-[150px]">Loading...</span>
+                            <button onclick="copyMyId()" class="text-slate-500 hover:text-blue-600 transition shrink-0"><i class="fa-regular fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <button onclick="triggerRandomMatch()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-3 rounded-xl transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i> Match with Random User
+                    </button>
+                </div>
+
+                <!-- Online Active Users List (Decentralized Serverless State) -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col flex-grow min-h-[300px]">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-blue-600"></i> Online Pioneers
+                        </h3>
+                        <span id="onlineCountBadge" class="bg-blue-50 text-blue-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">0 Online</span>
+                    </div>
+
+                    <div id="onlineUsersContainer" class="space-y-2 flex-grow overflow-y-auto max-h-[380px] text-xs pr-1">
+                        <!-- Dynamic Peer Cards list inside Lobby -->
+                        <div class="text-center text-slate-400 italic py-6">
+                            Waiting for other users to join the lobby...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Lobby Panel (Rooms and Workspace control) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                
+                <!-- Quick Room Creation & Lobby Hero -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-blue-100 relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 opacity-10 translate-y-12 translate-x-6">
+                        <i class="fa-solid fa-microphone-lines text-[180px]"></i>
+                    </div>
+                    <div class="relative z-10 max-w-lg">
+                        <h2 class="text-xl sm:text-2xl font-extrabold mb-2">Connect, Share Screens, and Chat Live!</h2>
+                        <p class="text-xs text-blue-100 leading-relaxed font-medium mb-5">Create a room automatically listed for everyone in the serverless lobby. Invite up to 4 speakers on the live stage with video & voice support!</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="roomNameInput" placeholder="Enter Room Topic (e.g., SENTERNET Hackathon)..." class="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2.5 text-sm font-semibold text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white">
+                            <button onclick="createNewPublicRoom()" class="bg-white text-blue-600 hover:bg-blue-50 font-extrabold text-xs px-5 py-3 rounded-xl transition shadow-md flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Create Public Room
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Public Rooms Dashboard -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm min-h-[350px]">
+                    <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Decentralized Live Rooms</h3>
+                            <p class="text-[11px] text-slate-500 font-medium">Join rooms created by online peers instantly</p>
+                        </div>
+                        <i class="fa-solid fa-globe text-slate-400 text-lg"></i>
+                    </div>
+
+                    <div id="activeRoomsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Dynamic Rooms Cards rendered here -->
+                        <div class="col-span-full text-center text-slate-400 italic py-12 border-2 border-dashed border-slate-100 rounded-2xl">
+                            <i class="fa-regular fa-folder-open text-3xl mb-2 text-slate-300 block animate-pulse"></i>
+                            No active rooms right now. Click "Create Public Room" to start your own!
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- LIVE ACTIVE ROOM SYSTEM (Grid layout: Video Panels, Whiteboard, and Gift Hub) -->
+        <div id="roomScreen" class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 hidden">
+            
+            <!-- Room Left Column: Video stage and Seats UI -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <!-- Room Header -->
+                <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg shadow-sm">
+                            <i class="fa-solid fa-door-open"></i>
+                        </div>
+                        <div>
+                            <h2 id="currentRoomTitle" class="font-bold text-base text-slate-900">Room Topic</h2>
+                            <p class="text-[10px] text-slate-500 font-semibold flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                Hosted by: <span id="currentRoomHost" class="text-blue-600">Anonymous</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleMyMicrophone()" id="micToggleBtn" class="bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 w-10 h-10 rounded-xl transition flex items-center justify-center shadow-sm animate-pulse" title="Mute/Unmute Mic">
+                            <i id="micIcon" class="fa-solid fa-microphone"></i>
+                        </button>
+                        <button onclick="toggleMyCamera()" id="camToggleBtn" class="bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 w-10 h-10 rounded-xl transition flex items-center justify-center shadow-sm" title="Turn Camera On/Off">
+                            <i id="camIcon" class="fa-solid fa-video-slash"></i>
+                        </button>
+                        <button onclick="leaveActiveRoom()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-red-100">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Leave Room
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Voice/Video Stage (Interactive Seats Grid) -->
+                <div class="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm">
+                    <h3 class="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-play text-red-500"></i> Interactive Stage Seats
+                    </h3>
+
+                    <!-- Grid of 4 Interactive Seats -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="stageGrid">
+                        <!-- Seat 1 (Always Host) -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden shadow-inner">
+                            <div class="absolute top-2 left-2 bg-indigo-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow z-10">HOST</div>
+                            <video id="video-seat-1" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover rounded-xl bg-slate-900 hidden"></video>
+                            <div id="placeholder-seat-1" class="text-center relative z-10">
+                                <div class="text-3xl mb-1">👑</div>
+                                <div class="font-bold text-xs text-slate-700" id="seat-1-name">Host Name</div>
+                            </div>
+                        </div>
+
+                        <!-- Seat 2 (Speaker Seat) -->
+                        <div onclick="requestSeat(2)" id="seat-box-2" class="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden transition hover:border-blue-500 group">
+                            <video id="video-seat-2" autoplay playsinline class="absolute inset-0 w-full h-full object-cover rounded-xl bg-slate-900 hidden"></video>
+                            <div id="placeholder-seat-2" class="text-center relative z-10">
+                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 group-hover:bg-blue-50 group-hover:text-blue-500 transition shadow-inner">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </div>
+                                <span class="font-extrabold text-[10px] text-slate-400 tracking-wide uppercase" id="seat-2-label">Seat 2 (Empty)</span>
+                            </div>
+                        </div>
+
+                        <!-- Seat 3 (Speaker Seat) -->
+                        <div onclick="requestSeat(3)" id="seat-box-3" class="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden transition hover:border-blue-500 group">
+                            <video id="video-seat-3" autoplay playsinline class="absolute inset-0 w-full h-full object-cover rounded-xl bg-slate-900 hidden"></video>
+                            <div id="placeholder-seat-3" class="text-center relative z-10">
+                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 group-hover:bg-blue-50 group-hover:text-blue-500 transition shadow-inner">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </div>
+                                <span class="font-extrabold text-[10px] text-slate-400 tracking-wide uppercase" id="seat-3-label">Seat 3 (Empty)</span>
+                            </div>
+                        </div>
+
+                        <!-- Seat 4 (Speaker Seat) -->
+                        <div onclick="requestSeat(4)" id="seat-box-4" class="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden transition hover:border-blue-500 group">
+                            <video id="video-seat-4" autoplay playsinline class="absolute inset-0 w-full h-full object-cover rounded-xl bg-slate-900 hidden"></video>
+                            <div id="placeholder-seat-4" class="text-center relative z-10">
+                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 group-hover:bg-blue-50 group-hover:text-blue-500 transition shadow-inner">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </div>
+                                <span class="font-extrabold text-[10px] text-slate-400 tracking-wide uppercase" id="seat-4-label">Seat 4 (Empty)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collaborative Shared Whiteboard Canvas Inside Room -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-4 shadow-sm flex flex-col min-h-[400px] relative">
+                    <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-3">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-slate-900">Multi-User Live Board</h3>
+                            <span class="text-[9px] bg-blue-100 text-blue-700 font-extrabold px-2 py-0.5 rounded-full">SHARED SCREEN</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                                <button onclick="changeColor('#3b82f6')" class="w-5 h-5 rounded-full bg-blue-500 border-2 border-white ring-2 ring-blue-500 transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                                <button onclick="changeColor('#ef4444')" class="w-5 h-5 rounded-full bg-red-500 border-2 border-white transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                                <button onclick="changeColor('#10b981')" class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                                <button onclick="changeColor('#1e293b')" class="w-5 h-5 rounded-full bg-slate-800 border-2 border-white transition-transform hover:scale-110 active:scale-95 color-swatch"></button>
+                            </div>
+                            <button onclick="clearCanvas(true)" class="bg-red-50 text-red-600 border border-red-200 rounded-lg px-2.5 py-1 text-xs font-bold transition">
+                                Clear Canvas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Workspace -->
+                    <div class="flex-grow bg-slate-50 border border-slate-200/60 rounded-2xl relative overflow-hidden min-h-[260px]">
+                        <canvas id="sharedCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                        
+                        <!-- Peer Live Cursor marker -->
+                        <div id="peerCursor" class="absolute pointer-events-none hidden" style="left: 0px; top: 0px;">
+                            <i class="fa-solid fa-arrow-pointer text-blue-600 drop-shadow-md text-sm transform -rotate-90"></i>
+                            <span id="peerCursorLabel" class="ml-2 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg">Friend</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Right Column: Chat, Gift system, and audience panel -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Virtual Gift Sender Portal -->
+                <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-4 text-white shadow-xl relative overflow-hidden">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-indigo-200 mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Interactive P2P Gift Hub
+                    </h3>
+                    
+                    <div class="grid grid-cols-4 gap-2">
+                        <!-- Gift 1 -->
+                        <button onclick="sendVirtualGift('🌹', 'Rose')" class="bg-white/5 border border-white/10 p-2 rounded-xl text-center hover:bg-white/10 transition active:scale-95 group flex flex-col items-center">
+                            <span class="text-2xl mb-1 gift-bounce">🌹</span>
+                            <span class="text-[9px] text-white/80 font-bold block">Rose</span>
+                        </button>
+                        <!-- Gift 2 -->
+                        <button onclick="sendVirtualGift('👑', 'Crown')" class="bg-white/5 border border-white/10 p-2 rounded-xl text-center hover:bg-white/10 transition active:scale-95 group flex flex-col items-center">
+                            <span class="text-2xl mb-1 gift-bounce">👑</span>
+                            <span class="text-[9px] text-white/80 font-bold block">Crown</span>
+                        </button>
+                        <!-- Gift 3 -->
+                        <button onclick="sendVirtualGift('🚀', 'Rocket')" class="bg-white/5 border border-white/10 p-2 rounded-xl text-center hover:bg-white/10 transition active:scale-95 group flex flex-col items-center">
+                            <span class="text-2xl mb-1 gift-bounce">🚀</span>
+                            <span class="text-[9px] text-white/80 font-bold block">Rocket</span>
+                        </button>
+                        <!-- Gift 4 -->
+                        <button onclick="sendVirtualGift('💎', 'Diamond')" class="bg-white/5 border border-white/10 p-2 rounded-xl text-center hover:bg-white/10 transition active:scale-95 group flex flex-col items-center">
+                            <span class="text-2xl mb-1 gift-bounce">💎</span>
+                            <span class="text-[9px] text-white/80 font-bold block">Gem</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Console -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col flex-grow min-h-[400px]">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between pb-2 border-b border-slate-100">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-regular fa-comments text-blue-600"></i> Stage Messages
+                        </span>
+                        <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">REALTIME</span>
+                    </h3>
+
+                    <!-- Message container -->
+                    <div id="roomMessages" class="flex-grow overflow-y-auto space-y-3 p-2 bg-slate-50 border border-slate-100 rounded-xl max-h-[280px] min-h-[200px]">
+                        <div class="text-center text-slate-400 text-xs py-4 italic">
+                            No messages yet. Say hello to everyone!
+                        </div>
+                    </div>
+
+                    <!-- Input block -->
+                    <div class="mt-3 flex gap-2">
+                        <input type="text" id="roomChatInput" placeholder="Type room message..." class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                        <button onclick="sendRoomChatMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-xl transition shadow-md shadow-blue-100">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Global App Footer -->
+    <footer class="bg-white border-t border-slate-200/80 py-4 px-4 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center text-slate-500 font-medium text-xs">
+            <div>
+                <p class="font-bold text-slate-900">SENTERNET TECHNOLOGIES</p>
+                <p class="text-[10px]">Aranthangi, Pudukkottai | WhatsApp: <a href="https://wa.me/918190038085" class="text-blue-600 hover:underline">+91 81900 38085</a> | Gmail: senternettechnologies@gmail.com</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="https://rebrand.ly/senternet" target="_blank" class="text-blue-600 hover:underline">About SENTERNET</a>
+                <span>•</span>
+                <span class="text-[10px] text-emerald-600 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Public Signaling Node Active</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Gift Overlay canvas container for custom gift animations -->
+    <div id="giftLayer" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <!-- Instructions / Match Success modal -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-2 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400" id="toastIcon"></i>
+        <span id="toastMessage">Done successfully!</span>
+    </div>
+
+    <!-- PeerJS / Audio Elements dynamically added -->
+    <div id="dynamicAudioRack" class="hidden"></div>
+
+    <script>
+        // SENTERNET TECHNOLOGIES - Decentralized PeerJS + MQTT P2P Engine
+        let peer = null;
+        let mqttClient = null;
+        let myId = "";
+        
+        // Profiles state
+        let myUsername = "User_" + Math.floor(1000 + Math.random() * 9000);
+        let myAvatar = "😎";
+        
+        // P2P connections state
+        let conn = null; // Direct 1v1 connection if random matched
+        let activeRoom = null; // Current room details if inside room
+        let activeCalls = {}; // Keep track of WebRTC MediaCalls to close cleanly
+        
+        // Online Directory Lists (Maintained decentralized via MQTT lobby broadcasts)
+        let onlineUsers = {};
+        let activeRooms = {};
+
+        // Canvas Sketching
+        const canvas = document.getElementById('sharedCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = "#3b82f6";
+        let localStream = null;
+        let micMuted = false;
+        let camDisabled = true;
+
+        // Public Free MQTT Broker used as lobby signaling directory (Zero database!)
+        const MQTT_BROKER = "wss://broker.emqx.io:8084/mqtt";
+        const BASE_TOPIC = "senternet/p2p/lobby26";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initCanvas();
+            // Start profile modal setup first
+            document.getElementById('usernameInput').value = myUsername;
+            setupProfileSelector();
+        });
+
+        // Set up profile selector interactions
+        function setupProfileSelector() {
+            const btns = document.querySelectorAll('.avatar-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    btns.forEach(b => b.classList.remove('border-blue-500', 'bg-blue-50'));
+                    e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+                });
+            });
+
+            document.getElementById('saveProfileBtn').addEventListener('click', () => {
+                const userVal = document.getElementById('usernameInput').value.trim();
+                if (userVal) myUsername = userVal;
+                
+                // Update header tags
+                document.getElementById('userAvatarDisp').innerText = myAvatar;
+                document.getElementById('userNameDisp').innerText = myUsername;
+                
+                // Hide setup modal and connect systems
+                document.getElementById('setupModal').classList.add('hidden');
+                
+                // Connect PeerJS & Lobby Client
+                initPeerConnection();
+                initDecentralizedLobby();
+            });
+        }
+
+        function selectAvatar(emoji) {
+            myAvatar = emoji;
+        }
+
+        // Initialize PeerJS media server
+        function initPeerConnection() {
+            // Using public cloud peerjs server
+            peer = new Peer({
+                host: 'peerjs.com',
+                secure: true,
+                debug: 1
+            });
+
+            peer.on('open', (id) => {
+                myId = id;
+                document.getElementById('p2pRawId').innerText = id;
+                showToast("Your WebRTC Identity verified!");
+                
+                // Start sending heartbeats once identity confirmed
+                startLobbyHeartbeat();
+            });
+
+            // Handle standard incoming P2P connections (for random match or direct P2P drawing)
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupDirectConnectionListeners();
+            });
+
+            // Handle incoming media voice/video streams from room seats
+            peer.on('call', (call) => {
+                activeCalls[call.peer] = call;
+                if (localStream) {
+                    call.answer(localStream);
+                } else {
+                    call.answer();
+                }
+                
+                call.on('stream', (remoteStream) => {
+                    // Attach remote stream dynamic speaker audio/video element
+                    attachRemoteMediaStream(call.peer, remoteStream);
+                });
+
+                call.on('close', () => {
+                    removeRemoteMediaStream(call.peer);
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error("PeerJS error: ", err);
+                showToast("WebRTC error. Trying to reconnect...");
+            });
+        }
+
+        // Initialize Decentralized MQTT Lobby Hub
+        function initDecentralizedLobby() {
+            try {
+                mqttClient = mqtt.connect(MQTT_BROKER);
+
+                mqttClient.on('connect', () => {
+                    document.getElementById('lobbyStatusBadge').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Dynamic Lobby Ready`;
+                    document.getElementById('lobbyStatusBadge').className = "bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5";
+                    
+                    // Subscribe to common directory topics
+                    mqttClient.subscribe(`${BASE_TOPIC}/presence/#`);
+                    mqttClient.subscribe(`${BASE_TOPIC}/rooms/#`);
+                    mqttClient.subscribe(`${BASE_TOPIC}/global_events/#`);
+                    
+                    showToast("Serverless Discovery Tunnel Established!");
+                });
+
+                mqttClient.on('message', (topic, message) => {
+                    handleIncomingLobbyMessage(topic, message.toString());
+                });
+
+                mqttClient.on('error', (err) => {
+                    console.error("MQTT Error: ", err);
+                    showToast("Discovery Broker offline. Manual connection active.");
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Announce user profile heartbeats every 4 seconds to the public lobby
+        function startLobbyHeartbeat() {
+            setInterval(() => {
+                if (mqttClient && mqttClient.connected && myId) {
+                    // Send user payload
+                    const payload = {
+                        peerId: myId,
+                        username: myUsername,
+                        avatar: myAvatar,
+                        activeRoom: activeRoom ? activeRoom.id : null,
+                        timestamp: Date.now()
+                    };
+                    mqttClient.publish(`${BASE_TOPIC}/presence/${myId}`, JSON.stringify(payload), { qos: 0, retain: false });
+                }
+
+                // If inside active room and we are host, broadcast room details
+                if (activeRoom && activeRoom.hostId === myId) {
+                    const roomPayload = {
+                        id: activeRoom.id,
+                        title: activeRoom.title,
+                        hostId: myId,
+                        hostName: myUsername,
+                        seats: activeRoom.seats,
+                        timestamp: Date.now()
+                    };
+                    mqttClient.publish(`${BASE_TOPIC}/rooms/${activeRoom.id}`, JSON.stringify(roomPayload));
+                }
+
+                // Prune dead lobby users who missed heartbeat (offline)
+                cleanStaleDirectoryUsers();
+            }, 4000);
+        }
+
+        // Handle incoming discovery signals from other lobby users
+        function handleIncomingLobbyMessage(topic, rawMsg) {
+            try {
+                const data = JSON.parse(rawMsg);
+                
+                // Case 1: Active Presence Updates
+                if (topic.startsWith(`${BASE_TOPIC}/presence/`)) {
+                    if (data.peerId !== myId) {
+                        onlineUsers[data.peerId] = data;
+                        updateOnlineUsersUI();
+                    }
+                }
+                
+                // Case 2: Room Directories
+                else if (topic.startsWith(`${BASE_TOPIC}/rooms/`)) {
+                    activeRooms[data.id] = data;
+                    updateRoomsUI();
+                }
+
+                // Case 3: Global/Room real-time action pipelines (Gifts, Chat, Whiteboard, Seats)
+                else if (topic.startsWith(`${BASE_TOPIC}/global_events/`)) {
+                    handleRoomBroadcastingEvents(data);
+                }
+            } catch (e) {
+                // Ignore parsing discrepancies
+            }
+        }
+
+        // UI rendering for the Online directory list
+        function updateOnlineUsersUI() {
+            const container = document.getElementById('onlineUsersContainer');
+            const list = Object.values(onlineUsers);
+            
+            document.getElementById('onlineCountBadge').innerText = `${list.length} Online`;
+            
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-400 italic py-6">
+                        No other online users found yet...
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(user => `
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-150 rounded-xl hover:bg-slate-100 transition">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-lg shrink-0">${user.avatar || '👤'}</span>
+                        <div class="overflow-hidden">
+                            <p class="font-extrabold text-slate-800 leading-none truncate">${user.username}</p>
+                            <span class="text-[9px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                                <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Online
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="directCallPeer('${user.peerId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition shadow-sm shrink-0">
+                        Connect P2P
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Render available public rooms dynamically (No database)
+        function updateRoomsUI() {
+            const container = document.getElementById('activeRoomsContainer');
+            const roomsList = Object.values(activeRooms);
+
+            if (roomsList.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center text-slate-400 italic py-12 border-2 border-dashed border-slate-100 rounded-2xl">
+                        <i class="fa-regular fa-folder-open text-3xl mb-2 text-slate-300 block animate-pulse"></i>
+                        No active rooms right now. Click "Create Public Room" to start your own!
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = roomsList.map(room => `
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl hover:border-blue-300 transition-all flex flex-col justify-between min-h-[140px] lobby-card">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-2">
+                            <span class="bg-indigo-50 text-indigo-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">LIVE CHAT</span>
+                            <span class="text-[10px] text-slate-400 font-bold"># ${room.id.substring(0, 5)}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-900 leading-snug">${room.title}</h4>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-1">Host: <span class="text-blue-600">${room.hostName}</span></p>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-200/60">
+                        <span class="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-microphone text-indigo-500"></i> Active Voice
+                        </span>
+                        <button onclick="joinPublicRoom('${room.id}')" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-md">
+                            Join Room
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Pruning stale offline heartbeats
+        function cleanStaleDirectoryUsers() {
+            const now = Date.now();
+            Object.keys(onlineUsers).forEach(id => {
+                if (now - onlineUsers[id].timestamp > 10000) { // 10 seconds timeout
+                    delete onlineUsers[id];
+                }
+            });
+            Object.keys(activeRooms).forEach(roomId => {
+                if (now - activeRooms[roomId].timestamp > 10000) {
+                    delete activeRooms[roomId];
+                }
+            });
+            updateOnlineUsersUI();
+            updateRoomsUI();
+        }
+
+        // Connect directly to a peer (Random match or click)
+        function directCallPeer(peerId) {
+            showToast("Opening signaling pipeline...");
+            const connection = peer.connect(peerId);
+            conn = connection;
+            setupDirectConnectionListeners();
+        }
+
+        // Match randomly with any online directory user
+        function triggerRandomMatch() {
+            const potentialPeers = Object.keys(onlineUsers);
+            if (potentialPeers.length === 0) {
+                showToast("No active pioneers online inside lobby right now!");
+                return;
+            }
+            const randomId = potentialPeers[Math.floor(Math.random() * potentialPeers.length)];
+            directCallPeer(randomId);
+        }
+
+        function setupDirectConnectionListeners() {
+            conn.on('open', () => {
+                showToast("Connected with Friend! Match Initialized.");
+                setupCustomMatchedRoom();
+            });
+            conn.on('data', (data) => {
+                handleIncomingLobbyMessage(conn.peer, JSON.stringify(data));
+            });
+            conn.on('close', () => {
+                showToast("Direct matching session ended.");
+            });
+        }
+
+        function setupCustomMatchedRoom() {
+            // Initial empty structured seats
+            const seatsInit = [
+                { username: myUsername, peerId: myId, avatar: myAvatar, micMuted: false, camDisabled: true },
+                { username: "Opponent", peerId: conn.peer, avatar: "🦊", micMuted: false, camDisabled: true },
+                null,
+                null
+            ];
+
+            activeRoom = {
+                id: "Match_" + Math.floor(1000 + Math.random() * 9000),
+                title: `${myUsername} & Friend's Match`,
+                hostId: myId,
+                hostName: myUsername,
+                seats: seatsInit
+            };
+
+            // Switch Screen
+            switchScreen('room');
+            document.getElementById('currentRoomTitle').innerText = activeRoom.title;
+            document.getElementById('currentRoomHost').innerText = myUsername;
+            
+            // Subscribe to temporary match events
+            if (mqttClient) {
+                mqttClient.subscribe(`${BASE_TOPIC}/global_events/${activeRoom.id}`);
+            }
+
+            // Sync visual seat list
+            refreshStageSeatsUI();
+        }
+
+        // Room Creation Trigger
+        function createNewPublicRoom() {
+            const topicInput = document.getElementById('roomNameInput').value.trim();
+            if (!topicInput) {
+                showToast("Please enter a room topic!");
+                return;
+            }
+
+            const newRoomId = "Room_" + Math.floor(100000 + Math.random() * 900000);
+            
+            // First seat is occupied by Host as an object
+            const seatsInit = [
+                { username: myUsername, peerId: myId, avatar: myAvatar, micMuted: false, camDisabled: true },
+                null,
+                null,
+                null
+            ];
+
+            activeRoom = {
+                id: newRoomId,
+                title: topicInput,
+                hostId: myId,
+                hostName: myUsername,
+                seats: seatsInit
+            };
+
+            switchScreen('room');
+            document.getElementById('currentRoomTitle').innerText = activeRoom.title;
+            document.getElementById('currentRoomHost').innerText = myUsername;
+
+            if (mqttClient) {
+                mqttClient.subscribe(`${BASE_TOPIC}/global_events/${newRoomId}`);
+                // Broadcast Room to lobby
+                mqttClient.publish(`${BASE_TOPIC}/rooms/${newRoomId}`, JSON.stringify(activeRoom));
+            }
+
+            showToast("Public Room Live on SENTERNET!");
+            refreshStageSeatsUI();
+        }
+
+        // Join selected public room
+        function joinPublicRoom(roomId) {
+            const selected = activeRooms[roomId];
+            if (!selected) return;
+
+            activeRoom = {
+                id: selected.id,
+                title: selected.title,
+                hostId: selected.hostId,
+                hostName: selected.hostName,
+                seats: selected.seats || [null, null, null, null]
+            };
+
+            switchScreen('room');
+            document.getElementById('currentRoomTitle').innerText = activeRoom.title;
+            document.getElementById('currentRoomHost').innerText = activeRoom.hostName;
+
+            if (mqttClient) {
+                mqttClient.subscribe(`${BASE_TOPIC}/global_events/${roomId}`);
+            }
+
+            refreshStageSeatsUI();
+            showToast("Joined Stage Room!");
+        }
+
+        // Interactive Live Room Events Router (Chat, Canvas Drawing, Seats, Gifts)
+        function handleRoomBroadcastingEvents(data) {
+            if (!activeRoom || data.roomId !== activeRoom.id) return;
+
+            switch (data.type) {
+                case 'chat':
+                    appendRoomChatMessage(data.sender, data.text);
+                    break;
+                case 'gift':
+                    triggerVisualGiftAnimation(data.giftIcon, data.giftName, data.sender);
+                    break;
+                case 'canvas-draw':
+                    drawRemoteCanvas(data);
+                    break;
+                case 'canvas-clear':
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    break;
+                case 'seats-update':
+                    activeRoom.seats = data.seats;
+                    refreshStageSeatsUI();
+                    break;
+            }
+        }
+
+        // Handle requesting visual seats on the stage
+        function requestSeat(seatNum) {
+            if (!activeRoom) return;
+            
+            const index = seatNum - 1;
+            const currentSeat = activeRoom.seats[index];
+
+            // If slot is empty
+            if (!currentSeat) {
+                // Take the seat
+                activeRoom.seats[index] = {
+                    username: myUsername,
+                    peerId: myId,
+                    avatar: myAvatar,
+                    micMuted: micMuted,
+                    camDisabled: camDisabled
+                };
+                
+                // Alert other users via dynamic sync
+                broadcastRoomEvent({
+                    type: 'seats-update',
+                    seats: activeRoom.seats
+                });
+
+                // Request camera permission for live streaming seat
+                initiateSeatVoiceVideo(seatNum);
+            } 
+            // If currently seated in this slot, click again to vacate
+            else if (currentSeat.peerId === myId) {
+                activeRoom.seats[index] = null;
+                broadcastRoomEvent({
+                    type: 'seats-update',
+                    seats: activeRoom.seats
+                });
+                stopSeatStreaming(seatNum);
+            } else {
+                showToast("This seat is already occupied by a speaker!");
+            }
+        }
+
+        // Initialize user mic and camera when going live on seat
+        async function initiateSeatVoiceVideo(seatNum) {
+            try {
+                // We default request audio & video
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: true
+                });
+                camDisabled = false;
+            } catch (err) {
+                console.warn("Unable to stream camera. Falling back to voice only stream.", err);
+                try {
+                    // Fallback to audio only
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    camDisabled = true;
+                } catch (e) {
+                    showToast("No active recording microphone/camera devices found.");
+                    return;
+                }
+            }
+
+            // Sync video indicators
+            document.getElementById('micIcon').className = micMuted ? "fa-solid fa-microphone-slash text-red-600" : "fa-solid fa-microphone";
+            document.getElementById('camIcon').className = camDisabled ? "fa-solid fa-video-slash text-red-600" : "fa-solid fa-video";
+
+            // Attach local preview inside the matching seat
+            const videoElement = document.getElementById(`video-seat-${seatNum}`);
+            const placeholder = document.getElementById(`placeholder-seat-${seatNum}`);
+            
+            if (videoElement && localStream) {
+                if (!camDisabled && localStream.getVideoTracks().length > 0) {
+                    videoElement.srcObject = localStream;
+                    videoElement.classList.remove('hidden');
+                    if (placeholder) placeholder.classList.add('hidden');
+                } else {
+                    videoElement.classList.add('hidden');
+                    if (placeholder) placeholder.classList.remove('hidden');
+                }
+            }
+
+            showToast("You are Live on Stage!");
+
+            // Direct call everyone currently sitting in any seat in the room
+            activeRoom.seats.forEach(seat => {
+                if (seat && seat.peerId !== myId) {
+                    const call = peer.call(seat.peerId, localStream);
+                    activeCalls[seat.peerId] = call;
+                    
+                    call.on('stream', (remoteStream) => {
+                        attachRemoteMediaStream(seat.peerId, remoteStream);
+                    });
+                    call.on('close', () => {
+                        removeRemoteMediaStream(seat.peerId);
+                    });
+                }
+            });
+        }
+
+        function stopSeatStreaming(seatNum) {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            // Reset local box video elements
+            const videoElement = document.getElementById(`video-seat-${seatNum}`);
+            const placeholder = document.getElementById(`placeholder-seat-${seatNum}`);
+            if (videoElement) {
+                videoElement.srcObject = null;
+                videoElement.classList.add('hidden');
+            }
+            if (placeholder) {
+                placeholder.classList.remove('hidden');
+            }
+
+            // Close all active call connections
+            Object.keys(activeCalls).forEach(peerId => {
+                activeCalls[peerId].close();
+                delete activeCalls[peerId];
+                removeRemoteMediaStream(peerId);
+            });
+
+            showToast("Stepped down from Stage.");
+        }
+
+        function toggleMyMicrophone() {
+            if (localStream) {
+                micMuted = !micMuted;
+                localStream.getAudioTracks().forEach(track => track.enabled = !micMuted);
+                document.getElementById('micIcon').className = micMuted ? "fa-solid fa-microphone-slash text-red-600" : "fa-solid fa-microphone";
+                showToast(micMuted ? "Mic Muted" : "Mic Unmuted");
+            } else {
+                showToast("Please sit on an empty stage seat to use mic!");
+            }
+        }
+
+        function toggleMyCamera() {
+            if (localStream && localStream.getVideoTracks().length > 0) {
+                camDisabled = !camDisabled;
+                localStream.getVideoTracks().forEach(track => track.enabled = !camDisabled);
+                
+                // Update local seat video visibility
+                const mySeatIndex = activeRoom.seats.findIndex(s => s && s.peerId === myId);
+                if (mySeatIndex !== -1) {
+                    const seatNum = mySeatIndex + 1;
+                    const videoElement = document.getElementById(`video-seat-${seatNum}`);
+                    const placeholder = document.getElementById(`placeholder-seat-${seatNum}`);
+                    if (videoElement) {
+                        if (!camDisabled) {
+                            videoElement.srcObject = localStream;
+                            videoElement.classList.remove('hidden');
+                            if (placeholder) placeholder.classList.add('hidden');
+                        } else {
+                            videoElement.classList.add('hidden');
+                            if (placeholder) placeholder.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                document.getElementById('camIcon').className = camDisabled ? "fa-solid fa-video-slash text-red-600" : "fa-solid fa-video";
+                showToast(camDisabled ? "Camera Disabled" : "Camera Enabled");
+            } else {
+                showToast("Sit on a stage seat & verify camera hardware to enable video!");
+            }
+        }
+
+        function attachRemoteMediaStream(peerId, remoteStream) {
+            // Find which seat this peer occupies
+            if (!activeRoom) return;
+            const seatIndex = activeRoom.seats.findIndex(s => s && s.peerId === peerId);
+            
+            if (seatIndex !== -1) {
+                const seatNum = seatIndex + 1;
+                const videoElement = document.getElementById(`video-seat-${seatNum}`);
+                const placeholder = document.getElementById(`placeholder-seat-${seatNum}`);
+                
+                if (videoElement) {
+                    videoElement.srcObject = remoteStream;
+                    videoElement.classList.remove('hidden');
+                    if (placeholder) placeholder.classList.add('hidden');
+                }
+            } else {
+                // Dynamic audio elements for participants not on visual seats
+                const rack = document.getElementById('dynamicAudioRack');
+                let audioNode = document.getElementById(`audio-${peerId}`);
+                if (!audioNode) {
+                    audioNode = document.createElement('audio');
+                    audioNode.id = `audio-${peerId}`;
+                    audioNode.autoplay = true;
+                    rack.appendChild(audioNode);
+                }
+                audioNode.srcObject = remoteStream;
+            }
+        }
+
+        function removeRemoteMediaStream(peerId) {
+            if (!activeRoom) return;
+            const seatIndex = activeRoom.seats.findIndex(s => s && s.peerId === peerId);
+            if (seatIndex !== -1) {
+                const seatNum = seatIndex + 1;
+                const videoElement = document.getElementById(`video-seat-${seatNum}`);
+                const placeholder = document.getElementById(`placeholder-seat-${seatNum}`);
+                if (videoElement) {
+                    videoElement.srcObject = null;
+                    videoElement.classList.add('hidden');
+                }
+                if (placeholder) {
+                    placeholder.classList.remove('hidden');
+                }
+            }
+
+            const audioNode = document.getElementById(`audio-${peerId}`);
+            if (audioNode) {
+                audioNode.srcObject = null;
+                audioNode.remove();
+            }
+        }
+
+        // Render dynamic seat list state changes
+        function refreshStageSeatsUI() {
+            if (!activeRoom) return;
+
+            // Host Seat Update (Seat 1)
+            const hostSeat = activeRoom.seats[0];
+            const hostPlaceholder = document.getElementById('placeholder-seat-1');
+            const hostVideo = document.getElementById('video-seat-1');
+            
+            if (hostSeat) {
+                document.getElementById('seat-1-name').innerText = hostSeat.username;
+                if (!hostSeat.camDisabled) {
+                    // Let stream handle video visibility
+                } else {
+                    hostVideo.classList.add('hidden');
+                    hostPlaceholder.classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('seat-1-name').innerText = "Empty Host Seat";
+                hostVideo.classList.add('hidden');
+                hostPlaceholder.classList.remove('hidden');
+            }
+
+            // Loop and assign dynamic stage speakers
+            for (let i = 2; i <= 4; i++) {
+                const seatData = activeRoom.seats[i - 1];
+                const placeholder = document.getElementById(`placeholder-seat-${i}`);
+                const videoElement = document.getElementById(`video-seat-${i}`);
+                const seatBox = document.getElementById(`seat-box-${i}`);
+
+                if (seatData) {
+                    // Seat is occupied
+                    placeholder.innerHTML = `
+                        <div class="text-3xl mb-1">${seatData.avatar || '🎙️'}</div>
+                        <div class="font-extrabold text-xs text-blue-600 truncate max-w-[120px]">${seatData.username}</div>
+                        <span class="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-extrabold block mt-1">SPEAKER</span>
+                    `;
+                    seatBox.className = "cursor-pointer bg-blue-50/50 border border-blue-200 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden transition";
+                } else {
+                    // Seat is empty
+                    placeholder.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 transition shadow-inner">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                        <span class="font-extrabold text-[10px] text-slate-400 tracking-wide uppercase" id="seat-${i}-label">Seat ${i} (Empty)</span>
+                    `;
+                    seatBox.className = "cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden transition hover:border-blue-500 group";
+                    if (videoElement) {
+                        videoElement.classList.add('hidden');
+                        videoElement.srcObject = null;
+                    }
+                }
+            }
+        }
+
+        // Interactive Gift Sending Logic
+        function sendVirtualGift(icon, name) {
+            if (!activeRoom) return;
+            
+            const payload = {
+                type: 'gift',
+                sender: myUsername,
+                giftIcon: icon,
+                giftName: name
+            };
+            
+            broadcastRoomEvent(payload);
+            showToast(`Sent virtual ${name} gift to the room!`);
+        }
+
+        // Beautiful float-up gift CSS/JS animation stream
+        function triggerVisualGiftAnimation(icon, name, sender) {
+            const container = document.getElementById('giftLayer');
+            
+            // Create floating element
+            const el = document.createElement('div');
+            el.className = 'floating-emoji';
+            el.innerText = icon;
+            
+            // Random horizontal placement
+            const randomX = Math.floor(Math.random() * window.innerWidth * 0.7) + 50;
+            el.style.left = `${randomX}px`;
+            
+            container.appendChild(el);
+
+            // Print gift receipt in chat
+            appendRoomChatMessage("🎁 System", `${sender} sent a virtual ${name}!`, "text-indigo-600 font-extrabold bg-indigo-50 border border-indigo-100");
+
+            // Remove once animation complete
+            setTimeout(() => {
+                el.remove();
+            }, 2500);
+        }
+
+        // Interactive whiteboard setup
+        function initCanvas() {
+            const container = canvas.parentElement;
+            
+            // Fixed responsive dimensions setup
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.lineWidth = 4;
+
+            canvas.addEventListener('mousedown', startPaint);
+            canvas.addEventListener('mousemove', paintMove);
+            canvas.addEventListener('mouseup', endPaint);
+            
+            // Touch screen setup
+            canvas.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent("mousedown", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', () => {
+                const mouseEvent = new MouseEvent("mouseup", {});
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            // Redraw canvas context configurations upon window resize
+            window.addEventListener('resize', () => {
+                const savedImg = canvas.toDataURL();
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                ctx.lineWidth = 4;
+                
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = savedImg;
+            });
+        }
+
+        function changeColor(color) {
+            currentColor = color;
+            const swatches = document.querySelectorAll('.color-swatch');
+            swatches.forEach(btn => btn.classList.remove('ring-2', 'ring-blue-500'));
+            event.target.classList.add('ring-2', 'ring-blue-500');
+        }
+
+        // Precise positioning formula ignoring border offset discrepancies
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                y: (e.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function startPaint(e) {
+            isDrawing = true;
+            const coords = getCanvasCoordinates(e);
+            
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+
+            broadcastRoomEvent({
+                type: 'canvas-draw',
+                action: 'start',
+                x: coords.x,
+                y: coords.y,
+                color: currentColor
+            });
+        }
+
+        function paintMove(e) {
+            if (!isDrawing) return;
+            const coords = getCanvasCoordinates(e);
+
+            ctx.lineTo(coords.x, coords.y);
+            ctx.strokeStyle = currentColor;
+            ctx.stroke();
+
+            broadcastRoomEvent({
+                type: 'canvas-draw',
+                action: 'draw',
+                x: coords.x,
+                y: coords.y,
+                color: currentColor
+            });
+        }
+
+        function endPaint() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.closePath();
+                broadcastRoomEvent({ type: 'canvas-draw', action: 'stop' });
+            }
+        }
+
+        function drawRemoteCanvas(data) {
+            if (data.action === 'start') {
+                ctx.beginPath();
+                ctx.moveTo(data.x, data.y);
+            } else if (data.action === 'draw') {
+                ctx.lineTo(data.x, data.y);
+                ctx.strokeStyle = data.color;
+                ctx.stroke();
+            } else if (data.action === 'stop') {
+                ctx.closePath();
+            }
+        }
+
+        function clearCanvas(notifyPeer = false) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (notifyPeer) {
+                broadcastRoomEvent({ type: 'canvas-clear' });
+            }
+        }
+
+        // Room messaging handles
+        function sendRoomChatMessage() {
+            const input = document.getElementById('roomChatInput');
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            broadcastRoomEvent({
+                type: 'chat',
+                sender: myUsername,
+                text: txt
+            });
+
+            input.value = "";
+        }
+
+        function appendRoomChatMessage(sender, text, styleOverride = "") {
+            const box = document.getElementById('roomMessages');
+            
+            if(box.innerText.includes("No messages yet")) {
+                box.innerHTML = '';
+            }
+
+            const div = document.createElement('div');
+            div.className = styleOverride ? `p-2.5 rounded-xl text-xs ${styleOverride}` : "p-2.5 bg-white border border-slate-150 rounded-xl shadow-sm text-xs";
+            div.innerHTML = `<span class="font-extrabold text-slate-900 block text-[9px] uppercase tracking-wide">${sender}</span> ${text}`;
+            
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Broadcast any event stream to currently active room (P2P Over MQTT broker client)
+        function broadcastRoomEvent(payload) {
+            if (mqttClient && activeRoom) {
+                payload.roomId = activeRoom.id;
+                mqttClient.publish(`${BASE_TOPIC}/global_events/${activeRoom.id}`, JSON.stringify(payload));
+            }
+        }
+
+        function leaveActiveRoom() {
+            if (activeRoom) {
+                // Find and vacate my seat cleanly before quitting
+                const mySeatIndex = activeRoom.seats.findIndex(s => s && s.peerId === myId);
+                if (mySeatIndex !== -1) {
+                    activeRoom.seats[mySeatIndex] = null;
+                    broadcastRoomEvent({
+                        type: 'seats-update',
+                        seats: activeRoom.seats
+                    });
+                }
+
+                // Stop active webcam streams
+                stopSeatStreaming(mySeatIndex !== -1 ? mySeatIndex + 1 : 1);
+                
+                if (mqttClient) {
+                    mqttClient.unsubscribe(`${BASE_TOPIC}/global_events/${activeRoom.id}`);
+                }
+                
+                activeRoom = null;
+                switchScreen('lobby');
+                showToast("Returned to Main Lobby.");
+            }
+        }
+
+        // Multi-view navigation handler
+        function switchScreen(view) {
+            if (view === 'lobby') {
+                document.getElementById('lobbyScreen').classList.remove('hidden');
+                document.getElementById('roomScreen').classList.add('hidden');
+            } else {
+                document.getElementById('lobbyScreen').classList.add('hidden');
+                document.getElementById('roomScreen').classList.remove('hidden');
+            }
+        }
+
+        // Copy dynamic ID
+        function copyMyId() {
+            if (myId) {
+                const el = document.createElement('textarea');
+                el.value = myId;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                showToast("My Peer ID Copied!");
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
+            toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-0 opacity-100 flex items-center gap-2 z-50";
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-2 z-50";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
