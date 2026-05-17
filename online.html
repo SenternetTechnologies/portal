@@ -265,7 +265,7 @@
       <!-- Video Feed Canvas or Stream Node -->
       <div class="flex-grow w-full h-full flex items-center justify-center relative overflow-hidden bg-slate-900">
         <!-- Interactive Canvas / Video element for actual streaming or simulation -->
-        <video id="local-video-element" class="hidden w-full h-full object-cover" autoplay playsinline muted></video>
+        <video id="stage-video-element" class="hidden w-full h-full object-cover" autoplay playsinline></video>
         <canvas id="stage-visualizer" class="w-full h-full object-cover"></canvas>
 
         <div id="video-placeholder-notice" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-950/80 z-20 hidden">
@@ -288,7 +288,7 @@
             <i data-lucide="mic" class="w-4 h-4"></i> Mute
           </button>
           <button id="btn-toggle-camera" class="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold">
-            <i data-lucide="video-off" class="w-4 h-4"></i> Stop Video
+            <i data-lucide="video" class="w-4 h-4"></i> Stop Video
           </button>
           <button id="btn-stop-broadcast" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl transition text-xs font-bold flex items-center gap-1.5">
             <i data-lucide="square" class="w-4 h-4"></i> Terminate Stream
@@ -392,14 +392,23 @@
     let activeStreamId = null;
     let isBroadcasting = false;
     let localStream = null;
-    let peerConnection = null;
     let activeStreamList = [];
     let renderingInterval = null;
     let chosenAvatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop";
 
-    // SVG elements & Mock visuals definitions
+    // Multi-peer connections tracker
+    const peerConnections = {}; // Map of viewerId -> RTCPeerConnection (For Broadcaster)
+    let singlePeerConnection = null; // Single connection (For Viewer)
+    let signalingUnsubscribe = null;
+
+    // Mic & Camera state trackers
+    let isAudioEnabled = true;
+    let isVideoEnabled = true;
+
+    // Visual canvas setup
     const canvas = document.getElementById('stage-visualizer');
     const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById('stage-video-element');
 
     // UI elements mapping
     const elNoStreams = document.getElementById('no-streams-state');
@@ -419,6 +428,7 @@
     // Setup Firestore paths exactly matching mandatory rules
     const streamsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'streams');
     const chatsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats');
+    const signalingColRef = collection(db, 'artifacts', appId, 'public', 'data', 'signaling');
 
     // WebRTC connection helper presets
     const iceServers = {
@@ -464,7 +474,6 @@
     function setupStreamListeners() {
       if (!currentUser) return;
 
-      // Realtime listener for active streams
       onSnapshot(streamsColRef, (snapshot) => {
         activeStreamList = [];
         let totalViewers = 0;
@@ -483,7 +492,7 @@
       });
     }
 
-    // Step 3: Draw Canvas Stream Aesthetics (Cool Cyber-Grid & Pulsing Audio Visuals)
+    // Step 3: Draw Canvas Stream Aesthetics (Fallback/Simulation)
     function startCanvasSimulation(broadcasterName, isLive) {
       canvas.width = 640;
       canvas.height = 360;
@@ -559,7 +568,7 @@
         ctx.font = 'bold 11px sans-serif';
         ctx.fillText('WEBRTC SECURE TRANSMISSION', 50, canvas.height - 32);
 
-      }, 1000 / 30); // 30 FPS Stream
+      }, 1000 / 30);
     }
 
     // Render Live Cards publicly
@@ -578,26 +587,21 @@
         const card = document.createElement('div');
         card.className = "bg-white rounded-3xl overflow-hidden border border-slate-200 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col";
         
-        // Static UI design template for active user profiles
         card.innerHTML = `
           <div class="relative h-44 bg-slate-900 overflow-hidden flex items-center justify-center">
-            <!-- Simulated Video Preview overlay inside thumbnail -->
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
             <img src="${stream.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" alt="Preview" class="w-full h-full object-cover blur-sm opacity-40">
             
-            <!-- Live Badge Overlay -->
             <div class="absolute top-4 left-4 z-20 bg-rose-500 text-[10px] font-extrabold text-white px-2.5 py-1 rounded-md tracking-widest uppercase flex items-center gap-1.5 shadow-sm">
               <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
               Live
             </div>
 
-            <!-- Viewer Count Overlay -->
             <div class="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur-sm text-xs font-bold text-white px-2.5 py-1 rounded-md flex items-center gap-1">
               <i data-lucide="eye" class="w-3.5 h-3.5 text-pink-400"></i>
               <span>${stream.viewers || 0}</span>
             </div>
 
-            <!-- Broadcaster Big Avatar centered -->
             <div class="absolute z-20 flex flex-col items-center">
               <img src="${stream.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" class="w-14 h-14 rounded-full border-2 border-indigo-500 shadow-md object-cover">
             </div>
@@ -623,7 +627,6 @@
         elStreamsGrid.appendChild(card);
       });
 
-      // Hook click handlers to join stream button
       document.querySelectorAll('.btn-join-stream').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const id = e.currentTarget.dataset.id;
@@ -634,7 +637,7 @@
       lucide.createIcons();
     }
 
-    // Step 4: Host Broadcaster Mechanism
+    // Step 4: Broadcaster Initiation
     async function startBroadcasting() {
       const username = document.getElementById('setup-username').value.trim() || 'Senternet Host';
       const title = document.getElementById('setup-title').value.trim() || 'Innovative App Demo';
@@ -644,7 +647,12 @@
         isBroadcasting = true;
         activeStreamId = currentUser.uid;
 
-        // Save active stream session in Firestore (Strictly following Rule 1 & Path requirement)
+        // Reset Audio/Video track controllers
+        isAudioEnabled = true;
+        isVideoEnabled = true;
+        updateBroadcasterControlUI();
+
+        // Save active stream record to database
         const streamDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'streams', activeStreamId);
         await setDoc(streamDocRef, {
           hostName: username,
@@ -658,13 +666,14 @@
         // Initialize user media WebRTC source setup
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          const videoEl = document.getElementById('local-video-element');
-          videoEl.srcObject = localStream;
-          videoEl.classList.remove('hidden');
+          videoElement.srcObject = localStream;
+          videoElement.classList.remove('hidden');
           canvas.classList.add('hidden');
         } catch (mediaErr) {
-          console.warn("Media devices blocked/not found. Defaulting to Canvas real-time simulation.");
+          console.warn("Camera/mic access unavailable. Starting animated simulation screen.");
           startCanvasSimulation(username, true);
+          videoElement.classList.add('hidden');
+          canvas.classList.remove('hidden');
         }
 
         // Initialize Stage Details
@@ -673,16 +682,19 @@
         document.getElementById('stage-stream-title').innerText = title;
         document.getElementById('stage-viewer-count').innerText = 1;
 
-        // Toggle UI
+        // Toggle UI Display
         elModalSetup.classList.add('hidden');
         elStreamView.classList.remove('hidden');
         elBroadcasterControls.classList.remove('hidden');
         elViewerControls.classList.add('hidden');
 
-        // Setup real-time Chat listener specifically for this stream ID
+        // Setup real-time Chat listener
         initChatListener(activeStreamId);
 
-        // Add intro system chat
+        // Start WebRTC signaling listener for incoming viewers (RULE 2 - Fetch all signals, then filter manually)
+        startBroadcasterSignalingListener();
+
+        // Welcome system logs
         sendSystemNotification(`Broadcast created successfully! Welcome to ${username}'s channel.`);
 
       } catch (err) {
@@ -690,7 +702,84 @@
       }
     }
 
-    // Step 5: Viewer Join mechanism
+    // Broadcaster listens to incoming connections (signals prefixed with streamId)
+    function startBroadcasterSignalingListener() {
+      if (signalingUnsubscribe) signalingUnsubscribe();
+
+      const q = query(signalingColRef);
+      signalingUnsubscribe = onSnapshot(q, async (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          const data = change.doc.data();
+          const docId = change.doc.id;
+
+          // Check if this signal document belongs to our current active stream
+          if (docId.startsWith(activeStreamId + '_')) {
+            const viewerId = docId.split('_')[1];
+
+            if (change.type === 'added' || change.type === 'modified') {
+              // 1. New Join signal received - setup peer connection and send offer
+              if (data.type === 'join' && !peerConnections[viewerId]) {
+                await initiatePeerConnectionWithViewer(viewerId, docId);
+              }
+              // 2. Received Answer back from viewer
+              else if (data.type === 'answer' && peerConnections[viewerId]) {
+                const pc = peerConnections[viewerId];
+                if (pc.signalingState === "have-local-offer") {
+                  await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                }
+              }
+              // 3. Process trickle ICE candidates sent by viewer
+              else if (data.viewerCandidate && peerConnections[viewerId]) {
+                const pc = peerConnections[viewerId];
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(data.viewerCandidate));
+                } catch (e) {
+                  console.warn("Error adding Ice Candidate: ", e);
+                }
+              }
+            }
+          }
+        });
+      }, (err) => {
+        console.error("Broadcaster signaling failed:", err);
+      });
+    }
+
+    // Broadcaster establishes unique Peer Connection for each connected Viewer
+    async function initiatePeerConnectionWithViewer(viewerId, signalDocId) {
+      const pc = new RTCPeerConnection(iceServers);
+      peerConnections[viewerId] = pc;
+
+      // Add local tracks to peer connection
+      if (localStream) {
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      }
+
+      // Capture and push ICE candidates to Firestore
+      pc.onicecandidate = async (event) => {
+        if (event.candidate) {
+          const signalDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'signaling', signalDocId);
+          await updateDoc(signalDocRef, {
+            broadcasterCandidate: event.candidate.toJSON()
+          });
+        }
+      };
+
+      // Create and set local offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const signalDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'signaling', signalDocId);
+      await updateDoc(signalDocRef, {
+        type: 'offer',
+        offer: {
+          sdp: offer.sdp,
+          type: offer.type
+        }
+      });
+    }
+
+    // Step 5: Viewer Join mechanism (WebRTC Negotiation)
     async function joinBroadcastChannel(streamId) {
       try {
         activeStreamId = streamId;
@@ -710,20 +799,20 @@
         const currentViewers = data.viewers || 0;
         await updateDoc(streamDocRef, { viewers: currentViewers + 1 });
 
-        // Build active simulation matching host details
+        // Update stage details
         document.getElementById('stage-host-avatar').src = data.avatar;
         document.getElementById('stage-host-name').innerText = data.hostName;
         document.getElementById('stage-stream-title').innerText = data.title;
         document.getElementById('stage-viewer-count').innerText = currentViewers + 1;
         document.getElementById('tag-current-host').innerText = data.hostName;
 
-        // Toggle UI views
+        // Toggle UI view screens
         elStreamView.classList.remove('hidden');
         elBroadcasterControls.classList.add('hidden');
         elViewerControls.classList.remove('hidden');
 
-        // Default to Canvas audio-pulse visuals simulation for viewers
-        startCanvasSimulation(data.hostName, false);
+        // Setup signaling stream to connect to host camera
+        setupViewerWebRTCConnection(streamId);
 
         // Fetch Live chats
         initChatListener(streamId);
@@ -733,6 +822,118 @@
       } catch (err) {
         console.error("Joining live stream session error:", err);
       }
+    }
+
+    // Setup RTCPeerConnection for the Viewer
+    async function setupViewerWebRTCConnection(streamId) {
+      const viewerId = currentUser.uid;
+      const signalDocId = `${streamId}_${viewerId}`;
+      const signalDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'signaling', signalDocId);
+
+      singlePeerConnection = new RTCPeerConnection(iceServers);
+
+      // Listen for incoming media track
+      singlePeerConnection.ontrack = (event) => {
+        if (event.streams && event.streams[0]) {
+          videoElement.srcObject = event.streams[0];
+          videoElement.classList.remove('hidden');
+          canvas.classList.add('hidden');
+        }
+      };
+
+      // Handle ICE Candidates
+      singlePeerConnection.onicecandidate = async (event) => {
+        if (event.candidate) {
+          await updateDoc(signalDocRef, {
+            viewerCandidate: event.candidate.toJSON()
+          });
+        }
+      };
+
+      // Write 'join' signal to let Broadcaster know we are ready to receive offer
+      await setDoc(signalDocRef, {
+        type: 'join',
+        viewerId: viewerId,
+        streamId: streamId,
+        timestamp: serverTimestamp()
+      });
+
+      // Listen to peer updates (RULE 1 & 2 compliant)
+      if (signalingUnsubscribe) signalingUnsubscribe();
+
+      signalingUnsubscribe = onSnapshot(signalDocRef, async (docSnap) => {
+        if (!docSnap.exists()) return;
+        const sigData = docSnap.data();
+
+        // 1. Broadcaster sent offer -> set as remote and reply with answer
+        if (sigData.type === 'offer' && singlePeerConnection.signalingState === 'stable') {
+          await singlePeerConnection.setRemoteDescription(new RTCSessionDescription(sigData.offer));
+          const answer = await singlePeerConnection.createAnswer();
+          await singlePeerConnection.setLocalDescription(answer);
+
+          await updateDoc(signalDocRef, {
+            type: 'answer',
+            answer: {
+              sdp: answer.sdp,
+              type: answer.type
+            }
+          });
+        }
+        // 2. Broadcaster sent ICE candidate
+        else if (sigData.broadcasterCandidate) {
+          try {
+            await singlePeerConnection.addIceCandidate(new RTCIceCandidate(sigData.broadcasterCandidate));
+          } catch (e) {
+            console.warn("Error adding broadcaster ICE Candidate:", e);
+          }
+        }
+      }, (err) => {
+        console.error("Viewer signaling listen error:", err);
+      });
+
+      // Canvas backup if Peer WebRTC negotiates slowly
+      startCanvasSimulation(document.getElementById('stage-host-name').innerText, false);
+    }
+
+    // Dynamic Mic and Camera toggle action handlers
+    function toggleAudio() {
+      if (!localStream) return;
+      isAudioEnabled = !isAudioEnabled;
+      localStream.getAudioTracks().forEach(track => {
+        track.enabled = isAudioEnabled;
+      });
+      updateBroadcasterControlUI();
+    }
+
+    function toggleVideo() {
+      if (!localStream) return;
+      isVideoEnabled = !isVideoEnabled;
+      localStream.getVideoTracks().forEach(track => {
+        track.enabled = isVideoEnabled;
+      });
+      updateBroadcasterControlUI();
+    }
+
+    function updateBroadcasterControlUI() {
+      const btnMic = document.getElementById('btn-toggle-mic');
+      const btnCam = document.getElementById('btn-toggle-camera');
+
+      if (isAudioEnabled) {
+        btnMic.innerHTML = `<i data-lucide="mic" class="w-4 h-4"></i> Mute Mic`;
+        btnMic.className = "bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold";
+      } else {
+        btnMic.innerHTML = `<i data-lucide="mic-off" class="w-4 h-4 text-red-400"></i> Unmute Mic`;
+        btnMic.className = "bg-red-950 hover:bg-red-900 border border-red-800 text-red-200 p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold animate-pulse";
+      }
+
+      if (isVideoEnabled) {
+        btnCam.innerHTML = `<i data-lucide="video" class="w-4 h-4"></i> Stop Video`;
+        btnCam.className = "bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold";
+      } else {
+        btnCam.innerHTML = `<i data-lucide="video-off" class="w-4 h-4 text-red-400"></i> Start Video`;
+        btnCam.className = "bg-red-950 hover:bg-red-900 border border-red-800 text-red-200 p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold animate-pulse";
+      }
+      lucide.createIcons();
     }
 
     // Interactive Confetti reaction triggers
@@ -749,7 +950,6 @@
         themeColor = ['#6366f1', '#4f46e5'];
       }
 
-      // Trigger Confetti locally for instant fun feedback
       confetti({
         particleCount: 80,
         spread: 70,
@@ -757,7 +957,6 @@
         colors: themeColor
       });
 
-      // Push a gift notification inside the chat room
       try {
         await addDoc(chatsColRef, {
           streamId: activeStreamId,
@@ -771,14 +970,13 @@
       }
     };
 
-    // Chat management routines (Utilizing single flat collection with streamId lookup query)
+    // Chat management routines
     let chatUnsubscribe = null;
     function initChatListener(streamId) {
       if (chatUnsubscribe) chatUnsubscribe();
 
       elChatMessages.innerHTML = '';
 
-      // Set listener to collect real-time comments (Filter manually if needed or via simple query)
       const q = query(chatsColRef);
       chatUnsubscribe = onSnapshot(q, (snapshot) => {
         elChatMessages.innerHTML = '';
@@ -791,14 +989,13 @@
           }
         });
 
-        // Simple sorting mechanism manually in memory to ensure full compliance with RULE 2
+        // RULE 2 - Sort manually in memory
         chatsList.sort((a, b) => {
           const tA = a.timestamp?.seconds || 0;
           const tB = b.timestamp?.seconds || 0;
           return tA - tB;
         });
 
-        // Append to chat stream
         chatsList.forEach(chat => {
           const item = document.createElement('div');
           
@@ -863,14 +1060,26 @@
       if (!activeStreamId) return;
 
       try {
+        if (signalingUnsubscribe) {
+          signalingUnsubscribe();
+          signalingUnsubscribe = null;
+        }
+
         if (isBroadcasting) {
-          // Delete active stream reference
+          // 1. Delete active stream reference
           const streamDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'streams', activeStreamId);
           await deleteDoc(streamDocRef);
 
-          // Close camera stream tracks
+          // 2. Terminate all active multi-peer viewer connections
+          Object.keys(peerConnections).forEach(viewerId => {
+            peerConnections[viewerId].close();
+            delete peerConnections[viewerId];
+          });
+
+          // 3. Close camera stream tracks
           if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
           }
         } else {
           // Viewer leaving stream decrements viewer numbers
@@ -881,6 +1090,11 @@
             const currentViewers = data.viewers || 1;
             await updateDoc(streamDocRef, { viewers: Math.max(0, currentViewers - 1) });
           }
+
+          if (singlePeerConnection) {
+            singlePeerConnection.close();
+            singlePeerConnection = null;
+          }
         }
 
         // Clean visual render loops
@@ -889,6 +1103,7 @@
         // Reset stage state values
         activeStreamId = null;
         isBroadcasting = false;
+        videoElement.srcObject = null;
         elStreamView.classList.add('hidden');
 
       } catch (err) {
@@ -906,6 +1121,10 @@
     document.getElementById('btn-stop-broadcast').addEventListener('click', terminateActiveStream);
     document.getElementById('btn-leave-stream').addEventListener('click', terminateActiveStream);
 
+    // Audio & Video track controls mapping
+    document.getElementById('btn-toggle-mic').addEventListener('click', toggleAudio);
+    document.getElementById('btn-toggle-camera').addEventListener('click', toggleVideo);
+
     // Initial load icons rendering
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -913,3 +1132,4 @@
   </script>
 </body>
 </html>
+
