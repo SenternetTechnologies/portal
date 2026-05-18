@@ -58,6 +58,24 @@
             font-size: 2rem;
             z-index: 40;
         }
+        /* Camera Mirror Styles */
+        .video-mirrored {
+            transform: scaleX(-1);
+        }
+        /* Overlaid Live Chats Transition */
+        @keyframes fadeInChat {
+            from {
+                transform: translateY(12px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .animate-fade-in-chat {
+            animation: fadeInChat 0.3s ease-out forwards;
+        }
     </style>
 </head>
 <body class="min-h-screen text-slate-100 flex flex-col justify-between">
@@ -200,7 +218,7 @@
         <div class="lg:col-span-8 flex flex-col gap-5">
 
             <!-- Video Player Stage Container -->
-            <div class="bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl relative flex flex-col aspect-video w-full min-h-[350px]">
+            <div id="videoStageContainer" class="bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl relative flex flex-col aspect-video w-full min-h-[350px]">
                 
                 <!-- Floating Video Overlays -->
                 <div class="absolute top-4 left-4 z-30 flex items-center gap-2">
@@ -221,7 +239,7 @@
 
                 <!-- Main Video Element -->
                 <div class="flex-grow w-full h-full relative flex items-center justify-center bg-slate-950">
-                    <video id="mainStageVideo" class="w-full h-full object-cover hidden" playsinline muted></video>
+                    <video id="mainStageVideo" class="w-full h-full object-cover hidden transition-transform duration-300" playsinline muted></video>
                     
                     <!-- Fallback / Preview Thumbnail Container -->
                     <div id="videoFallbackContainer" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-radial from-slate-900 to-slate-950">
@@ -232,11 +250,16 @@
                         <p id="fallbackSubtitle" class="text-xs text-slate-400 max-w-sm">Start your own live broadcast to share stream, or enter a host Peer ID on the left menu to enjoy.</p>
                     </div>
 
+                    <!-- Overlaid Chats Area (Twitch/TikTok style) -->
+                    <div id="stageChatOverlay" class="absolute bottom-20 left-4 z-40 max-w-[280px] sm:max-w-sm max-h-[160px] overflow-y-auto space-y-1.5 pointer-events-none flex flex-col justify-end">
+                        <!-- Overlaid messages will automatically insert here -->
+                    </div>
+
                     <!-- Dynamic Floating Emojis Zone -->
                     <div id="reactionZone" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
 
                     <!-- Audio Visualizer Overlay (Broadcaster only) -->
-                    <div id="visualizerContainer" class="absolute bottom-4 left-4 z-30 h-8 w-32 flex items-end gap-[3px] hidden bg-black/40 p-1.5 rounded-lg border border-white/5">
+                    <div id="visualizerContainer" class="absolute bottom-20 right-4 z-30 h-8 w-32 flex items-end gap-[3px] hidden bg-black/40 p-1.5 rounded-lg border border-white/5">
                         <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
                         <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
                         <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
@@ -272,6 +295,12 @@
 
                         <!-- Mic / Cam Control on stage (Broadcaster Only) -->
                         <div id="broadcasterStageControls" class="flex items-center gap-1.5 hidden">
+                            <button id="stageBtnMirror" onclick="toggleCameraMirror()" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-rose-400" title="Mirror My Camera">
+                                <i class="fa-solid fa-arrows-left-right"></i>
+                            </button>
+                            <button id="stageBtnFlipCam" onclick="flipBroadcasterCamera()" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-rose-400" title="Flip Camera Front/Back">
+                                <i class="fa-solid fa-camera-rotate"></i>
+                            </button>
                             <button id="stageBtnMuteMic" onclick="toggleLocalTrack('audio')" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-rose-400">
                                 <i id="stageIconMuteMic" class="fa-solid fa-microphone"></i>
                             </button>
@@ -292,6 +321,11 @@
                                 <i class="fa-solid fa-right-from-bracket mr-1"></i> Leave
                             </button>
                         </div>
+
+                        <!-- Standard Fullscreen Toggle Option (For Host & Viewers) -->
+                        <button id="stageBtnFullscreen" onclick="toggleStageFullscreen()" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-white" title="Toggle Fullscreen Mode">
+                            <i id="iconFullscreen" class="fa-solid fa-expand"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -384,6 +418,10 @@
         let dataArray = null;
         let micLevelInterval = null;
 
+        // Flipped Facing Mode & Mirror State
+        let isVideoMirrored = false;
+        let currentFacingMode = "user"; // 'user' (front camera) or 'environment' (back camera)
+
         // Viewer Specific Data
         let hostConnection = null;      // PeerJS connection to current host
         let hostCall = null;            // Audio/Video Call stream representation
@@ -397,6 +435,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             initializePeerClient();
             setupKeyboardInputHandler();
+            setupFullscreenChangeListener();
         });
 
         // Initialize PeerJS framework
@@ -477,9 +516,10 @@
             showToast("Initializing media equipment...", "fa-camera", "text-amber-400");
 
             try {
-                // Request camera and mic
+                // Request camera with current facingMode constraint
                 localStream = await navigator.mediaDevices.getUserMedia({
                     video: {
+                        facingMode: currentFacingMode,
                         width: { ideal: 1280 },
                         height: { ideal: 720 },
                         frameRate: { ideal: 24 }
@@ -520,6 +560,78 @@
             } catch (error) {
                 console.error("Media acquisition failed:", error);
                 showToast("Camera/Mic Permission Denied!", "fa-circle-exclamation", "text-rose-500");
+            }
+        }
+
+        // Toggle host camera mirror mode
+        function toggleCameraMirror() {
+            const videoElement = document.getElementById('mainStageVideo');
+            const mirrorBtn = document.getElementById('stageBtnMirror');
+            
+            isVideoMirrored = !isVideoMirrored;
+            if (isVideoMirrored) {
+                videoElement.classList.add('video-mirrored');
+                mirrorBtn.classList.replace('text-rose-400', 'bg-rose-950/40');
+                showToast("Camera View Mirrored", "fa-arrows-left-right", "text-emerald-400");
+            } else {
+                videoElement.classList.remove('video-mirrored');
+                mirrorBtn.classList.replace('bg-rose-950/40', 'text-rose-400');
+                showToast("Camera View Reset", "fa-arrows-left-right", "text-amber-400");
+            }
+        }
+
+        // Switch facing camera (Front to Rear / Rear to Front) mid-broadcast
+        async function flipBroadcasterCamera() {
+            if (!isBroadcasting) {
+                currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+                showToast(`Camera mode set to: ${currentFacingMode === "user" ? "Front" : "Rear"}`, "fa-camera-rotate", "text-emerald-400");
+                return;
+            }
+
+            if (isScreenSharing) {
+                showToast("Cannot flip camera while sharing screen!", "fa-circle-exclamation", "text-amber-400");
+                return;
+            }
+
+            currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+            showToast("Switching camera view...", "fa-camera-rotate", "text-amber-400");
+
+            try {
+                // Stop current video tracks
+                if (localStream) {
+                    localStream.getVideoTracks().forEach(track => track.stop());
+                }
+
+                // Acquire new video tracks with the flipped constraint
+                const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+
+                const newTrack = newVideoStream.getVideoTracks()[0];
+                
+                // Replace video track in local stream object safely
+                const oldVideoTrack = localStream.getVideoTracks()[0];
+                if (oldVideoTrack) {
+                    localStream.removeTrack(oldVideoTrack);
+                }
+                localStream.addTrack(newTrack);
+
+                // Update stage player locally
+                const videoElement = document.getElementById('mainStageVideo');
+                videoElement.srcObject = localStream;
+                videoElement.play();
+
+                // Replace outgoing streams for all connected peers
+                replaceActiveTracks(newTrack);
+
+                showToast(`Switched to ${currentFacingMode === 'user' ? 'Front' : 'Rear'} Camera!`, "fa-camera-rotate", "text-emerald-400");
+            } catch (err) {
+                console.error("Camera flip operation failed: ", err);
+                showToast("Failed to flip camera.", "fa-triangle-exclamation", "text-rose-500");
             }
         }
 
@@ -997,6 +1109,7 @@
         }
 
         function appendUserChat(sender, text) {
+            // Append to standard chat logs panel
             const feed = document.getElementById('chatMessages');
             if (feed.innerText.includes("chat is currently offline")) {
                 feed.innerHTML = "";
@@ -1011,9 +1124,13 @@
 
             feed.appendChild(bubble);
             feed.scrollTop = feed.scrollHeight;
+
+            // ALSO append to transparent floating video overlay chat zone
+            appendFloatingOverlayChat(sender, text);
         }
 
         function appendSystemChat(text) {
+            // Append to standard chat logs panel
             const feed = document.getElementById('chatMessages');
             if (feed.innerText.includes("chat is currently offline")) {
                 feed.innerHTML = "";
@@ -1025,6 +1142,29 @@
 
             feed.appendChild(alertBox);
             feed.scrollTop = feed.scrollHeight;
+
+            // ALSO append to transparent floating video overlay chat zone
+            appendFloatingOverlayChat("System", text, "text-slate-400 italic");
+        }
+
+        // Inject transparent chat floating elements inside video screen overlay
+        function appendFloatingOverlayChat(sender, text, labelStyleClass = "text-rose-400") {
+            const overlay = document.getElementById('stageChatOverlay');
+            if (!overlay) return;
+
+            const chatItem = document.createElement('div');
+            chatItem.className = "bg-black/60 backdrop-blur-md text-white p-2 rounded-xl text-xs max-w-full pointer-events-auto shadow-md border border-white/10 break-words flex gap-1.5 animate-fade-in-chat";
+            chatItem.innerHTML = `<span class="font-extrabold shrink-0 ${labelStyleClass}">${sender}:</span> <span class="text-slate-200 font-medium">${text}</span>`;
+
+            overlay.appendChild(chatItem);
+
+            // Limit message overlays in viewport to prevent visual clutter
+            while (overlay.children.length > 5) {
+                overlay.removeChild(overlay.firstChild);
+            }
+
+            // Keep scrolled to bottom
+            overlay.scrollTop = overlay.scrollHeight;
         }
 
         // Broadcasters & Viewers triggering reactions animation
@@ -1061,6 +1201,44 @@
             reactionNode.addEventListener('animationend', () => {
                 reactionNode.remove();
             });
+        }
+
+        // Toggles premium fullscreen on the video block containing all live controls, chats, and widgets
+        function toggleStageFullscreen() {
+            const container = document.getElementById('videoStageContainer');
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) { /* Safari */
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) { /* IE11 */
+                    container.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function setupFullscreenChangeListener() {
+            const changeHandler = () => {
+                const icon = document.getElementById('iconFullscreen');
+                if (document.fullscreenElement) {
+                    icon.className = "fa-solid fa-compress";
+                    showToast("Entered Fullscreen Stream Mode", "fa-expand", "text-emerald-400");
+                } else {
+                    icon.className = "fa-solid fa-expand";
+                }
+            };
+            document.addEventListener('fullscreenchange', changeHandler);
+            document.addEventListener('webkitfullscreenchange', changeHandler);
+            document.addEventListener('mozfullscreenchange', changeHandler);
+            document.addEventListener('MSFullscreenChange', changeHandler);
         }
 
         // Timer controller for showing stream duration
@@ -1104,6 +1282,10 @@
             document.getElementById('fallbackSubtitle').innerText = "Start your own live broadcast to share stream, or enter a host Peer ID on the left menu to enjoy.";
             
             document.getElementById('visualizerContainer').classList.add('hidden');
+
+            // Clear stage overlay chats
+            const overlay = document.getElementById('stageChatOverlay');
+            if (overlay) overlay.innerHTML = '';
         }
 
         // Toggle elements state when live connection starts
