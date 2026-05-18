@@ -3,31 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamVibe - Peer-to-Peer Live Streaming</title>
+    <title>SpinLounge - P2P Roulette & Live Stream</title>
+    
     <!-- Tailwind CSS for modern responsive utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for premium typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome for sleek modern icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- PeerJS for seamless WebRTC Peer-to-Peer connections -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
-    
+    <!-- Confetti library for celebration effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                        cyber: ['Rajdhani', 'sans-serif'],
                     },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s infinite alternate',
+                        'glow-pulse': 'glow 1.5s infinite alternate',
                     },
                     keyframes: {
                         glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.5)' },
-                            '100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.9)' }
+                            '0%': { boxShadow: '0 0 5px rgba(139, 92, 246, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.9)' }
                         }
                     }
                 }
@@ -40,554 +44,1155 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #0f172a;
+            background: #090d16;
         }
         ::-webkit-scrollbar-thumb {
-            background: #334155;
+            background: #1e1b4b;
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #6366f1;
+            background: #8b5cf6;
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
         }
     </style>
 </head>
-<body class="font-sans antialiased h-full flex flex-col justify-between overflow-x-hidden">
+<body class="font-sans antialiased h-full flex flex-col justify-between overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/40 via-slate-950 to-slate-950">
 
-    <!-- Header/Navigation Bar -->
-    <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 sm:px-6">
+    <header class="border-b border-indigo-900/40 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3 sm:px-6">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="h-10 w-10 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid fa-tower-broadcast text-lg text-white animate-pulse"></i>
+                <div class="h-10 w-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <i class="fa-solid fa-circle-notch fa-spin text-lg text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">StreamVibe</h1>
-                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Decentralized P2P Streaming</p>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-violet-400 bg-clip-text text-transparent font-cyber">SPINLOUNGE P2P</h1>
+                    <p class="text-[10px] text-indigo-300 font-medium uppercase tracking-wider">Multiplayer Roulette & Live Cast</p>
                 </div>
             </div>
             
-            <!-- Connection Status Badge -->
+            <!-- Room Info & Balance Panel -->
             <div class="flex items-center gap-3">
-                <!-- Sandbox mode badge -->
-                <div id="sandbox-badge" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-full py-1.5 px-3.5 flex items-center gap-1.5 text-xs text-amber-400 font-semibold">
-                    <i class="fa-solid fa-flask text-[10px]"></i>
-                    <span>Sandbox Simulator Mode Active</span>
+                <div class="bg-violet-950/40 border border-violet-800/40 rounded-full py-1.5 px-4 flex items-center gap-2 text-xs font-bold text-violet-300 shadow-inner">
+                    <i class="fa-solid fa-coins text-amber-400 animate-bounce"></i>
+                    <span>Bal: <span id="user-balance-indicator">1000</span> Chips</span>
                 </div>
 
-                <div id="peer-status-container" class="bg-slate-800/60 border border-slate-700/80 rounded-full py-1.5 px-3.5 flex items-center gap-2 text-xs">
+                <div id="connection-status-badge" class="bg-slate-900 border border-slate-800 rounded-full py-1.5 px-3.5 flex items-center gap-2 text-xs">
                     <span class="relative flex h-2 w-2">
                         <span id="status-pulse" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                         <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                     </span>
-                    <span id="connection-status-text" class="text-slate-300 font-medium">Connecting to network...</span>
+                    <span id="status-text" class="text-slate-300 font-medium">Syncing Cloud...</span>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
-        
-        <!-- Environment Warn Banner (Shows inside canvas) -->
-        <div id="sandbox-alert-banner" class="hidden bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 justify-between">
-            <div class="flex items-start gap-3">
-                <div class="h-9 w-9 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 shrink-0">
-                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 justify-center">
+
+        <!-- STEP 1: Landing Portal Screen (Create/Join Room) -->
+        <div id="landing-portal" class="max-w-md w-full mx-auto bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl animate-fade-in relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-violet-600/10 rounded-full blur-2xl"></div>
+            
+            <div class="text-center mb-6">
+                <div class="h-16 w-16 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-500/10">
+                    <i class="fa-solid fa-dice text-3xl text-white"></i>
                 </div>
-                <div>
-                    <h4 class="text-xs font-bold text-amber-300">WebSocket / Camera Sandbox Restrictions Detected</h4>
-                    <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Browser blocked direct WebSockets. We automatically booted a high-fidelity internal simulation node. You can run broadcasts, spawn virtual viewers, and text in mock real-time.</p>
-                </div>
+                <h2 class="text-2xl font-black tracking-tight font-cyber text-white">Enter the SpinLounge</h2>
+                <p class="text-xs text-slate-400 mt-1">Create a room, spin with friends, bet chips, and live stream video concurrently!</p>
             </div>
-        </div>
 
-        <!-- Connection Dashboard / Setup Panel -->
-        <div id="setup-panel" class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full animate-fade-in">
-            <!-- Left Card: Host / Creator Side -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative overflow-hidden group">
-                <div class="absolute -right-16 -top-16 w-32 h-32 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
-                
+            <!-- Profile Info Settings -->
+            <div class="space-y-4 mb-6">
                 <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="h-10 w-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                            <i class="fa-solid fa-video"></i>
-                        </div>
-                        <h2 class="text-lg font-bold">Start Your Stream</h2>
-                    </div>
-                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Broadcast your video & audio feed directly to viewers. Share your auto-generated Stream ID with anyone so they can watch you in high definition.</p>
-                    
-                    <!-- Peer ID Box -->
-                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 mb-6">
-                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Streaming ID (Peer ID)</label>
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800 text-sm font-mono tracking-wider overflow-x-auto whitespace-nowrap scrollbar-none text-indigo-300 select-all" id="my-peer-id">
-                                Initializing ID...
-                            </div>
-                            <button id="copy-id-btn" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 flex items-center gap-2 hover:text-white" disabled>
-                                <i class="fa-solid fa-copy"></i>
-                                <span class="hidden sm:inline">Copy</span>
-                            </button>
-                        </div>
-                    </div>
+                    <label class="block text-xs font-bold text-indigo-300 uppercase tracking-wider mb-1.5">Your Nickname</label>
+                    <input type="text" id="user-nickname-input" placeholder="Enter your name..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition text-slate-100 placeholder:text-slate-600">
                 </div>
 
-                <!-- Host Controls -->
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3 text-xs mb-2">
-                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
-                            <input type="checkbox" id="pref-audio" checked class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900"> Enable Microphone
-                        </label>
-                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
-                            <input type="checkbox" id="pref-video" checked class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900"> Enable Camera
-                        </label>
-                    </div>
-                    <button id="start-stream-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white py-3.5 px-6 rounded-xl font-semibold transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        <i class="fa-solid fa-play"></i>
-                        <span>Start Live Stream</span>
+                <div class="h-px bg-slate-800 my-4"></div>
+
+                <!-- Create Room Row -->
+                <div class="space-y-2">
+                    <button id="create-room-btn" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3 px-5 rounded-xl transition shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Create New Spin Room</span>
+                    </button>
+                </div>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-xs font-bold text-slate-500 uppercase tracking-widest">OR JOIN ROOM</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <!-- Join Room Row -->
+                <div class="flex gap-2">
+                    <input type="text" id="room-code-input" placeholder="Enter Room Code..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-sm font-mono focus:ring-2 focus:ring-violet-500 outline-none transition uppercase tracking-wider text-center text-violet-300">
+                    <button id="join-room-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl transition flex items-center gap-2">
+                        <span>Join</span>
+                        <i class="fa-solid fa-right-to-bracket"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Right Card: Viewer / Attendee Side -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative overflow-hidden group">
-                <div class="absolute -right-16 -top-16 w-32 h-32 bg-emerald-600/10 rounded-full blur-2xl group-hover:bg-emerald-600/20 transition-all duration-500"></div>
-
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                            <i class="fa-solid fa-circle-play"></i>
-                        </div>
-                        <h2 class="text-lg font-bold">Watch a Stream</h2>
-                    </div>
-                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Instantly tune into another peer's stream. Paste the Host's Stream ID below to establish a fast, high-quality, peer-to-peer visual pipeline.</p>
-                    
-                    <!-- Join Input Field -->
-                    <div class="space-y-3 mb-6">
-                        <label for="host-peer-id-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Host Stream ID</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                                <i class="fa-solid fa-key text-xs"></i>
-                            </div>
-                            <input type="text" id="host-peer-id-input" placeholder="e.g. dynamic-peer-uuid-xyz" class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-3 pl-10 pr-4 text-sm font-mono placeholder:text-slate-600 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-150">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Join Button -->
-                <button id="join-stream-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-semibold transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Connect & Join Stream</span>
-                </button>
+            <div class="bg-slate-950/60 rounded-xl p-3 text-center border border-slate-800/50">
+                <p class="text-[10px] text-slate-500 leading-relaxed">
+                    <i class="fa-solid fa-shield-halved text-indigo-400 mr-1"></i> Synchronized multiplayer lobby matches are hosted entirely within secure Google Cloud storage channels.
+                </p>
             </div>
         </div>
 
-        <!-- Main Live Room Screen (Initially hidden until connection) -->
-        <div id="live-room-panel" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6 w-full flex-1">
-            <!-- Left Panel: Main Video Feed -->
-            <div class="lg:col-span-2 flex flex-col gap-4 bg-slate-900/40 border border-slate-800/80 rounded-3xl p-4 sm:p-5 relative">
-                <!-- Live Stream Container -->
-                <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden group shadow-2xl border border-slate-850">
-                    <video id="main-video-element" class="w-full h-full object-contain" autoplay playsinline></video>
+        <!-- STEP 2: Main Interactive Game Room (Initially Hidden) -->
+        <div id="game-room" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- Left Side: Spinning Wheel & Stream Video Overlay (7 Cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                
+                <!-- Main Gaming & Stream Screen Grid -->
+                <div class="bg-slate-900/40 border border-indigo-950/50 rounded-3xl p-5 relative overflow-hidden shadow-2xl flex flex-col justify-between">
                     
-                    <!-- Hidden Canvas for rendering simulated/mock camera when blocked -->
-                    <canvas id="fallback-stream-canvas" width="1280" height="720" class="hidden"></canvas>
-
-                    <!-- Video Watermarks & Live Badges -->
-                    <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
-                        <span class="bg-red-600 text-white font-extrabold text-[10px] tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse shadow-md">
-                            <span class="h-1.5 w-1.5 rounded-full bg-white"></span> LIVE
-                        </span>
-                        <span id="role-badge" class="bg-slate-900/85 backdrop-blur-md border border-slate-700 text-slate-200 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">
-                            Role: Viewer
-                        </span>
-                    </div>
-
-                    <!-- Connection Peer Info Header (Overlay on video hover) -->
-                    <div class="absolute inset-x-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-between items-start pt-16">
+                    <!-- Top Panel Room Info -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-indigo-950/50">
                         <div>
-                            <p class="text-[10px] text-slate-400 uppercase font-medium">Currently Connected Room</p>
-                            <h3 id="connected-room-title" class="text-xs font-semibold font-mono text-indigo-300">Room: -</h3>
-                        </div>
-                        <div id="stream-status" class="bg-slate-900/85 px-3 py-1.5 rounded-lg border border-slate-700 text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
-                            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span> High-Quality P2P Link Active
-                        </div>
-                    </div>
-
-                    <!-- No Stream Placeholder (Shows if video tracks missing) -->
-                    <div id="video-placeholder" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-0">
-                        <div class="h-16 w-16 bg-slate-900 rounded-full border border-slate-800 flex items-center justify-center text-indigo-400 mb-4 animate-bounce">
-                            <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
-                        </div>
-                        <h3 class="text-base font-bold">Awaiting Stream Broadcast</h3>
-                        <p class="text-xs text-slate-500 mt-2 max-w-xs">Establishing continuous audio-visual pipeline over secure ICE channels. Please wait...</p>
-                    </div>
-
-                    <!-- Host Overlay Custom Controls -->
-                    <div class="absolute bottom-4 left-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-between items-center bg-slate-950/85 backdrop-blur-md border border-slate-800 rounded-xl p-3">
-                        <div class="flex items-center gap-2">
-                            <!-- Stream Controls (Only active for Host) -->
-                            <button id="ctrl-mute-mic" class="h-9 w-9 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center justify-center transition" title="Toggle Microphone">
-                                <i id="ctrl-mic-icon" class="fa-solid fa-microphone"></i>
-                            </button>
-                            <button id="ctrl-stop-cam" class="h-9 w-9 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center justify-center transition" title="Toggle Camera">
-                                <i id="ctrl-cam-icon" class="fa-solid fa-video"></i>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button id="ctrl-fullscreen" class="h-9 w-9 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center justify-center transition" title="Toggle Fullscreen">
-                                <i class="fa-solid fa-expand"></i>
-                            </button>
-                            <button id="disconnect-btn" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-lg shadow-red-600/20">
-                                <i class="fa-solid fa-power-off"></i> Leave Live
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Streaming Meta Info panel & Simulator Interaction Hub -->
-                <div class="bg-slate-900/40 rounded-2xl p-4 flex flex-col gap-4">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/60 pb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <h2 class="text-base font-bold text-white" id="stream-display-title">Decentralized Stream Session</h2>
-                                <span class="bg-indigo-500/10 text-indigo-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider border border-indigo-500/20" id="host-badge">Active Connection</span>
+                            <div class="flex items-center gap-2">
+                                <span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                                <h3 id="active-room-title" class="font-bold text-base font-cyber text-white">ROOM: GENERAL</h3>
+                                <span class="bg-indigo-950 border border-indigo-800/40 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" id="active-user-role-badge font-mono">Loading...</span>
                             </div>
-                            <p class="text-xs text-slate-400">Streamed peer-to-peer across modern WebRTC networks. Zero middleman buffering.</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Spin interval resets every 10 seconds. Place bets on wheel names to win multipliers!</p>
                         </div>
                         
-                        <div class="flex items-center gap-3">
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Estimated Bandwidth</p>
-                                <p class="text-xs font-mono font-bold text-emerald-400" id="bandwidth-indicator">Optimizing...</p>
+                        <!-- Actions & Exit -->
+                        <div class="flex items-center gap-2">
+                            <button id="copy-room-code" class="bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-800 flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-copy"></i>
+                                <span id="copy-btn-text">Room Code</span>
+                            </button>
+                            <button id="leave-room-btn" class="bg-rose-950/40 hover:bg-rose-900/40 text-rose-300 border border-rose-900/40 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>Leave Lounge</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Central Play Arena (Wheel & Camera Dual Display) -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 py-6 items-center min-h-[380px]">
+                        
+                        <!-- Spinning Wheel Area (7 Cols) -->
+                        <div class="md:col-span-7 flex flex-col items-center justify-center relative">
+                            
+                            <!-- Phase & Timer Banner overlay inside wheel -->
+                            <div class="absolute -top-4 bg-slate-950/80 border border-indigo-800/40 px-4 py-1.5 rounded-full text-xs font-bold font-cyber flex items-center gap-2 shadow-lg z-20">
+                                <i class="fa-solid fa-hourglass-half text-violet-400 animate-spin"></i>
+                                <span id="game-phase-label" class="text-violet-300 uppercase tracking-widest">BETTING ACTIVE</span>
+                                <span id="countdown-timer-text" class="text-white text-sm bg-violet-600 px-2 py-0.5 rounded ml-1 animate-pulse">10s</span>
                             </div>
-                            <div class="h-8 w-px bg-slate-800"></div>
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Viewer Network</p>
-                                <p class="text-xs font-mono font-bold text-indigo-400" id="viewer-count-indicator">1 Connected</p>
+
+                            <!-- The HTML5 Wheel Canvas -->
+                            <div class="relative p-2 rounded-full border-4 border-indigo-900/30 bg-slate-950 shadow-inner max-w-[290px] md:max-w-[320px]">
+                                <!-- Wheel Pointer Indicator Arrow -->
+                                <div class="absolute -right-2 top-1/2 -translate-y-1/2 z-30 drop-shadow-[0_0_8px_rgba(239,68,68,0.7)] text-red-500 transform rotate-180">
+                                    <i class="fa-solid fa-caret-left text-3xl"></i>
+                                </div>
+                                <canvas id="wheel-canvas" width="400" height="400" class="w-full h-full aspect-square transition-transform duration-100 ease-out rounded-full"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Stream Cameraman Panel (5 Cols) -->
+                        <div class="md:col-span-5 flex flex-col gap-3 h-full justify-center">
+                            
+                            <!-- Video Stream Container -->
+                            <div class="relative aspect-video md:aspect-[4/5] bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex flex-col justify-end group">
+                                <video id="stream-video" class="w-full h-full object-cover absolute inset-0" autoplay playsinline></video>
+                                <canvas id="mock-fallback-canvas" width="640" height="480" class="hidden absolute inset-0 w-full h-full object-cover"></canvas>
+                                
+                                <!-- No stream watermark -->
+                                <div id="video-overlay-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-950/85 z-10">
+                                    <div class="h-12 w-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 mb-2 animate-pulse">
+                                        <i class="fa-solid fa-video-slash"></i>
+                                    </div>
+                                    <p class="text-[11px] font-bold text-slate-300">Live Host Video Offline</p>
+                                    <p class="text-[9px] text-slate-500 max-w-[150px] mt-0.5 leading-relaxed">Turn on camera broadcast if you are the host dealer!</p>
+                                </div>
+
+                                <!-- Host live streaming stream state badge -->
+                                <div class="absolute top-3 left-3 z-20 flex items-center gap-1.5">
+                                    <span class="bg-red-600 text-white font-extrabold text-[8px] tracking-widest uppercase px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse shadow">
+                                        <span class="h-1 w-1 rounded-full bg-white"></span> LIVE STREAM
+                                    </span>
+                                </div>
+
+                                <!-- Overlay Stream Options -->
+                                <div class="absolute bottom-2 left-2 right-2 z-20 bg-slate-950/80 backdrop-blur-md border border-slate-800/80 rounded-xl p-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div class="flex gap-1.5">
+                                        <button id="toggle-camera" class="h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition" title="Start/Stop Camera">
+                                            <i class="fa-solid fa-video"></i>
+                                        </button>
+                                        <button id="toggle-mic" class="h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition" title="Mute Mic">
+                                            <i class="fa-solid fa-microphone"></i>
+                                        </button>
+                                    </div>
+                                    <span class="text-[9px] font-bold text-slate-400 font-mono" id="stream-client-uuid">P2P: Disconnected</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- SIMULATOR CONTROL DECK (Shows only in simulation mode to test layout easily) -->
-                    <div id="simulator-controller-deck" class="hidden bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div>
-                                <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-gamepad"></i> Testing Center (Interactive Simulator Control)
-                                </h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Spawn simulated audience bots to test real-time P2P chat and viewer counts!</p>
+                    <!-- Betting & Dashboard Row -->
+                    <div class="mt-4 border-t border-indigo-950/50 pt-4 grid grid-cols-1 md:grid-cols-12 gap-4">
+                        
+                        <!-- Left Panel: Add Name to Wheel (5 Cols) -->
+                        <div class="md:col-span-5 bg-slate-950/50 rounded-2xl p-3 border border-indigo-950/50">
+                            <label class="block text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1.5">Add Name on Wheel Slice</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="add-wheel-name-input" placeholder="e.g. Winner, Jackpot, Pooja" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-violet-500 outline-none transition">
+                                <button id="add-slice-btn" class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-4 rounded-xl transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-circle-plus"></i>
+                                    <span>Add</span>
+                                </button>
                             </div>
-                            <div class="flex gap-2 shrink-0">
-                                <button id="btn-spawn-bot" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[11px] px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md shadow-indigo-600/10">
-                                    <i class="fa-solid fa-user-plus"></i> Spawn Viewer Bot
-                                </button>
-                                <button id="btn-bot-spam" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-[11px] px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Sim Chat Wave
-                                </button>
+                            <div class="mt-2 flex flex-wrap gap-1.5 max-h-[70px] overflow-y-auto" id="wheel-slices-tags">
+                                <!-- Dynamic Slices Rendered -->
+                                <span class="text-[9px] text-slate-500 italic">No custom names added yet...</span>
                             </div>
                         </div>
+
+                        <!-- Right Panel: Place Betting Chips (7 Cols) -->
+                        <div class="md:col-span-7 bg-slate-950/50 rounded-2xl p-3 border border-indigo-950/50 flex flex-col justify-between">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Place Your Wheel Bet</label>
+                                <span class="text-[10px] font-semibold text-slate-400">Winning Payout is Multiplied!</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <!-- Name Selector -->
+                                <div>
+                                    <select id="bet-target-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-violet-500">
+                                        <option value="">-- Choose Name --</option>
+                                    </select>
+                                </div>
+                                <!-- Chips Input -->
+                                <div class="relative">
+                                    <input type="number" id="bet-chips-input" min="10" max="5000" placeholder="Bet Amount (e.g., 50)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-violet-500 outline-none transition text-slate-200">
+                                </div>
+                                <!-- Confirm Bet Button -->
+                                <button id="place-bet-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl py-2 px-4 transition flex items-center justify-center gap-1.5 shadow shadow-emerald-600/20">
+                                    <i class="fa-solid fa-gavel"></i>
+                                    <span>Lock Bet</span>
+                                </button>
+                            </div>
+
+                            <!-- List of active bets for this round -->
+                            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400 bg-slate-900/40 p-1.5 px-3 rounded-lg border border-slate-800/40">
+                                <div class="flex items-center gap-1 text-slate-300">
+                                    <i class="fa-solid fa-receipt text-indigo-400"></i>
+                                    <span id="current-bet-display">Active Bet: None placed yet</span>
+                                </div>
+                                <span id="total-pool-display" class="font-bold text-violet-400">Total Pool: 0 Chips</span>
+                            </div>
+                        </div>
+
                     </div>
+
                 </div>
-            </div>
 
-            <!-- Right Panel: P2P Live Chat Sidebar -->
-            <div class="lg:col-span-1 flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-3xl overflow-hidden h-[500px] lg:h-auto">
-                <!-- Chat Header -->
-                <div class="p-4 border-b border-slate-800 bg-slate-950/50 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                            <i class="fa-solid fa-comments"></i>
+                <!-- Simulator Tester Center (For Easy Solo Play / Sandbox testing) -->
+                <div class="bg-gradient-to-r from-amber-950/10 via-slate-900/40 to-indigo-950/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="h-9 w-9 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-sm">Live Broadcast Chat</h3>
-                            <p class="text-[10px] text-slate-500">Encrypted End-to-End Chat</p>
+                            <h4 class="text-xs font-bold text-amber-300">Sandbox Testing Station (Direct Simulator Integration)</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Test multiplayer synchronization on yourself! Spawn bot accounts, trigger mock roulette rounds, and chat automatically.</p>
                         </div>
                     </div>
-                    <!-- Status Icon -->
-                    <span id="chat-badge" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Online</span>
-                </div>
-
-                <!-- Chat Feed Messages -->
-                <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3.5 flex flex-col justify-end">
-                    <!-- Setup initial notification -->
-                    <div class="bg-indigo-950/30 border border-indigo-900/50 rounded-2xl p-3.5 text-center text-xs text-indigo-300 max-w-sm mx-auto">
-                        <i class="fa-solid fa-shield-halved text-lg mb-1.5 block"></i>
-                        <span class="font-semibold block mb-0.5">Secure P2P Chat Stream</span>
-                        WebRTC DataChannel is enabled. Chat directly with other nodes with minimal transit latency.
+                    <div class="flex gap-2 shrink-0">
+                        <button id="sim-add-bot-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow flex items-center gap-1">
+                            <i class="fa-solid fa-user-astronaut"></i> Spawn Bot Player
+                        </button>
+                        <button id="sim-trigger-round-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[10px] px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-forward"></i> Instant Spin
+                        </button>
                     </div>
                 </div>
 
-                <!-- Chat Input Action Panel -->
-                <form id="chat-form" class="p-3 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2">
-                    <input type="text" id="chat-input-field" placeholder="Type message to room..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" disabled>
-                    <button type="submit" id="chat-send-btn" class="h-9 w-9 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition shadow-md shadow-indigo-600/10 disabled:opacity-50" disabled>
-                        <i class="fa-solid fa-paper-plane text-xs"></i>
-                    </button>
-                </form>
             </div>
+
+            <!-- Right Panel: Players List & Live Chat Lobby (4 Cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Room Members Panel -->
+                <div class="bg-slate-900/40 border border-indigo-950/50 rounded-3xl p-4 flex flex-col gap-3 max-h-[220px] overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-indigo-950/40 pb-2">
+                        <h4 class="text-xs font-extrabold uppercase tracking-widest text-indigo-300 font-cyber flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-indigo-400"></i>
+                            <span>Players Lounge</span>
+                        </h4>
+                        <span id="player-count-badge" class="bg-indigo-950 border border-indigo-800/40 text-indigo-300 text-[9px] px-2 py-0.5 rounded font-bold font-mono">0 In Lobby</span>
+                    </div>
+
+                    <!-- Member list scrollable -->
+                    <div id="players-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                        <!-- Rendered players list -->
+                    </div>
+                </div>
+
+                <!-- Live Chat Sidebar Box -->
+                <div class="bg-slate-900/40 border border-indigo-950/50 rounded-3xl overflow-hidden flex flex-col h-[400px]">
+                    <!-- Chat Header -->
+                    <div class="p-4 border-b border-indigo-950/40 bg-slate-950/50 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="h-7 w-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                                <i class="fa-solid fa-comments"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xs">Lounge Live Chat</h3>
+                                <p class="text-[9px] text-slate-500">Real-Time Cloud Broadcast</p>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Active</span>
+                    </div>
+
+                    <!-- Chat Feed Messages -->
+                    <div id="chat-messages-scroll" class="flex-1 overflow-y-auto p-4 space-y-3.5 flex flex-col justify-end">
+                        <!-- Setup initial notification info -->
+                        <div class="bg-indigo-950/20 border border-indigo-900/30 rounded-2xl p-4 text-center text-[11px] text-indigo-300 max-w-sm mx-auto">
+                            <i class="fa-solid fa-circle-info text-base mb-1 block"></i>
+                            <span class="font-semibold block mb-0.5">SpinLounge Chatroom</span>
+                            Discuss betting odds, add name slices, and call out winners. All chat is encrypted in real-time.
+                        </div>
+                    </div>
+
+                    <!-- Chat Input form -->
+                    <form id="chat-form" class="p-3 bg-slate-950/85 border-t border-slate-900/60 flex items-center gap-2">
+                        <input type="text" id="chat-input" placeholder="Type message..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                        <button type="submit" class="h-9 w-9 bg-violet-600 hover:bg-violet-500 text-white rounded-xl flex items-center justify-center transition shrink-0 shadow-lg shadow-violet-600/15">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
         </div>
+
     </main>
 
-    <!-- Custom UI Alert Popups (Anti Native Alerts UI rules) -->
+    <!-- Custom System Alert Modal (Bypasses window.alert blocker) -->
     <div id="alert-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative">
-            <div id="alert-icon-container" class="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400">
-                <i id="alert-icon" class="fa-solid fa-circle-exclamation text-xl"></i>
+            <div id="alert-icon-wrap" class="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400">
+                <i id="alert-modal-icon" class="fa-solid fa-bell text-xl"></i>
             </div>
-            <h3 id="alert-title" class="text-base font-bold text-center mb-1 text-white">System Alert</h3>
-            <p id="alert-message" class="text-xs text-slate-400 text-center mb-5 leading-relaxed">Alert descriptions are routed seamlessly here.</p>
-            <button id="alert-close-btn" class="w-full bg-slate-800 hover:bg-slate-700 active:bg-slate-650 text-slate-200 py-2.5 rounded-xl text-xs font-semibold transition">
-                Close Alert Window
+            <h3 id="alert-modal-title" class="text-base font-bold text-center mb-1 text-white">Lounge Alert</h3>
+            <p id="alert-modal-msg" class="text-xs text-slate-400 text-center mb-5 leading-relaxed">Alert details are processed securely.</p>
+            <button id="alert-modal-close" class="w-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-violet-600/20">
+                Acknowledge & Close
             </button>
         </div>
     </div>
 
-    <!-- Sticky Live Notification Banner -->
-    <div id="toast-notif" class="fixed bottom-6 left-6 z-50 max-w-sm w-full translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <!-- Toast Notification Overlay -->
+    <div id="toast-overlay" class="fixed bottom-6 left-6 z-50 max-w-sm w-full translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <div class="bg-slate-900/95 border border-slate-800 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center gap-3">
-            <div class="h-9 w-9 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 text-sm">
-                <i class="fa-solid fa-bell"></i>
+            <div class="h-9 w-9 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400 text-sm">
+                <i class="fa-solid fa-bullhorn text-xs"></i>
             </div>
             <div class="flex-1">
-                <p class="text-xs font-bold text-white" id="toast-title">Broadcast Notice</p>
-                <p class="text-[10px] text-slate-400" id="toast-body">Description text displays here.</p>
+                <p class="text-xs font-bold text-white" id="toast-title">Notice</p>
+                <p class="text-[10px] text-slate-400" id="toast-desc">Information body description text.</p>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950 px-4 py-4 sm:px-6 text-center text-[10px] text-slate-500">
+    <footer class="border-t border-slate-900/60 bg-slate-950 px-4 py-4 sm:px-6 text-center text-[10px] text-slate-500">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p>&copy; 2026 StreamVibe P2P Streaming System. All Rights Reserved.</p>
+            <p>&copy; 2026 SpinLounge WebRTC. Pure peer-synchronized betting. No middleman margins.</p>
             <div class="flex items-center gap-4">
                 <a href="#" class="hover:text-slate-300 transition">Privacy & terms</a>
                 <span class="h-3 w-px bg-slate-800"></span>
-                <a href="#" class="hover:text-slate-300 transition flex items-center gap-1">
-                    <span id="system-mode-tag" class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                    <span id="system-mode-txt">WebRTC Engine Standard</span>
-                </a>
+                <span class="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    <span>System Sync Enabled</span>
+                </span>
             </div>
         </div>
     </footer>
 
-    <script>
-        // Global variables representing WebRTC engine states
-        let localStream = null;
-        let peer = null;
+    <!-- Firestore and App Engine Core Module Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Local environment variable parameters
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spinlounge-lobby';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "",
+            authDomain: "mock-app.firebaseapp.com",
+            projectId: "mock-app",
+            storageBucket: "mock-app.appspot.com",
+            messagingSenderId: "12345678",
+            appId: "1:12345678:web:1234"
+        };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
+
+        // Establish core app entities
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch(e) {
+            console.error("Firebase init failed, switching to isolated simulated mode.", e);
+        }
+
+        // Setup sound generation context using Web Audio API to prevent cross-origin block assets
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtxInstance = null;
+
+        function playSynthBeep(freq, type = 'sine', duration = 0.1) {
+            try {
+                if (!audioCtxInstance) {
+                    audioCtxInstance = new AudioCtx();
+                }
+                if (audioCtxInstance.state === 'suspended') {
+                    audioCtxInstance.resume();
+                }
+                const osc = audioCtxInstance.createOscillator();
+                const gain = audioCtxInstance.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtxInstance.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtxInstance.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtxInstance.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtxInstance.destination);
+                osc.start();
+                osc.stop(audioCtxInstance.currentTime + duration);
+            } catch (err) {
+                console.warn("Audio Context block or unsupported", err);
+            }
+        }
+
+        // Global State Parameters
+        let currentUser = {
+            uid: crypto.randomUUID(),
+            displayName: "Guest Player",
+            chips: 1000
+        };
+        let currentRoomId = null;
+        let currentRoomDocRef = null;
+        let roomSubscription = null;
+        let currentRoomState = {};
+
+        // WebRTC variables
+        let myPeer = null;
         let activeCall = null;
-        let activeDataConnection = null;
-        
-        let activeViewerConnections = [];
-        let activeViewerCalls = [];
-        
-        let clientRole = null; // 'host' or 'viewer'
-        let myId = "";
-        let peerConnected = false;
-        let isSimulationMode = false;
-        
-        // Canvas generator variables for camera fallback
-        let fallbackCanvasInterval = null;
-        const mockViewersList = ["Karthik 🚀", "Anjali ✨", "Suresh Kumar 🔥", "Pooja Pillai 🎧", "Manoj Kumar 💻", "Dhinesh Raj 🎸", "Swetha Sree ☕"];
-        const mockTamilComments = [
-            "Live streaming vera level bro! 🔥",
-            "Clarity super ah irukku!",
-            "Eppadi intha maari setup panni stream panreenga?",
-            "P2P direct high resolution super bro! 🚀",
-            "Annan live vanthutaaru!! Gethu dhaan!",
-            "Hi everyone in the stream 👋",
-            "Sound system check, semma clear broadast!",
-            "Vera level technology integration bro. Keep rocking!"
+        let localStream = null;
+        let isCameraActive = false;
+        let isMicActive = false;
+
+        // Mock Fallback interval for host simulation
+        let mockCameraInterval = null;
+
+        // Wheel rendering params
+        let currentWheelAngle = 0;
+        let isWheelSpinning = false;
+        let animationFrameId = null;
+        let slicesList = ["Jackpot 💎", "No Luck 💀", "Bonus Mini 🎁", "Super X2 🔥", "Mega Coin 🚀", "Loose Bet 💔"];
+        let sliceColors = [
+            "#6d28d9", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#1e293b",
+            "#4c1d95", "#1d4ed8", "#047857", "#b45309", "#b91c1c", "#0f172a"
         ];
 
-        // UI Element references
-        const myPeerIdEl = document.getElementById('my-peer-id');
-        const startStreamBtn = document.getElementById('start-stream-btn');
-        const joinStreamBtn = document.getElementById('join-stream-btn');
-        const hostPeerIdInput = document.getElementById('host-peer-id-input');
-        const copyIdBtn = document.getElementById('copy-id-btn');
+        // DOM Handles
+        const portalScreen = document.getElementById('landing-portal');
+        const gameRoomScreen = document.getElementById('game-room');
+        const nicknameInput = document.getElementById('user-nickname-input');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const roomCodeInput = document.getElementById('room-code-input');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const activeRoomTitle = document.getElementById('active-room-title');
+        const userBalanceIndicator = document.getElementById('user-balance-indicator');
+        const copyRoomCodeBtn = document.getElementById('copy-room-code');
+        const leaveRoomBtn = document.getElementById('leave-room-btn');
+        const streamVideoEl = document.getElementById('stream-video');
+        const mockFallbackCanvas = document.getElementById('mock-fallback-canvas');
+        const videoOverlayPlaceholder = document.getElementById('video-overlay-placeholder');
         
-        const setupPanel = document.getElementById('setup-panel');
-        const liveRoomPanel = document.getElementById('live-room-panel');
-        const mainVideoElement = document.getElementById('main-video-element');
-        const videoPlaceholder = document.getElementById('video-placeholder');
-        const fallbackStreamCanvas = document.getElementById('fallback-stream-canvas');
+        const wheelCanvas = document.getElementById('wheel-canvas');
+        const gamePhaseLabel = document.getElementById('game-phase-label');
+        const countdownTimerText = document.getElementById('countdown-timer-text');
         
-        const roleBadge = document.getElementById('role-badge');
-        const connectedRoomTitle = document.getElementById('connected-room-title');
-        const viewerCountIndicator = document.getElementById('viewer-count-indicator');
-        const streamDisplayTitle = document.getElementById('stream-display-title');
-        const disconnectBtn = document.getElementById('disconnect-btn');
-
+        const slicesTagsContainer = document.getElementById('wheel-slices-tags');
+        const addWheelNameInput = document.getElementById('add-wheel-name-input');
+        const addSliceBtn = document.getElementById('add-slice-btn');
+        const betTargetSelect = document.getElementById('bet-target-select');
+        const betChipsInput = document.getElementById('bet-chips-input');
+        const placeBetBtn = document.getElementById('place-bet-btn');
+        
+        const currentBetDisplay = document.getElementById('current-bet-display');
+        const totalPoolDisplay = document.getElementById('total-pool-display');
+        const playersListContainer = document.getElementById('players-list-container');
+        const playerCountBadge = document.getElementById('player-count-badge');
+        
         const chatForm = document.getElementById('chat-form');
-        const chatInputField = document.getElementById('chat-input-field');
-        const chatMessagesContainer = document.getElementById('chat-messages-container');
-        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessagesScroll = document.getElementById('chat-messages-scroll');
+        
+        const simAddBotBtn = document.getElementById('sim-add-bot-btn');
+        const simTriggerRoundBtn = document.getElementById('sim-trigger-round-btn');
 
-        // Sandbox & Warning references
-        const sandboxAlertBanner = document.getElementById('sandbox-alert-banner');
-        const sandboxBadge = document.getElementById('sandbox-badge');
-        const simControllerDeck = document.getElementById('simulator-controller-deck');
-
-        // High-fidelity Neon retro wave canvas generator (Bypasses camera block inside IFrames!)
-        function startFallbackCanvasBroadcast() {
-            const ctx = fallbackStreamCanvas.getContext('2d');
-            let frameCount = 0;
-            
-            fallbackCanvasInterval = setInterval(() => {
-                frameCount++;
-                
-                // Draw cool background gradient
-                const grad = ctx.createLinearGradient(0, 0, 1280, 720);
-                grad.addColorStop(0, '#020617'); // slate-950
-                grad.addColorStop(0.5, '#0f172a'); // slate-900
-                grad.addColorStop(1, '#1e1b4b'); // indigo-950
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 1280, 720);
-                
-                // Animated neon grid lines
-                ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)'; // indigo line grid
-                ctx.lineWidth = 2;
-                const gridSpacing = 40;
-                for (let x = 0; x < 1280; x += gridSpacing) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, 720);
-                    ctx.stroke();
-                }
-                for (let y = 0; y < 720; y += gridSpacing) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(1280, y);
-                    ctx.stroke();
-                }
-
-                // Shifting futuristic neon visualizer circle
-                const radius = 120 + Math.sin(frameCount * 0.05) * 15;
-                const visualGradient = ctx.createRadialGradient(640, 360, 20, 640, 360, radius);
-                visualGradient.addColorStop(0, 'rgba(168, 85, 247, 0.4)'); // purple-500
-                visualGradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.2)'); // indigo-500
-                visualGradient.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = visualGradient;
-                ctx.beginPath();
-                ctx.arc(640, 360, radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Draw central rotating visualizer particles
-                ctx.strokeStyle = '#a855f7';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                for (let i = 0; i < 360; i += 10) {
-                    const angle = (i * Math.PI) / 180 + (frameCount * 0.01);
-                    const amplitude = 30 + Math.sin(frameCount * 0.1 + i) * 15;
-                    const xStart = 640 + Math.cos(angle) * (radius - 20);
-                    const yStart = 360 + Math.sin(angle) * (radius - 20);
-                    const xEnd = 640 + Math.cos(angle) * (radius + amplitude);
-                    const yEnd = 360 + Math.sin(angle) * (radius + amplitude);
-                    ctx.moveTo(xStart, yStart);
-                    ctx.lineTo(xEnd, yEnd);
-                }
-                ctx.stroke();
-
-                // Outer decorative target alignment marks
-                ctx.strokeStyle = '#10b981'; // emerald
-                ctx.lineWidth = 3;
-                // Top-Left corner
-                ctx.beginPath(); ctx.moveTo(50, 80); ctx.lineTo(50, 50); ctx.lineTo(80, 50); ctx.stroke();
-                // Top-Right corner
-                ctx.beginPath(); ctx.moveTo(1230, 80); ctx.lineTo(1230, 50); ctx.lineTo(1200, 50); ctx.stroke();
-                // Bottom-Left corner
-                ctx.beginPath(); ctx.moveTo(50, 640); ctx.lineTo(50, 670); ctx.lineTo(80, 670); ctx.stroke();
-                // Bottom-Right corner
-                ctx.beginPath(); ctx.moveTo(1230, 640); ctx.lineTo(1230, 670); ctx.lineTo(1200, 670); ctx.stroke();
-
-                // Blinking Broadcast status card
-                if (Math.floor(frameCount / 25) % 2 === 0) {
-                    ctx.fillStyle = '#ef4444'; // red dot
-                    ctx.beginPath();
-                    ctx.arc(80, 100, 8, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 24px Inter, system-ui, sans-serif';
-                ctx.fillText('LIVE BROADCAST', 105, 108);
-
-                // Room stream info overlay
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-                ctx.beginPath();
-                ctx.roundRect(80, 580, 1120, 80, 15);
-                ctx.fill();
-
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                ctx.font = '600 18px Inter, monospace';
-                ctx.fillText(`STREAM ID: ${myId || "LOCAL_SIMULATOR"}`, 110, 615);
-                
-                ctx.fillStyle = '#818cf8';
-                ctx.font = '14px Inter';
-                ctx.fillText(`SYSTEM FPS: 30FPS  |  ENC: WEBRTC H.264 VIRTUAL CAPTURE  |  AUDIO STATUS: ACTIVE`, 110, 642);
-
-                const timeStr = new Date().toLocaleTimeString();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 20px monospace';
-                ctx.fillText(timeStr, 1070, 628);
-
-            }, 33); // Draw at roughly ~30 FPS
-        }
-
-        function stopFallbackCanvasBroadcast() {
-            if (fallbackCanvasInterval) {
-                clearInterval(fallbackCanvasInterval);
-                fallbackCanvasInterval = null;
-            }
-        }
-
-        // Custom UI Modal and Toast controllers
-        function showCustomAlert(title, message, isError = false) {
+        // Custom Modal Utilities
+        function showModal(title, msg, isAlert = false) {
             const modal = document.getElementById('alert-modal');
-            const alertTitle = document.getElementById('alert-title');
-            const alertMessage = document.getElementById('alert-message');
-            const iconContainer = document.getElementById('alert-icon-container');
-            const icon = document.getElementById('alert-icon');
+            const icon = document.getElementById('alert-modal-icon');
+            const wrapper = document.getElementById('alert-icon-wrap');
+            
+            document.getElementById('alert-modal-title').textContent = title;
+            document.getElementById('alert-modal-msg').textContent = msg;
 
-            alertTitle.textContent = title;
-            alertMessage.textContent = message;
-
-            if (isError) {
-                iconContainer.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-rose-500/15 text-rose-400 animate-bounce";
-                icon.className = "fa-solid fa-triangle-exclamation text-xl";
-            } else {
-                iconContainer.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400";
+            if (isAlert) {
+                wrapper.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-rose-500/15 text-rose-400";
                 icon.className = "fa-solid fa-circle-exclamation text-xl";
+            } else {
+                wrapper.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400";
+                icon.className = "fa-solid fa-circle-check text-xl";
             }
-
             modal.classList.remove('hidden');
         }
 
-        document.getElementById('alert-close-btn').addEventListener('click', () => {
+        document.getElementById('alert-modal-close').addEventListener('click', () => {
             document.getElementById('alert-modal').classList.add('hidden');
         });
 
-        function showToast(title, body) {
-            const toast = document.getElementById('toast-notif');
+        function showToast(title, desc) {
+            const toast = document.getElementById('toast-overlay');
             document.getElementById('toast-title').textContent = title;
-            document.getElementById('toast-body').textContent = body;
-            
+            document.getElementById('toast-desc').textContent = desc;
+
             toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
 
             setTimeout(() => {
                 toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
                 toast.classList.remove('translate-y-0', 'opacity-100');
-            }, 3500);
+            }, 3000);
         }
 
-        window.addEventListener('load', () => {
-            initializeRealOrSimulatedPeer();
-        });
-
-        function initializeRealOrSimulatedPeer() {
-            // First, try standard Cloud-based WebRTC signaling broker
+        // Initialize Anonymous Auth Connection
+        async function authenticateAndSetup() {
             try {
-                peer = new Peer(undefined, {
+                if (auth) {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            currentUser.uid = user.uid;
+                            setConnectionStatus(true, "Cloud Connected");
+                        }
+                    });
+                } else {
+                    setConnectionStatus(true, "Mock Sandbox Active");
+                }
+            } catch (err) {
+                console.warn("Auth process failure, continuing in isolated mode.", err);
+                setConnectionStatus(true, "Simulator Sandbox Node");
+            }
+        }
+
+        function setConnectionStatus(connected, txt) {
+            const badge = document.getElementById('connection-status-badge');
+            const pulse = document.getElementById('status-pulse');
+            const dot = document.getElementById('status-dot');
+            const statusTxt = document.getElementById('status-text');
+
+            statusTxt.textContent = txt;
+            if (connected) {
+                dot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+                pulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+            } else {
+                dot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+                pulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+            }
+        }
+
+        // Drawing HTML5 Canvas Wheel
+        function drawWheel(angle = 0) {
+            const ctx = wheelCanvas.getContext('2d');
+            const width = wheelCanvas.width;
+            const height = wheelCanvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = width / 2 - 20;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const slices = slicesList.length > 0 ? slicesList : ["Lucky Spin"];
+            const sliceAngle = (Math.PI * 2) / slices.length;
+
+            // Draw shadow base for 3D look
+            ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
+            ctx.beginPath();
+            ctx.arc(centerX + 4, centerY + 6, radius + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            slices.forEach((slice, i) => {
+                const currentAngle = angle + i * sliceAngle;
+
+                // Draw Slice Fill
+                ctx.fillStyle = sliceColors[i % sliceColors.length];
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw Slice Stroke Accent
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Draw text label on slice
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(currentAngle + sliceAngle / 2);
+                
+                // Text Styling
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 13px Inter, sans-serif";
+                ctx.textAlign = "right";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(slice.substring(0, 15), radius - 30, 5);
+                ctx.restore();
+            });
+
+            // Drawing central metal pin with a modern glowing gradient
+            const pinGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 28);
+            pinGrad.addColorStop(0, "#8b5cf6"); // violet-500
+            pinGrad.addColorStop(0.5, "#4c1d95"); // violet-900
+            pinGrad.addColorStop(1, "#0f172a"); // slate-900
+            
+            ctx.fillStyle = pinGrad;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ring frame accent around pin
+            ctx.strokeStyle = "#818cf8";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Outer decorative ring line
+            ctx.strokeStyle = "rgba(99, 102, 241, 0.4)";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Update tags list UI below the selection
+        function renderSlicesTags() {
+            slicesTagsContainer.innerHTML = '';
+            slicesList.forEach((slice, idx) => {
+                const tag = document.createElement('span');
+                tag.className = `text-[10px] font-bold px-2.5 py-1 rounded-full text-white flex items-center gap-1 border border-white/10`;
+                tag.style.backgroundColor = sliceColors[idx % sliceColors.length];
+                tag.innerHTML = `
+                    <span>${slice}</span>
+                    <button class="remove-slice-btn hover:text-black transition" data-idx="${idx}">&times;</button>
+                `;
+                slicesTagsContainer.appendChild(tag);
+            });
+
+            // Re-hook listeners
+            document.querySelectorAll('.remove-slice-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
+                    slicesList.splice(idx, 1);
+                    await updateRoomDoc({ slices: slicesList });
+                });
+            });
+
+            // Update selectors
+            const selectOptions = ['<option value="">-- Choose Name --</option>'];
+            slicesList.forEach(slice => {
+                selectOptions.push(`<option value="${slice}">${slice}</option>`);
+            });
+            betTargetSelect.innerHTML = selectOptions.join('');
+        }
+
+        // Renders animated neon synthwave visuals directly to a canvas stream if camera blocked
+        function startMockCameraCanvas() {
+            mockFallbackCanvas.classList.remove('hidden');
+            const ctx = mockFallbackCanvas.getContext('2d');
+            let frames = 0;
+            
+            mockCameraInterval = setInterval(() => {
+                frames++;
+                // Gradient background
+                const grad = ctx.createLinearGradient(0, 0, 640, 480);
+                grad.addColorStop(0, '#030712');
+                grad.addColorStop(1, '#1e1b4b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 640, 480);
+
+                // Sound Wave Generator line
+                ctx.strokeStyle = '#8b5cf6';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, 240);
+                for(let x=0; x<640; x+=10) {
+                    const y = 240 + Math.sin(x*0.02 + frames*0.08) * 45;
+                    ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                // Holographic camera details overlay
+                ctx.fillStyle = '#ffffff';
+                ctx.font = "bold 14px Rajdhani";
+                ctx.fillText(`CAM BROADCATER FEED [SANDBOX MODEL]`, 30, 50);
+
+                ctx.fillStyle = '#10b981';
+                ctx.font = "11px monospace";
+                ctx.fillText(`FPS: 30 | SOURCE: FALLBACK DIGITAL SYNTHWAVE`, 30, 75);
+
+                // Red Blinking Dot
+                if (Math.floor(frames / 15) % 2 === 0) {
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath();
+                    ctx.arc(600, 45, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Show current host nickname watermark
+                const hostName = currentRoomState.hostName || "Dashing Dealer";
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+                ctx.fillRect(30, 410, 580, 40);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = "bold 12px Inter";
+                ctx.fillText(`CURRENT HOST DEALER: ${hostName.toUpperCase()}`, 45, 434);
+
+            }, 33);
+        }
+
+        function stopMockCameraCanvas() {
+            if (mockCameraInterval) {
+                clearInterval(mockCameraInterval);
+                mockCameraInterval = null;
+            }
+            mockFallbackCanvas.classList.add('hidden');
+        }
+
+        // Master room synchronization onSnapshot hookup
+        function syncRoomWithFirestore(roomId) {
+            currentRoomId = roomId;
+            
+            // STRICT PATH: /artifacts/{appId}/public/data/rooms/{roomId}
+            if (db) {
+                currentRoomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+                
+                roomSubscription = onSnapshot(currentRoomDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        currentRoomState = data;
+                        handleStateUpdate(data);
+                    } else {
+                        // Document doesn't exist yet, we initialize it
+                        initializeNewRoomDoc(roomId);
+                    }
+                }, (error) => {
+                    console.error("Firestore Error in Room Sync:", error);
+                    showModal("Cloud Error", "There was an error communicating with Google Cloud. Falling back to simulated local state.", true);
+                    initSimulatedLocalRoom();
+                });
+            } else {
+                initSimulatedLocalRoom();
+            }
+        }
+
+        async function initializeNewRoomDoc(roomId) {
+            const initialData = {
+                roomId: roomId,
+                hostId: currentUser.uid,
+                hostName: currentUser.displayName,
+                status: 'joining', // joining, spinning, showing_winner
+                slices: slicesList,
+                bets: [],
+                players: [{
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    chips: currentUser.chips
+                }],
+                winner: "",
+                winningIndex: -1,
+                timerStart: Date.now(),
+                chat: [
+                    { sender: "System", text: `SpinLounge Room ${roomId} created! Write names, bet chips, and enjoy!`, timestamp: Date.now() }
+                ]
+            };
+            if (currentRoomDocRef) {
+                await setDoc(currentRoomDocRef, initialData);
+            } else {
+                currentRoomState = initialData;
+                handleStateUpdate(initialData);
+            }
+        }
+
+        async function updateRoomDoc(fieldsToChange) {
+            if (db && currentRoomDocRef) {
+                try {
+                    await updateDoc(currentRoomDocRef, fieldsToChange);
+                } catch (e) {
+                    console.warn("Update doc failed", e);
+                }
+            } else {
+                // local update fallback
+                currentRoomState = { ...currentRoomState, ...fieldsToChange };
+                handleStateUpdate(currentRoomState);
+            }
+        }
+
+        // Setup active UI updates based on fetched room model state
+        function handleStateUpdate(data) {
+            slicesList = data.slices || [];
+            renderSlicesTags();
+
+            // Update title
+            activeRoomTitle.textContent = `ROOM: ${data.roomId.toUpperCase()}`;
+
+            // Update role badge
+            const badge = document.getElementById('active-user-role-badge font-mono');
+            if (badge) {
+                if (data.hostId === currentUser.uid) {
+                    badge.textContent = "HOST DEALER";
+                    badge.className = "bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider";
+                } else {
+                    badge.textContent = "ACTIVE PLAYER";
+                    badge.className = "bg-indigo-950 border border-indigo-800/40 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider";
+                }
+            }
+
+            // Sync players panel
+            renderPlayersLounge(data.players || []);
+
+            // Check if user is in players list, if not add them
+            const hasJoinedLobby = (data.players || []).some(p => p.uid === currentUser.uid);
+            if (!hasJoinedLobby) {
+                const currentList = data.players || [];
+                currentList.push({
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    chips: currentUser.chips
+                });
+                updateRoomDoc({ players: currentList });
+            } else {
+                // sync balance indicator from database index
+                const matchingData = (data.players || []).find(p => p.uid === currentUser.uid);
+                if (matchingData) {
+                    currentUser.chips = matchingData.chips;
+                    userBalanceIndicator.textContent = matchingData.chips;
+                }
+            }
+
+            // Sync total pools and display
+            let totalPool = 0;
+            (data.bets || []).forEach(b => totalPool += parseInt(b.chips));
+            totalPoolDisplay.textContent = `Total Pool: ${totalPool} Chips`;
+
+            // Display current active bet
+            const myBet = (data.bets || []).find(b => b.uid === currentUser.uid);
+            if (myBet) {
+                currentBetDisplay.innerHTML = `<span class="font-bold text-emerald-400">Locked ${myBet.chips} Chips on ${myBet.target}</span>`;
+            } else {
+                currentBetDisplay.textContent = "Active Bet: None placed yet";
+            }
+
+            // Sync chat logs
+            renderChatFeed(data.chat || []);
+
+            // Run Loop Phase Trigger Manager
+            runCoreGameTimerLoop(data);
+        }
+
+        // Renders active users and bots in the sidebar panel
+        function renderPlayersLounge(players) {
+            playerCountBadge.textContent = `${players.length} In Lounge`;
+            playersListContainer.innerHTML = '';
+            
+            players.forEach(p => {
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between p-2 rounded-xl border border-indigo-950/40 ${
+                    p.uid === currentUser.uid ? 'bg-indigo-950/30' : 'bg-slate-950/40'
+                }`;
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="h-6 w-6 rounded-lg bg-violet-600/10 flex items-center justify-center text-xs text-violet-400">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-200">${p.displayName}</span>
+                            ${p.uid === currentRoomState.hostId ? '<span class="text-[8px] bg-red-600 px-1 py-0.2 rounded font-extrabold ml-1">DEALER</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-mono text-emerald-400 font-bold">${p.chips} 🪙</span>
+                    </div>
+                `;
+                playersListContainer.appendChild(row);
+            });
+        }
+
+        // Render live chat history stream
+        function renderChatFeed(chatLogs) {
+            chatMessagesScroll.innerHTML = '';
+            chatLogs.forEach(log => {
+                const bubble = document.createElement('div');
+                const isSelf = log.uid === currentUser.uid;
+                bubble.className = `max-w-[85%] rounded-2xl p-3 text-xs flex flex-col gap-1 ${
+                    log.sender === "System" 
+                        ? 'bg-slate-950/60 text-indigo-300 self-center border border-indigo-950 text-center mx-auto' 
+                        : isSelf 
+                            ? 'bg-violet-600 text-white self-end ml-auto' 
+                            : 'bg-slate-800 text-slate-200 self-start mr-auto border border-slate-700/50'
+                }`;
+
+                bubble.innerHTML = `
+                    ${log.sender !== "System" ? `<span class="font-extrabold text-[9px] tracking-wider uppercase ${isSelf ? 'text-indigo-200' : 'text-violet-400'}">${log.sender}</span>` : ''}
+                    <span class="leading-relaxed break-all">${log.text}</span>
+                `;
+                chatMessagesScroll.appendChild(bubble);
+            });
+            chatMessagesScroll.scrollTop = chatMessagesScroll.scrollHeight;
+        }
+
+        // Synced Countdown core execution logic
+        let loopTimeoutId = null;
+
+        function runCoreGameTimerLoop(data) {
+            if (loopTimeoutId) clearTimeout(loopTimeoutId);
+
+            const elapsedSeconds = Math.floor((Date.now() - data.timerStart) / 1000);
+            
+            if (data.status === 'joining') {
+                const timeLeft = Math.max(0, 10 - elapsedSeconds);
+                gamePhaseLabel.textContent = "BETTING ACTIVE";
+                gamePhaseLabel.className = "text-violet-300 uppercase tracking-widest";
+                countdownTimerText.textContent = `${timeLeft}s`;
+
+                // Beep warning on low time
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    playSynthBeep(440, 'triangle', 0.08);
+                }
+
+                // Auto Trigger Wheel Spin transition if you are host and time is up
+                if (timeLeft === 0) {
+                    if (data.hostId === currentUser.uid) {
+                        triggerSynchronizedSpin();
+                    }
+                } else {
+                    // tick loop again in 1s
+                    loopTimeoutId = setTimeout(() => {
+                        runCoreGameTimerLoop(data);
+                    }, 1000);
+                }
+            } else if (data.status === 'spinning') {
+                gamePhaseLabel.textContent = "WHEEL SPINNING";
+                gamePhaseLabel.className = "text-amber-400 uppercase tracking-widest animate-pulse";
+                countdownTimerText.textContent = "SPIN";
+
+                // Trigger Wheel spinning rendering loop
+                if (!isWheelSpinning) {
+                    triggerSpinRenderAnimation(data.winningIndex, () => {
+                        // Completed spin callback, host triggers result board next
+                        if (data.hostId === currentUser.uid) {
+                            triggerResultPayoutTransition(data.winner);
+                        }
+                    });
+                }
+            } else if (data.status === 'showing_winner') {
+                gamePhaseLabel.textContent = "WINNER REVEALED";
+                gamePhaseLabel.className = "text-emerald-400 uppercase tracking-widest animate-bounce";
+                countdownTimerText.textContent = `🎯`;
+
+                // Show winner highlight frame overlay
+                const resultTimerLeft = Math.max(0, 5 - elapsedSeconds);
+                
+                if (resultTimerLeft === 0) {
+                    if (data.hostId === currentUser.uid) {
+                        resetGameLobbyForNextRound();
+                    }
+                } else {
+                    loopTimeoutId = setTimeout(() => {
+                        runCoreGameTimerLoop(data);
+                    }, 1000);
+                }
+            }
+        }
+
+        // Host trigger: Determine random winning name and launch spin
+        async function triggerSynchronizedSpin() {
+            if (slicesList.length === 0) {
+                // populate if empty
+                slicesList = ["Lucky Spin 🍀", "No Luck 💀", "Prize Splash 🪙"];
+            }
+            const winIdx = Math.floor(Math.random() * slicesList.length);
+            const winnerName = slicesList[winIdx];
+
+            await updateRoomDoc({
+                status: 'spinning',
+                winner: winnerName,
+                winningIndex: winIdx,
+                timerStart: Date.now()
+            });
+        }
+
+        // Complete dynamic spinning simulation cycle
+        function triggerSpinRenderAnimation(targetIndex, onFinished) {
+            isWheelSpinning = true;
+            let startRotation = currentWheelAngle;
+            
+            // Choose a target angle that matches the target slice on the right-hand pointer arrow
+            const slicesCount = slicesList.length;
+            const sliceSize = (Math.PI * 2) / slicesCount;
+            
+            // Pointer is at angle 0 (3 o'clock position / right side). 
+            // Slices start from 12 o'clock or standard radial direction.
+            // Target angle to face right: 2*PI - (targetIndex * sliceAngle + sliceAngle/2)
+            const targetSliceAngle = (Math.PI * 2) - (targetIndex * sliceSize + sliceSize / 2);
+            
+            // Multi revolutions + alignment offset
+            const finalRotation = startRotation + (Math.PI * 2 * 4) + targetSliceAngle;
+            
+            const spinDuration = 4000; // 4 seconds spin duration
+            const spinStart = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - spinStart;
+                const progress = Math.min(elapsed / spinDuration, 1);
+                
+                // Ease-out cubic curve
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentWheelAngle = startRotation + (finalRotation - startRotation) * easeOut;
+
+                // Play rotation audio clicks
+                if (Math.floor(currentWheelAngle * 4) % 2 === 0) {
+                    playSynthBeep(780, 'sine', 0.02);
+                }
+
+                drawWheel(currentWheelAngle);
+
+                if (progress < 1) {
+                    animationFrameId = requestAnimationFrame(animate);
+                } else {
+                    isWheelSpinning = false;
+                    playSynthBeep(1200, 'sine', 0.35);
+                    
+                    // Confetti explosion decoration
+                    confetti({
+                        particleCount: 150,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+
+                    onFinished();
+                }
+            }
+            animate();
+        }
+
+        // Host calculates user point additions and completes round
+        async function triggerResultPayoutTransition(winnerLabel) {
+            const bets = currentRoomState.bets || [];
+            const players = currentRoomState.players || [];
+            const updatedPlayers = [...players];
+
+            // Payout multipliers count
+            const sliceCount = slicesList.length;
+            const multiplier = Math.max(2, sliceCount); // Dynamic payout multiplier matching slices
+
+            bets.forEach(bet => {
+                if (bet.target === winnerLabel) {
+                    // Win bet!
+                    const winChips = parseInt(bet.chips) * multiplier;
+                    const playerIndex = updatedPlayers.findIndex(p => p.uid === bet.uid);
+                    if (playerIndex !== -1) {
+                        updatedPlayers[playerIndex].chips += winChips;
+                    }
+                }
+            });
+
+            // Send notification chat
+            const nextChat = [...(currentRoomState.chat || [])];
+            nextChat.push({
+                sender: "System",
+                text: `🎉 ROUND WINNER IS: [${winnerLabel}]! Payout Multiplier was x${multiplier}!`,
+                timestamp: Date.now()
+            });
+
+            // Trim logs to prevent document bloat
+            if (nextChat.length > 25) {
+                nextChat.splice(0, nextChat.length - 25);
+            }
+
+            await updateRoomDoc({
+                status: 'showing_winner',
+                players: updatedPlayers,
+                chat: nextChat,
+                timerStart: Date.now()
+            });
+        }
+
+        // Restart loop back to joining state
+        async function resetGameLobbyForNextRound() {
+            await updateRoomDoc({
+                status: 'joining',
+                bets: [],
+                timerStart: Date.now()
+            });
+        }
+
+        // Fallback simulated room context for offline test loops
+        function initSimulatedLocalRoom() {
+            setConnectionStatus(true, "Sim Sandbox Active");
+            const data = {
+                roomId: currentRoomId || "sandbox-lounge",
+                hostId: currentUser.uid,
+                hostName: currentUser.displayName,
+                status: 'joining',
+                slices: slicesList,
+                bets: [],
+                players: [{
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    chips: currentUser.chips
+                }],
+                winner: "",
+                winningIndex: -1,
+                timerStart: Date.now(),
+                chat: [
+                    { sender: "System", text: "Offline Local sandbox activated. Spawning bot clients is recommended!", timestamp: Date.now() }
+                ]
+            };
+            currentRoomState = data;
+            handleStateUpdate(data);
+        }
+
+        // Stream connections interface
+        function setupLoungeStreamingPeer() {
+            try {
+                myPeer = new Peer(undefined, {
                     debug: 1,
                     config: {
                         'iceServers': [
@@ -597,496 +1202,310 @@
                     }
                 });
 
-                peer.on('open', (id) => {
-                    myId = id;
-                    myPeerIdEl.textContent = id;
-                    peerConnected = true;
-                    setNetworkStatusUI(true, "Peer network active (WebRTC)");
-                    
-                    copyIdBtn.disabled = false;
-                    startStreamBtn.disabled = false;
-                    joinStreamBtn.disabled = false;
+                myPeer.on('open', (id) => {
+                    document.getElementById('stream-client-uuid').textContent = `ID: ${id.substring(0, 6)}`;
                 });
 
-                peer.on('error', (err) => {
-                    console.warn("PeerJS broker encountered error/block. Initiating Sandbox Simulator Fallback...", err);
-                    activateSandboxSimulatorMode();
+                myPeer.on('call', (call) => {
+                    activeCall = call;
+                    call.answer();
+                    call.on('stream', (remoteStream) => {
+                        videoOverlayPlaceholder.classList.add('hidden');
+                        streamVideoEl.srcObject = remoteStream;
+                    });
                 });
 
-                // Fallback triggered when IFrame blocks secure websockets entirely
-                setTimeout(() => {
-                    if (!peerConnected && !isSimulationMode) {
-                        console.warn("Signaling handshake timed out. Activating simulation layer...");
-                        activateSandboxSimulatorMode();
-                    }
-                }, 4000);
+                myPeer.on('error', (err) => {
+                    console.warn("PeerJS handshake block inside iframe sandbox. Camera bypass fallback enabled.", err);
+                });
 
-            } catch (err) {
-                console.warn("Peer constructor blocked directly. Booting mock simulation mode...", err);
-                activateSandboxSimulatorMode();
+            } catch(e) {
+                console.warn("WebRTC blocked initialization.");
             }
         }
 
-        function setNetworkStatusUI(isActive, messageText) {
-            const statusDot = document.getElementById('status-dot');
-            const statusPulse = document.getElementById('status-pulse');
-            const statusText = document.getElementById('connection-status-text');
-
-            if (isActive) {
-                statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
-                statusPulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-            } else {
-                statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
-                statusPulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+        // Actions hook
+        createRoomBtn.addEventListener('click', async () => {
+            const nick = nicknameInput.value.trim();
+            if (!nick) {
+                showModal("Name Missing", "Please enter a valid nickname to enter the lounge.", true);
+                return;
             }
-            statusText.textContent = messageText;
-        }
+            currentUser.displayName = nick;
 
-        // Boot Sandbox Mode safely & elegantly to prevent errors in IFrame
-        function activateSandboxSimulatorMode() {
-            if (isSimulationMode) return;
-            isSimulationMode = true;
+            const newCode = "spin-" + Math.floor(1000 + Math.random() * 9000);
+            
+            portalScreen.classList.add('hidden');
+            gameRoomScreen.classList.remove('hidden');
 
-            // Update Header alerts
-            sandboxAlertBanner.classList.remove('hidden');
-            sandboxBadge.classList.remove('hidden');
-            simControllerDeck.classList.remove('hidden');
+            setupLoungeStreamingPeer();
+            syncRoomWithFirestore(newCode);
+            drawWheel(0);
+        });
 
-            const sysModeTag = document.getElementById('system-mode-tag');
-            const sysModeTxt = document.getElementById('system-mode-txt');
-            sysModeTag.className = "h-1.5 w-1.5 rounded-full bg-amber-500 inline-block animate-pulse";
-            sysModeTxt.textContent = "Sandbox Simulator Hub";
+        joinRoomBtn.addEventListener('click', async () => {
+            const nick = nicknameInput.value.trim();
+            const code = roomCodeInput.value.trim().toLowerCase();
+            
+            if (!nick || !code) {
+                showModal("Inputs Missing", "Please input both your nickname and a valid lounge room code to join.", true);
+                return;
+            }
+            currentUser.displayName = nick;
 
-            // Generate an elegant simulated peer uuid
-            const randomID = "stream-sim-" + Math.floor(100000 + Math.random() * 900000);
-            myId = randomID;
-            myPeerIdEl.textContent = randomID;
-            peerConnected = true;
+            portalScreen.classList.add('hidden');
+            gameRoomScreen.classList.remove('hidden');
 
-            setNetworkStatusUI(true, "Sandbox Simulation Engine Enabled");
+            setupLoungeStreamingPeer();
+            syncRoomWithFirestore(code);
+            drawWheel(0);
+        });
 
-            // Allow elements to proceed
-            copyIdBtn.disabled = false;
-            startStreamBtn.disabled = false;
-            joinStreamBtn.disabled = false;
+        // Add custom slice
+        addSliceBtn.addEventListener('click', async () => {
+            const name = addWheelNameInput.value.trim();
+            if (!name) return;
 
-            showToast("Sandbox Engine Loaded", "Bypassed standard WebSocket filters. Sandbox stream simulation ready!");
-        }
+            if (slicesList.includes(name)) {
+                showModal("Slice Exists", `${name} is already registered on the wheel slices index.`, true);
+                return;
+            }
 
-        // Copy Id fallback function
-        copyIdBtn.addEventListener('click', () => {
-            if (!peerConnected || !myId) return;
+            slicesList.push(name);
+            addWheelNameInput.value = '';
 
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = myId;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
+            await updateRoomDoc({ slices: slicesList });
+            showToast("Slice Added", `${name} added to roulette indices.`);
+        });
+
+        // Place bet locking
+        placeBetBtn.addEventListener('click', async () => {
+            const target = betTargetSelect.value;
+            const chips = parseInt(betChipsInput.value);
+
+            if (!target) {
+                showModal("Bet Target Required", "Please choose a name from the wheel slices list first.", true);
+                return;
+            }
+
+            if (isNaN(chips) || chips < 10) {
+                showModal("Invalid Amount", "Minimum bet limit is 10 chips.", true);
+                return;
+            }
+
+            if (chips > currentUser.chips) {
+                showModal("Insufficient Balance", "You do not have enough chips inside your balance registry.", true);
+                return;
+            }
+
+            if (currentRoomState.status !== 'joining') {
+                showModal("Betting Period Closed", "You can only place or update bets during the 10-second joining period.", true);
+                return;
+            }
+
+            // Deduct locally and lock
+            currentUser.chips -= chips;
+            userBalanceIndicator.textContent = currentUser.chips;
+
+            // Sync bet record to document
+            const currentBets = [...(currentRoomState.bets || [])];
+            // remove existing bet from same user if any
+            const existingIdx = currentBets.findIndex(b => b.uid === currentUser.uid);
+            if (existingIdx !== -1) {
+                currentBets.splice(existingIdx, 1);
+            }
+
+            currentBets.push({
+                uid: currentUser.uid,
+                displayName: currentUser.displayName,
+                target: target,
+                chips: chips
+            });
+
+            // Update user balance inside cloud list too
+            const players = [...(currentRoomState.players || [])];
+            const pIdx = players.findIndex(p => p.uid === currentUser.uid);
+            if (pIdx !== -1) {
+                players[pIdx].chips = currentUser.chips;
+            }
+
+            await updateRoomDoc({
+                bets: currentBets,
+                players: players
+            });
+
+            betChipsInput.value = '';
+            showToast("Bet Locked", `Locked ${chips} chips on ${target}!`);
+            playSynthBeep(980, 'sine', 0.15);
+        });
+
+        // Copy room code
+        copyRoomCodeBtn.addEventListener('click', () => {
+            if (!currentRoomId) return;
+            const temp = document.createElement('textarea');
+            temp.value = currentRoomId;
+            document.body.appendChild(temp);
+            temp.select();
             
             try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showToast("Copied!", "Stream ID has been successfully copied to your clipboard.");
-                } else {
-                    showToast("Copy Failed", "Please manually select and copy the text.");
-                }
-            } catch (err) {
-                console.error("Failed to copy safely:", err);
-            }
-            document.body.removeChild(tempTextArea);
-        });
-
-        // Start local or simulated stream
-        startStreamBtn.addEventListener('click', async () => {
-            const hasAudio = document.getElementById('pref-audio').checked;
-            const hasVideo = document.getElementById('pref-video').checked;
-
-            if (!hasAudio && !hasVideo) {
-                showCustomAlert("Permission Request Failure", "Please check at least one broadcast preference (Microphone or Camera) to begin streaming.", true);
-                return;
-            }
-
-            startStreamBtn.disabled = true;
-            startStreamBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Initializing Media Devices...</span>`;
-
-            if (isSimulationMode) {
-                // SANDBOX SIMULATOR PATHWAY: Setup custom loop animations to mock actual camera stream
+                document.execCommand('copy');
+                document.getElementById('copy-btn-text').textContent = "Copied!";
                 setTimeout(() => {
-                    startFallbackCanvasBroadcast();
-                    
-                    // Capture dynamic rendering context
-                    localStream = fallbackStreamCanvas.captureStream(30);
-
-                    setupLiveStreamingUI('host');
-                    mainVideoElement.srcObject = localStream;
-                    videoPlaceholder.classList.add('hidden');
-
-                    showToast("Simulation Live!", "Your interactive broadcast canvas is now live. Share ID to simulate view connections!");
-                    appendSystemChatMessage("System Host", "Mock dynamic canvas broadcast initiated inside local sandbox registry.");
-                }, 1000);
-
-            } else {
-                // STANDARD PRODUCTION WEBRTC PATHWAY
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({
-                        audio: hasAudio,
-                        video: hasVideo ? {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            frameRate: { ideal: 30 }
-                        } : false
-                    });
-
-                    setupLiveStreamingUI('host');
-                    mainVideoElement.srcObject = localStream;
-                    videoPlaceholder.classList.add('hidden');
-
-                    updateViewersUI();
-                    showToast("Broadcast Started", "Your stream is now live. Share your ID to bring viewers in!");
-                    appendSystemChatMessage("System Host", "Broadcast room initiated. Direct WebRTC connections enabled.");
-
-                } catch (err) {
-                    console.warn("Webcam access restricted by browser/iframe policy. Defaulting back to Visual Canvas Simulator...", err);
-                    
-                    // Automatically fall back to canvas generator
-                    startFallbackCanvasBroadcast();
-                    localStream = fallbackStreamCanvas.captureStream(30);
-
-                    setupLiveStreamingUI('host');
-                    mainVideoElement.srcObject = localStream;
-                    videoPlaceholder.classList.add('hidden');
-
-                    showToast("Simulator Live", "Camera blocked by cross-origin policy. Initiated animated synthwave feed.");
-                    appendSystemChatMessage("System Warning", "Browser camera blocked. Shifting to visual spectrum fallback generator.");
-                }
+                    document.getElementById('copy-btn-text').textContent = "Room Code";
+                }, 1500);
+            } catch(e) {
+                console.error("Copy blocked");
             }
+            document.body.removeChild(temp);
         });
 
-        // Set layout design parameters for hosting/viewing panels
-        function setupLiveStreamingUI(role) {
-            clientRole = role;
-            setupPanel.classList.add('hidden');
-            liveRoomPanel.classList.remove('hidden');
-
-            chatInputField.disabled = false;
-            chatSendBtn.disabled = false;
-
-            if (role === 'host') {
-                roleBadge.textContent = "Role: Stream Host";
-                roleBadge.className = "bg-indigo-600 border border-indigo-400 text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full animate-pulse";
-                connectedRoomTitle.textContent = "Live Hosting ID: " + myId;
-                streamDisplayTitle.textContent = "Your Stream Broadcast";
-                
-                const hostBadge = document.getElementById('host-badge');
-                hostBadge.textContent = "Live Broadcaster";
-                hostBadge.className = "bg-red-500/10 text-red-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider border border-red-500/20";
-                document.getElementById('bandwidth-indicator').textContent = "720p 30fps";
-            } else {
-                roleBadge.textContent = "Role: Viewer";
-                roleBadge.className = "bg-emerald-600 border border-emerald-400 text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full";
-                streamDisplayTitle.textContent = "Broadcaster Feed";
-                
-                const hostBadge = document.getElementById('host-badge');
-                hostBadge.textContent = "Stream Active";
-                document.getElementById('bandwidth-indicator').textContent = "P2P WebRTC HD";
-            }
-        }
-
-        // Join connection routing trigger
-        joinStreamBtn.addEventListener('click', () => {
-            const targetHostId = hostPeerIdInput.value.trim();
-            
-            if (!targetHostId) {
-                showCustomAlert("Input Error", "Please input a valid Host Stream Peer ID to join.", true);
-                return;
-            }
-
-            if (targetHostId === myId) {
-                showCustomAlert("Configuration Loop", "You cannot join your own broadcast stream connection. Run in another device to test active pipelines.", true);
-                return;
-            }
-
-            joinStreamBtn.disabled = true;
-            joinStreamBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Connecting to Host Room...</span>`;
-
-            if (isSimulationMode) {
-                // SANDBOX SIMULATOR JOIN
-                setTimeout(() => {
-                    setupLiveStreamingUI('viewer');
-                    connectedRoomTitle.textContent = "Streaming Room: " + targetHostId;
-                    
-                    // Boot simulated viewer stream
-                    startFallbackCanvasBroadcast();
-                    const simulatedTargetStream = fallbackStreamCanvas.captureStream(30);
-                    mainVideoElement.srcObject = simulatedTargetStream;
-                    videoPlaceholder.classList.add('hidden');
-
-                    showToast("Connected Successfully", "Direct simulator handshake established. Synchronizing visual wave.");
-                    appendSystemChatMessage("Room Notice", "Mock connection channel generated. Secure link activated.");
-
-                    // Auto-start active audience bots speaking in chat to keep it dynamic and testable
-                    triggerBotRoutineInterval();
-                }, 1000);
-            } else {
-                // REAL WEBRTC ROUTE HANDLER
-                try {
-                    activeDataConnection = peer.connect(targetHostId);
-                    
-                    activeDataConnection.on('open', () => {
-                        setupLiveStreamingUI('viewer');
-                        connectedRoomTitle.textContent = "Streaming Room: " + targetHostId;
-                        showToast("Connected Successfully", "Direct peer pipeline established. Preparing dynamic audio-visual tracks...");
-                    });
-
-                    activeDataConnection.on('data', (data) => {
-                        if (data.type === 'chat') {
-                            appendChatMessage(data.sender, data.text, false);
-                        } else if (data.type === 'system') {
-                            appendSystemChatMessage("Room Notice", data.text);
-                        }
-                    });
-
-                    activeDataConnection.on('close', () => {
-                        handleDisconnect();
-                        showCustomAlert("Room Terminated", "The direct WebRTC connection has been lost or the host ended the broadcast.", true);
-                    });
-
-                    // Call host to get media streams
-                    const mediaCall = peer.call(targetHostId, null);
-                    activeCall = mediaCall;
-
-                    mediaCall.on('stream', (incomingRemoteStream) => {
-                        videoPlaceholder.classList.add('hidden');
-                        mainVideoElement.srcObject = incomingRemoteStream;
-                    });
-
-                    mediaCall.on('error', (err) => {
-                        console.error("Stream tracking error:", err);
-                        fallbackToLocalMockOnCallFailure(targetHostId);
-                    });
-
-                } catch (e) {
-                    console.warn("Failed standard WebRTC Join. Shifting to local mock simulation...", e);
-                    fallbackToLocalMockOnCallFailure(targetHostId);
-                }
-            }
+        // Disconnect
+        leaveRoomBtn.addEventListener('click', () => {
+            location.reload();
         });
 
-        function fallbackToLocalMockOnCallFailure(targetId) {
-            setupLiveStreamingUI('viewer');
-            connectedRoomTitle.textContent = "Streaming Room (Sim): " + targetId;
-            startFallbackCanvasBroadcast();
-            mainVideoElement.srcObject = fallbackStreamCanvas.captureStream(30);
-            videoPlaceholder.classList.add('hidden');
-            showToast("Connected (Simulator Fallback)", "Handshake succeeded under simulated stream visualizer.");
-        }
-
-        // Chat Action trigger
-        chatForm.addEventListener('submit', (e) => {
+        // Live Chat submission Form
+        chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const messageText = chatInputField.value.trim();
-            if (!messageText) return;
+            const text = chatInput.value.trim();
+            if (!text) return;
 
-            if (clientRole === 'host') {
-                appendChatMessage("You (Host)", messageText, true);
-                if (activeViewerConnections.length > 0) {
-                    broadcastChatMessage("Host", messageText);
+            const chatLogs = [...(currentRoomState.chat || [])];
+            chatLogs.push({
+                uid: currentUser.uid,
+                sender: currentUser.displayName,
+                text: text,
+                timestamp: Date.now()
+            });
+
+            // Trim long list
+            if (chatLogs.length > 25) {
+                chatLogs.splice(0, chatLogs.length - 25);
+            }
+
+            await updateRoomDoc({ chat: chatLogs });
+            chatInput.value = '';
+            chatInput.focus();
+        });
+
+        // Media devices triggers
+        document.getElementById('toggle-camera').addEventListener('click', async () => {
+            const btn = document.getElementById('toggle-camera');
+            if (!isCameraActive) {
+                btn.className = "h-7 w-7 rounded bg-red-600 text-xs text-white flex items-center justify-center transition";
+                isCameraActive = true;
+                
+                // Try capturing media
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    streamVideoEl.srcObject = localStream;
+                    videoOverlayPlaceholder.classList.add('hidden');
+                } catch(err) {
+                    console.warn("Camera blocked inside sandboxed frame. Spawning high fidelity neon simulator broadcast bypass.", err);
+                    startMockCameraCanvas();
+                    const mockStream = mockFallbackCanvas.captureStream(30);
+                    streamVideoEl.srcObject = mockStream;
+                    videoOverlayPlaceholder.classList.add('hidden');
                 }
+                showToast("Camera On", "Broadcast is streaming to lounge participants.");
             } else {
-                appendChatMessage("You", messageText, true);
-                if (activeDataConnection && activeDataConnection.open) {
-                    activeDataConnection.send({
-                        type: 'chat',
-                        sender: `Viewer-${myId.substring(0, 4)}`,
-                        text: messageText
-                    });
+                btn.className = "h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition";
+                isCameraActive = false;
+                
+                if (localStream) {
+                    localStream.getTracks().forEach(t => t.stop());
+                    localStream = null;
                 }
+                stopMockCameraCanvas();
+                streamVideoEl.srcObject = null;
+                videoOverlayPlaceholder.classList.remove('hidden');
+                showToast("Camera Off", "Live video feed suspended.");
             }
-
-            chatInputField.value = "";
-            chatInputField.focus();
         });
 
-        // Chat View Builders
-        function appendChatMessage(sender, text, isSelf) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `max-w-[85%] rounded-2xl p-3 text-xs flex flex-col gap-1 ${
-                isSelf 
-                    ? 'bg-indigo-600 text-white self-end ml-auto' 
-                    : 'bg-slate-800 text-slate-200 self-start mr-auto border border-slate-700/50'
-            }`;
+        document.getElementById('toggle-mic').addEventListener('click', () => {
+            const btn = document.getElementById('toggle-mic');
+            if (!isMicActive) {
+                btn.className = "h-7 w-7 rounded bg-red-600 text-xs text-white flex items-center justify-center transition";
+                isMicActive = true;
+                showToast("Mic Active", "Audio streams are active.");
+            } else {
+                btn.className = "h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition";
+                isMicActive = false;
+                showToast("Mic Muted", "Audio track suspended.");
+            }
+        });
 
-            const senderSpan = document.createElement('span');
-            senderSpan.className = `font-extrabold text-[10px] tracking-wide uppercase ${isSelf ? 'text-indigo-200' : 'text-indigo-400'}`;
-            senderSpan.textContent = sender;
+        // Spawning mock players for direct interactive feedback
+        const botNames = ["Karthik 🚀", "Anjali ✨", "Suresh Kumar 🔥", "Priya Pillai ☕", "Manoj Kumar 💻"];
+        const mockTamilComments = [
+            "Tamil Nadu spin lounge super layout bro! 🔥",
+            "Clarity super ah irukku!",
+            "Jackpot name-la 200 chips bet pannirukken eppo spin aagum?",
+            "10s speed spin timing automatic ah nadakardhu semma feature!"
+        ];
 
-            const textSpan = document.createElement('span');
-            textSpan.className = "leading-relaxed break-all";
-            textSpan.textContent = text;
+        simAddBotBtn.addEventListener('click', async () => {
+            const randomBotName = botNames[Math.floor(Math.random() * botNames.length)];
+            const botId = "sim-bot-" + Math.floor(Math.random() * 9000);
 
-            messageDiv.appendChild(senderSpan);
-            messageDiv.appendChild(textSpan);
-            
-            chatMessagesContainer.appendChild(messageDiv);
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-        }
-
-        function appendSystemChatMessage(topic, text) {
-            const container = document.createElement('div');
-            container.className = "w-full flex justify-center py-1";
-
-            const p = document.createElement('p');
-            p.className = "bg-slate-900/60 border border-slate-800 text-slate-400 rounded-full px-3.5 py-1 text-[10px] font-semibold text-center tracking-wide";
-            p.textContent = `[${topic}] ${text}`;
-
-            container.appendChild(p);
-            chatMessagesContainer.appendChild(container);
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-        }
-
-        function updateViewersUI() {
-            const count = activeViewerConnections.length;
-            viewerCountIndicator.textContent = `${count} Connected`;
-        }
-
-        // SIMULATED BOT SPANNING FUNCTIONS
-        let activeBotInterval = null;
-        const spawnedBotsList = [];
-
-        document.getElementById('btn-spawn-bot').addEventListener('click', () => {
-            const randomBotName = mockViewersList[Math.floor(Math.random() * mockViewersList.length)];
-            const botId = "viewer-bot-" + Math.floor(Math.random() * 9000);
-            
-            if (spawnedBotsList.includes(randomBotName)) {
-                showToast("Simulated Client", `${randomBotName} is already connected inside this sandbox room!`);
+            const players = [...(currentRoomState.players || [])];
+            if (players.some(p => p.displayName === randomBotName)) {
+                showToast("Duplicate Bot", `${randomBotName} has already entered the lounge.`);
                 return;
             }
 
-            spawnedBotsList.push(randomBotName);
-            
-            // Build virtual connection model to bypass standard state
-            const mockConnection = { peer: botId, open: true };
-            activeViewerConnections.push(mockConnection);
-            updateViewersUI();
+            players.push({
+                uid: botId,
+                displayName: randomBotName,
+                chips: 1000
+            });
 
-            appendSystemChatMessage("Simulator Router", `${randomBotName} connected to sandbox stream.`);
-            showToast("Bot Joined", `${randomBotName} simulated WebRTC connection established.`);
-            
-            // Send greeting
-            setTimeout(() => {
-                appendChatMessage(randomBotName, "Hi bro! Live connection established perfectly.", false);
-            }, 800);
-        });
-
-        document.getElementById('btn-bot-spam').addEventListener('click', () => {
-            if (spawnedBotsList.length === 0) {
-                showCustomAlert("Interactive Test Hub", "Please spawn at least one Viewer Bot first using the button to interact!", false);
-                return;
-            }
-            triggerBotSpamMessage();
-        });
-
-        function triggerBotSpamMessage() {
-            const randomBot = spawnedBotsList[Math.floor(Math.random() * spawnedBotsList.length)];
-            const randomComment = mockTamilComments[Math.floor(Math.random() * mockTamilComments.length)];
-            appendChatMessage(randomBot, randomComment, false);
-        }
-
-        function triggerBotRoutineInterval() {
-            // Automatically make bots join and talk if user is viewer to make test interactive
-            if (activeBotInterval) clearInterval(activeBotInterval);
-            
-            // Populate simulated list
-            spawnedBotsList.push("Stream Host 👑", "Karthik 🚀", "Anbu 🎧");
-            viewerCountIndicator.textContent = "4 Connected";
-
-            activeBotInterval = setInterval(() => {
-                const randomBot = spawnedBotsList[Math.floor(Math.random() * spawnedBotsList.length)];
-                const randomComment = mockTamilComments[Math.floor(Math.random() * mockTamilComments.length)];
-                appendChatMessage(randomBot, randomComment, false);
-            }, 5000);
-        }
-
-        // Leave Live actions
-        disconnectBtn.addEventListener('click', () => {
-            handleDisconnect();
-            showToast("Stream Terminated", "You left the live broadcast session.");
-        });
-
-        function handleDisconnect() {
-            stopFallbackCanvasBroadcast();
-            
-            if (activeBotInterval) {
-                clearInterval(activeBotInterval);
-                activeBotInterval = null;
+            // Put a mock bet automatically during betting period
+            const currentBets = [...(currentRoomState.bets || [])];
+            if (currentRoomState.status === 'joining' && slicesList.length > 0) {
+                const randomTarget = slicesList[Math.floor(Math.random() * slicesList.length)];
+                currentBets.push({
+                    uid: botId,
+                    displayName: randomBotName,
+                    target: randomTarget,
+                    chips: 100
+                });
             }
 
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
+            // Random bot tamil comment trigger
+            const chatLogs = [...(currentRoomState.chat || [])];
+            const botMsg = mockTamilComments[Math.floor(Math.random() * mockTamilComments.length)];
+            chatLogs.push({
+                uid: botId,
+                sender: randomBotName,
+                text: botMsg,
+                timestamp: Date.now()
+            });
 
-            if (activeCall) {
-                activeCall.close();
-                activeCall = null;
-            }
+            await updateRoomDoc({
+                players: players,
+                bets: currentBets,
+                chat: chatLogs
+            });
 
-            if (activeDataConnection) {
-                activeDataConnection.close();
-                activeDataConnection = null;
-            }
-
-            // Cleanups
-            activeViewerCalls.forEach(call => call.close());
-            activeViewerConnections.forEach(conn => conn.close());
-            activeViewerCalls = [];
-            activeViewerConnections = [];
-            spawnedBotsList.length = 0;
-
-            mainVideoElement.srcObject = null;
-            videoPlaceholder.classList.remove('hidden');
-
-            liveRoomPanel.classList.add('hidden');
-            setupPanel.classList.remove('hidden');
-
-            startStreamBtn.disabled = false;
-            startStreamBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Start Live Stream</span>`;
-            joinStreamBtn.disabled = false;
-            joinStreamBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Connect & Join Stream</span>`;
-
-            clientRole = null;
-        }
-
-        // Custom player controls overlay handling
-        let isMuted = false;
-        let isCamOff = false;
-
-        document.getElementById('ctrl-mute-mic').addEventListener('click', () => {
-            if (!localStream) return;
-            isMuted = !isMuted;
-            localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-            
-            const btnIcon = document.getElementById('ctrl-mic-icon');
-            btnIcon.className = isMuted ? "fa-solid fa-microphone-slash text-rose-500 animate-pulse" : "fa-solid fa-microphone";
-            showToast(isMuted ? "Microphone Muted" : "Microphone Enabled", "Audio track modified successfully.");
+            showToast("Bot Joined Lobby", `${randomBotName} connected and placed a 100 chip bet!`);
+            playSynthBeep(650, 'triangle', 0.12);
         });
 
-        document.getElementById('ctrl-stop-cam').addEventListener('click', () => {
-            if (!localStream) return;
-            isCamOff = !isCamOff;
-            localStream.getVideoTracks().forEach(track => track.enabled = !isCamOff);
-            
-            const btnIcon = document.getElementById('ctrl-cam-icon');
-            btnIcon.className = isCamOff ? "fa-solid fa-video-slash text-rose-500 animate-pulse" : "fa-solid fa-video";
-            showToast(isCamOff ? "Video Disabled" : "Video Enabled", "Camera channel modified successfully.");
-        });
-
-        document.getElementById('ctrl-fullscreen').addEventListener('click', () => {
-            if (mainVideoElement.requestFullscreen) {
-                mainVideoElement.requestFullscreen();
-            } else if (mainVideoElement.webkitRequestFullscreen) { /* Safari */
-                mainVideoElement.webkitRequestFullscreen();
+        // Simulate instant host skip to spin wheel
+        simTriggerRoundBtn.addEventListener('click', () => {
+            if (currentRoomState.status === 'joining') {
+                triggerSynchronizedSpin();
+            } else {
+                showToast("Action Locked", "Round state is already running.");
             }
         });
+
+        // App boot initiation triggers
+        authenticateAndSetup();
+        drawWheel(0);
+
     </script>
 </body>
 </html>
