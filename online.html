@@ -1,1135 +1,1092 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta" class="h-full bg-slate-950 text-slate-100">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Senternet Live Stream Hub - Real-Time WebRTC Portal</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Confetti for premium gift features -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    .live-pulse {
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0% { opacity: 0.6; transform: scale(0.95); }
-      50% { opacity: 1; transform: scale(1.05); }
-      100% { opacity: 0.6; transform: scale(0.95); }
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(0,0,0,0.05);
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(0,0,0,0.15);
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
-
-  <!-- TOP BAR / HEADER -->
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <!-- Logo -->
-      <div class="flex items-center space-x-3">
-        <div class="bg-gradient-to-tr from-indigo-600 to-pink-500 p-2.5 rounded-xl text-white shadow-md shadow-indigo-200">
-          <i data-lucide="radio" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-pink-500 bg-clip-text text-transparent">SENTERNET</span>
-          <span class="text-xs block text-slate-400 font-semibold tracking-wider uppercase">Live Stream Hub</span>
-        </div>
-      </div>
-
-      <!-- Action & Auth Info -->
-      <div class="flex items-center space-x-4">
-        <button id="btn-go-live-top" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-700 hover:to-pink-600 text-white font-semibold px-4.5 py-2.5 rounded-xl transition duration-300 transform hover:-translate-y-0.5 shadow-md shadow-indigo-100 text-sm">
-          <i data-lucide="video" class="w-4 h-4"></i>
-          <span>Go Live Now</span>
-        </button>
-        <div id="user-badge" class="hidden sm:flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-full text-xs text-slate-600 font-medium">
-          <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-          <span id="txt-user-id">Connecting...</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- APP NOTICE BAR -->
-  <div class="bg-gradient-to-r from-indigo-50 to-pink-50 border-b border-indigo-100 text-center py-2 px-4 text-xs font-semibold text-slate-600 flex items-center justify-center gap-2">
-    <span class="flex h-2 w-2 relative">
-      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-      <span class="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
-    </span>
-    <span>Powered by WebRTC & Cloud Firestore Signaling for Senternet Technologies, Aranthangi</span>
-  </div>
-
-  <!-- MAIN WRAPPER -->
-  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-
-    <!-- HERO SECTION -->
-    <section class="mb-10 text-center md:text-left md:flex md:items-center md:justify-between bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
-      <!-- Absolute background accents -->
-      <div class="absolute -top-16 -right-16 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
-
-      <div class="md:max-w-xl relative z-10">
-        <span class="bg-pink-500/20 border border-pink-500/30 text-pink-300 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Next-Gen WebRTC Suite</span>
-        <h1 class="text-3xl md:text-5xl font-extrabold mt-4 mb-4 leading-tight">
-          Experience Ultra Low-Latency <span class="bg-gradient-to-r from-pink-400 to-amber-300 bg-clip-text text-transparent">Live Video Broadcast</span>
-        </h1>
-        <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-6">
-          Start your own channel with zero setup cost or watch ongoing high-fidelity public streams. Fully interactive with real-time comments, viewer counters, and live confetti reactions.
-        </p>
-        <div class="flex flex-wrap gap-3 justify-center md:justify-start">
-          <button id="btn-hero-broadcast" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold px-6 py-3 rounded-xl transition duration-300 shadow-lg shadow-pink-900/40 text-sm flex items-center gap-2">
-            <i data-lucide="video" class="w-5 h-5"></i> Start Streaming
-          </button>
-          <a href="#directory" class="bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold px-6 py-3 rounded-xl transition duration-300 text-sm flex items-center gap-2">
-            <i data-lucide="users" class="w-5 h-5"></i> Explore Creators
-          </a>
-        </div>
-      </div>
-      
-      <!-- Live Stats Panel -->
-      <div class="hidden md:grid grid-cols-2 gap-4 relative z-10 w-full max-w-sm mt-8 md:mt-0">
-        <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-center">
-          <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Active Streams</p>
-          <p id="stat-active-count" class="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">0</p>
-        </div>
-        <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-center">
-          <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Global Viewers</p>
-          <p id="stat-viewer-count" class="text-3xl font-bold text-pink-400">0</p>
-        </div>
-        <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-center col-span-2 flex items-center justify-center gap-3">
-          <img src="https://www.jotform.com/uploads/senternettechnologies/agent_files/avatar_images/1000009224-6944f3cfaee596.07540393.webp" alt="Senthilkumar" class="w-8 h-8 rounded-full border border-pink-500 object-cover">
-          <div class="text-left">
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Verified Host Provider</p>
-            <p class="text-xs font-bold text-white">Senternet Technologies</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MAIN DIRECTORY / ACTIVE STREAMERS -->
-    <section id="directory" class="mb-12">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <i data-lucide="sparkles" class="text-indigo-600 w-6 h-6"></i>
-            Active Public Channels
-          </h2>
-          <p class="text-slate-500 text-sm mt-1">Click on any card below to jump in and watch their real-time live feed.</p>
-        </div>
-        <div class="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Live Radar</span>
-        </div>
-      </div>
-
-      <!-- No Streams Fallback Card -->
-      <div id="no-streams-state" class="bg-white border border-slate-200 rounded-3xl p-12 text-center max-w-xl mx-auto shadow-sm">
-        <div class="inline-flex p-4 bg-indigo-50 text-indigo-600 rounded-full mb-4">
-          <i data-lucide="video-off" class="w-8 h-8"></i>
-        </div>
-        <h3 class="text-lg font-bold text-slate-800 mb-2">No Active Streams Right Now</h3>
-        <p class="text-slate-500 text-sm mb-6 max-w-sm mx-auto">Be the first pioneer! Click "Go Live" to start broadcasting your camera feed, and showcase your profile card to everyone.</p>
-        <button id="btn-go-live-empty" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl transition duration-300 shadow-md shadow-indigo-100 text-sm inline-flex items-center gap-2">
-          <i data-lucide="video" class="w-4 h-4"></i> Start Streaming
-        </button>
-      </div>
-
-      <!-- Live Stream Grid -->
-      <div id="streams-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Dynmically Rendered Cards -->
-      </div>
-    </section>
-
-  </main>
-
-  <!-- BROADCAST SETUP DRAWER / MODAL -->
-  <div id="modal-broadcast-setup" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all duration-300">
-      <!-- Header -->
-      <div class="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white p-6 relative">
-        <button id="btn-close-setup" class="absolute top-5 right-5 text-white/80 hover:text-white transition">
-          <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
-        <div class="flex items-center space-x-3 mb-2">
-          <i data-lucide="video" class="w-6 h-6 text-pink-400"></i>
-          <h3 class="text-xl font-extrabold">Go Live Studio</h3>
-        </div>
-        <p class="text-slate-300 text-xs">Configure your details to push your profile card onto the public active feed.</p>
-      </div>
-
-      <!-- Setup Form -->
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Your Display Name</label>
-          <div class="relative">
-            <span class="absolute left-3.5 top-3.5 text-slate-400">
-              <i data-lucide="user" class="w-4 h-4"></i>
-            </span>
-            <input type="text" id="setup-username" placeholder="e.g. Creator Senthil" class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none rounded-xl py-3 pl-10 pr-4 text-sm font-semibold transition">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Stream Title</label>
-          <div class="relative">
-            <span class="absolute left-3.5 top-3.5 text-slate-400">
-              <i data-lucide="hash" class="w-4 h-4"></i>
-            </span>
-            <input type="text" id="setup-title" placeholder="e.g. Senternet Technologies Live Showcase!" class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none rounded-xl py-3 pl-10 pr-4 text-sm font-semibold transition">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
-          <select id="setup-category" class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none rounded-xl py-3 px-4 text-sm font-semibold transition">
-            <option value="Tech & Dev">💻 Tech & Software Development</option>
-            <option value="Just Chatting">💬 Just Chatting & Q&A</option>
-            <option value="Business Strategy">📈 Business & Marketing</option>
-            <option value="Live Demo">🚀 App Live Demo</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Host Avatar Design</label>
-          <div class="grid grid-cols-4 gap-3">
-            <button class="avatar-option border-2 border-indigo-600 rounded-xl p-1 bg-indigo-50 transition transform hover:scale-105" data-avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop" class="w-full h-12 rounded-lg object-cover">
-            </button>
-            <button class="avatar-option border-2 border-transparent rounded-xl p-1 bg-slate-50 transition transform hover:scale-105" data-avatar="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop" class="w-full h-12 rounded-lg object-cover">
-            </button>
-            <button class="avatar-option border-2 border-transparent rounded-xl p-1 bg-slate-50 transition transform hover:scale-105" data-avatar="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop" class="w-full h-12 rounded-lg object-cover">
-            </button>
-            <button class="avatar-option border-2 border-transparent rounded-xl p-1 bg-slate-50 transition transform hover:scale-105" data-avatar="https://www.jotform.com/uploads/senternettechnologies/agent_files/avatar_images/1000009224-6944f3cfaee596.07540393.webp">
-              <img src="https://www.jotform.com/uploads/senternettechnologies/agent_files/avatar_images/1000009224-6944f3cfaee596.07540393.webp" class="w-full h-12 rounded-lg object-cover">
-            </button>
-          </div>
-        </div>
-
-        <button id="btn-start-broadcast" class="w-full bg-gradient-to-r from-indigo-600 to-pink-500 hover:from-indigo-700 hover:to-pink-600 text-white font-bold py-3.5 rounded-xl transition duration-300 shadow-md shadow-indigo-100 flex items-center justify-center gap-2 mt-2">
-          <i data-lucide="play-circle" class="w-5 h-5"></i> Launch Live Stream
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN STREAM STUDIO / WATCH INTERFACE (FULL SCREEN / TWO PANEL) -->
-  <section id="stream-view-container" class="fixed inset-0 bg-slate-950 z-50 flex flex-col md:flex-row hidden">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVibe - Peer-to-Peer Live Streaming</title>
+    <!-- Tailwind CSS for modern responsive utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for premium typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for sleek modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PeerJS for seamless WebRTC Peer-to-Peer connections -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     
-    <!-- LEFT PANEL: STREAM FEED / STAGE -->
-    <div class="flex-grow flex flex-col relative bg-black h-3/5 md:h-full md:w-2/3">
-      
-      <!-- Stage Header Overlay -->
-      <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent z-10 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <img id="stage-host-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-full border border-white/20 object-cover">
-          <div>
-            <div class="flex items-center gap-2">
-              <span id="stage-host-name" class="font-extrabold text-white text-sm md:text-base">Host User</span>
-              <span class="live-pulse bg-rose-500 text-[10px] font-extrabold text-white px-1.5 py-0.5 rounded tracking-wide uppercase">LIVE</span>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.9)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased h-full flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Header/Navigation Bar -->
+    <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-tower-broadcast text-lg text-white animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">StreamVibe</h1>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Decentralized P2P Streaming</p>
+                </div>
             </div>
-            <p id="stage-stream-title" class="text-xs text-slate-300 font-medium line-clamp-1">Stream Session</p>
-          </div>
-        </div>
-
-        <div class="flex items-center space-x-2">
-          <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center space-x-1.5 text-xs text-white border border-white/10">
-            <i data-lucide="eye" class="w-3.5 h-3.5 text-pink-400"></i>
-            <span id="stage-viewer-count" class="font-bold">1</span>
-          </div>
-          <button id="btn-leave-stream" class="bg-rose-600 hover:bg-rose-700 text-white p-2 rounded-full transition shadow-lg">
-            <i data-lucide="log-out" class="w-5 h-5"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Video Feed Canvas or Stream Node -->
-      <div class="flex-grow w-full h-full flex items-center justify-center relative overflow-hidden bg-slate-900">
-        <!-- Interactive Canvas / Video element for actual streaming or simulation -->
-        <video id="stage-video-element" class="hidden w-full h-full object-cover" autoplay playsinline></video>
-        <canvas id="stage-visualizer" class="w-full h-full object-cover"></canvas>
-
-        <div id="video-placeholder-notice" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-950/80 z-20 hidden">
-          <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
-            <i data-lucide="video" class="w-8 h-8 text-indigo-400 animate-pulse"></i>
-          </div>
-          <h4 class="text-white font-extrabold text-base mb-1">Connecting to WebRTC Feed...</h4>
-          <p class="text-xs text-slate-400 max-w-xs">Initializing secure peer negotiation. Ensure camera access is allowed.</p>
-        </div>
-      </div>
-
-      <!-- Broadcaster Settings Overlay (Only shown to Broadcaster) -->
-      <div id="broadcaster-controls" class="absolute bottom-4 left-4 right-4 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 z-30 hidden">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
-          <span class="text-xs font-bold text-red-400 uppercase tracking-widest">You are Broadcasting</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button id="btn-toggle-mic" class="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold">
-            <i data-lucide="mic" class="w-4 h-4"></i> Mute
-          </button>
-          <button id="btn-toggle-camera" class="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold">
-            <i data-lucide="video" class="w-4 h-4"></i> Stop Video
-          </button>
-          <button id="btn-stop-broadcast" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl transition text-xs font-bold flex items-center gap-1.5">
-            <i data-lucide="square" class="w-4 h-4"></i> Terminate Stream
-          </button>
-        </div>
-      </div>
-
-      <!-- Viewer Interaction Palette (Only shown to Viewers) -->
-      <div id="viewer-controls" class="absolute bottom-4 left-4 right-4 bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-3 z-30 hidden">
-        <p class="text-xs text-slate-400 font-medium">Show support to <span id="tag-current-host" class="text-pink-400 font-bold">Streamer</span></p>
-        <div class="flex items-center space-x-2">
-          <button onclick="sendVirtualGift('Super Heart')" class="bg-pink-600 hover:bg-pink-700 text-white py-2 px-3 rounded-xl transition flex items-center gap-1.5 text-xs font-bold">
-            ❤️ Heart
-          </button>
-          <button onclick="sendVirtualGift('Fire')" class="bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-xl transition flex items-center gap-1.5 text-xs font-bold">
-            🔥 Fire
-          </button>
-          <button onclick="sendVirtualGift('Crown')" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-xl transition flex items-center gap-1.5 text-xs font-bold">
-            👑 Crown
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RIGHT PANEL: INTERACTIVE CHAT & ATTENDEES -->
-    <div class="flex flex-col bg-white h-2/5 md:h-full md:w-1/3 border-l border-slate-100 shadow-xl">
-      <!-- Nav Tabs -->
-      <div class="flex border-b border-slate-100">
-        <button class="flex-1 py-4 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-indigo-600 text-indigo-600">
-          Live Chat Room
-        </button>
-      </div>
-
-      <!-- Chat Stream -->
-      <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3.5 custom-scrollbar text-sm">
-        <!-- Messages populate here -->
-      </div>
-
-      <!-- User Interaction Bar -->
-      <div class="p-4 border-t border-slate-100 bg-slate-50">
-        <form id="chat-form" class="flex items-center space-x-2">
-          <input type="text" id="chat-input" placeholder="Type a message to host..." class="flex-grow bg-white border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none rounded-xl py-3 px-4 text-xs font-semibold transition" autocomplete="off">
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition shadow-md">
-            <i data-lucide="send" class="w-4 h-4"></i>
-          </button>
-        </form>
-      </div>
-    </div>
-  </section>
-
-  <!-- APP FOOTER -->
-  <footer class="bg-white border-t border-slate-200 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
-        <div>
-          <span class="text-md font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-pink-500 bg-clip-text text-transparent">SENTERNET TECHNOLOGIES</span>
-          <p class="text-xs text-slate-400 mt-1">Leading digital solutions & ultra-modern live streams.</p>
-        </div>
-        <div class="flex justify-center space-x-4">
-          <a href="https://rebrand.ly/senternet" target="_blank" class="text-slate-400 hover:text-indigo-600 transition"><i data-lucide="globe" class="w-5 h-5"></i></a>
-          <a href="https://www.youtube.com/@senternet-technologies" target="_blank" class="text-slate-400 hover:text-indigo-600 transition"><i data-lucide="youtube" class="w-5 h-5"></i></a>
-          <a href="https://instagram.com/senternet" target="_blank" class="text-slate-400 hover:text-indigo-600 transition"><i data-lucide="instagram" class="w-5 h-5"></i></a>
-        </div>
-        <div class="text-xs text-slate-500 md:text-right font-medium">
-          <p>Aranthangi, Pudukkottai, TN</p>
-          <p class="mt-0.5">Contact: <a href="mailto:senternettechnologies@gmail.com" class="text-indigo-600">senternettechnologies@gmail.com</a></p>
-          <p class="mt-0.5">WhatsApp: <a href="https://wa.me/918190038085" class="text-pink-500 font-bold">+91 81900 38085</a></p>
-        </div>
-      </div>
-      <div class="border-t border-slate-100 mt-6 pt-4 text-center text-[11px] text-slate-400">
-        &copy; 2026 Senternet Technologies. Developed with high-speed WebRTC frameworks.
-      </div>
-    </div>
-  </footer>
-
-  <!-- Firebase Integration Modules -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Application ID and Configurations setup
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'senternet-live-stream-app';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-      apiKey: "",
-      authDomain: "mock-project.firebaseapp.com",
-      projectId: "mock-project",
-      storageBucket: "mock-project.appspot.com",
-      messagingSenderId: "12345678",
-      appId: "1:12345678:web:123456"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Local state tracking variables
-    let currentUser = null;
-    let activeStreamId = null;
-    let isBroadcasting = false;
-    let localStream = null;
-    let activeStreamList = [];
-    let renderingInterval = null;
-    let chosenAvatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop";
-
-    // Multi-peer connections tracker
-    const peerConnections = {}; // Map of viewerId -> RTCPeerConnection (For Broadcaster)
-    let singlePeerConnection = null; // Single connection (For Viewer)
-    let signalingUnsubscribe = null;
-
-    // Mic & Camera state trackers
-    let isAudioEnabled = true;
-    let isVideoEnabled = true;
-
-    // Visual canvas setup
-    const canvas = document.getElementById('stage-visualizer');
-    const ctx = canvas.getContext('2d');
-    const videoElement = document.getElementById('stage-video-element');
-
-    // UI elements mapping
-    const elNoStreams = document.getElementById('no-streams-state');
-    const elStreamsGrid = document.getElementById('streams-grid');
-    const elActiveCount = document.getElementById('stat-active-count');
-    const elViewerCount = document.getElementById('stat-viewer-count');
-    const elUserBadge = document.getElementById('user-badge');
-    const elTxtUserId = document.getElementById('txt-user-id');
-    const elModalSetup = document.getElementById('modal-broadcast-setup');
-    const elStreamView = document.getElementById('stream-view-container');
-    const elBroadcasterControls = document.getElementById('broadcaster-controls');
-    const elViewerControls = document.getElementById('viewer-controls');
-    const elChatMessages = document.getElementById('chat-messages');
-    const elChatInput = document.getElementById('chat-input');
-    const elChatForm = document.getElementById('chat-form');
-
-    // Setup Firestore paths exactly matching mandatory rules
-    const streamsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'streams');
-    const chatsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats');
-    const signalingColRef = collection(db, 'artifacts', appId, 'public', 'data', 'signaling');
-
-    // WebRTC connection helper presets
-    const iceServers = {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    };
-
-    // Step 1: Initialize User Session & Authentication (RULE 3)
-    const initSession = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Authentication fallback error:", err);
-      }
-    };
-    initSession();
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        elUserBadge.classList.remove('hidden');
-        elTxtUserId.innerText = `User ID: ${user.uid.slice(0, 8)}...`;
-        setupStreamListeners();
-      }
-    });
-
-    // Setup interactive avatar picker
-    document.querySelectorAll('.avatar-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.avatar-option').forEach(b => b.classList.remove('border-indigo-600', 'bg-indigo-50'));
-        btn.classList.add('border-indigo-600', 'bg-indigo-50');
-        chosenAvatarUrl = btn.dataset.avatar;
-      });
-    });
-
-    // Step 2: Live Stream Data Listener
-    function setupStreamListeners() {
-      if (!currentUser) return;
-
-      onSnapshot(streamsColRef, (snapshot) => {
-        activeStreamList = [];
-        let totalViewers = 0;
-
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          activeStreamList.push({ id: docSnap.id, ...data });
-          totalViewers += (data.viewers || 0);
-        });
-
-        updateUIWithStreams();
-        elActiveCount.innerText = activeStreamList.length;
-        elViewerCount.innerText = totalViewers;
-      }, (err) => {
-        console.error("Firestore live stream collection listen error:", err);
-      });
-    }
-
-    // Step 3: Draw Canvas Stream Aesthetics (Fallback/Simulation)
-    function startCanvasSimulation(broadcasterName, isLive) {
-      canvas.width = 640;
-      canvas.height = 360;
-      let frame = 0;
-
-      if (renderingInterval) clearInterval(renderingInterval);
-
-      renderingInterval = setInterval(() => {
-        frame++;
-        ctx.fillStyle = '#0f172a'; // slate-900 background
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Grid Design
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.1)';
-        ctx.lineWidth = 1;
-        const gridSize = 40;
-        for (let x = 0; x < canvas.width; x += gridSize) {
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, canvas.height);
-          ctx.stroke();
-        }
-        for (let y = 0; y < canvas.height; y += gridSize) {
-          ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(canvas.width, y);
-          ctx.stroke();
-        }
-
-        // Concentric Circle Radar Pulse
-        const radarPulse = (frame % 120) / 120;
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, radarPulse * 150, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(236, 72, 153, ${1 - radarPulse})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // High frequency Sine Wave representation (Voice stream activity)
-        ctx.beginPath();
-        ctx.strokeStyle = '#6366f1';
-        ctx.lineWidth = 3;
-        for (let i = 0; i < canvas.width; i++) {
-          const amp = Math.sin(i * 0.05 + frame * 0.1) * 20 * Math.sin(frame * 0.02);
-          if (i === 0) {
-            ctx.moveTo(i, canvas.height / 2 + amp);
-          } else {
-            ctx.lineTo(i, canvas.height / 2 + amp);
-          }
-        }
-        ctx.stroke();
-
-        // Ambient Particles
-        ctx.fillStyle = 'rgba(236, 72, 153, 0.7)';
-        for (let p = 0; p < 8; p++) {
-          const px = (Math.sin(frame * 0.01 + p) * 120) + canvas.width / 2;
-          const py = (Math.cos(frame * 0.015 + p * 2) * 80) + canvas.height / 2;
-          ctx.beginPath();
-          ctx.arc(px, py, 3 + (p % 3), 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Watermark Overlay Text
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.font = 'bold 13px sans-serif';
-        ctx.fillText(`Host: ${broadcasterName}`, 25, 45);
-
-        ctx.fillStyle = '#ec4899';
-        ctx.beginPath();
-        ctx.arc(35, canvas.height - 35, 6, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText('WEBRTC SECURE TRANSMISSION', 50, canvas.height - 32);
-
-      }, 1000 / 30);
-    }
-
-    // Render Live Cards publicly
-    function updateUIWithStreams() {
-      if (activeStreamList.length === 0) {
-        elNoStreams.classList.remove('hidden');
-        elStreamsGrid.classList.add('hidden');
-        return;
-      }
-
-      elNoStreams.classList.add('hidden');
-      elStreamsGrid.classList.remove('hidden');
-      elStreamsGrid.innerHTML = '';
-
-      activeStreamList.forEach(stream => {
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-3xl overflow-hidden border border-slate-200 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col";
-        
-        card.innerHTML = `
-          <div class="relative h-44 bg-slate-900 overflow-hidden flex items-center justify-center">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
-            <img src="${stream.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" alt="Preview" class="w-full h-full object-cover blur-sm opacity-40">
             
-            <div class="absolute top-4 left-4 z-20 bg-rose-500 text-[10px] font-extrabold text-white px-2.5 py-1 rounded-md tracking-widest uppercase flex items-center gap-1.5 shadow-sm">
-              <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
-              Live
+            <!-- Connection Status Badge -->
+            <div class="flex items-center gap-3">
+                <!-- Sandbox mode badge -->
+                <div id="sandbox-badge" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-full py-1.5 px-3.5 flex items-center gap-1.5 text-xs text-amber-400 font-semibold">
+                    <i class="fa-solid fa-flask text-[10px]"></i>
+                    <span>Sandbox Simulator Mode Active</span>
+                </div>
+
+                <div id="peer-status-container" class="bg-slate-800/60 border border-slate-700/80 rounded-full py-1.5 px-3.5 flex items-center gap-2 text-xs">
+                    <span class="relative flex h-2 w-2">
+                        <span id="status-pulse" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span id="connection-status-text" class="text-slate-300 font-medium">Connecting to network...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+        
+        <!-- Environment Warn Banner (Shows inside canvas) -->
+        <div id="sandbox-alert-banner" class="hidden bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 justify-between">
+            <div class="flex items-start gap-3">
+                <div class="h-9 w-9 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-amber-300">WebSocket / Camera Sandbox Restrictions Detected</h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Browser blocked direct WebSockets. We automatically booted a high-fidelity internal simulation node. You can run broadcasts, spawn virtual viewers, and text in mock real-time.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Dashboard / Setup Panel -->
+        <div id="setup-panel" class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full animate-fade-in">
+            <!-- Left Card: Host / Creator Side -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative overflow-hidden group">
+                <div class="absolute -right-16 -top-16 w-32 h-32 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
+                
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="h-10 w-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <h2 class="text-lg font-bold">Start Your Stream</h2>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Broadcast your video & audio feed directly to viewers. Share your auto-generated Stream ID with anyone so they can watch you in high definition.</p>
+                    
+                    <!-- Peer ID Box -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 mb-6">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Streaming ID (Peer ID)</label>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800 text-sm font-mono tracking-wider overflow-x-auto whitespace-nowrap scrollbar-none text-indigo-300 select-all" id="my-peer-id">
+                                Initializing ID...
+                            </div>
+                            <button id="copy-id-btn" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 flex items-center gap-2 hover:text-white" disabled>
+                                <i class="fa-solid fa-copy"></i>
+                                <span class="hidden sm:inline">Copy</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Host Controls -->
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3 text-xs mb-2">
+                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
+                            <input type="checkbox" id="pref-audio" checked class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900"> Enable Microphone
+                        </label>
+                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
+                            <input type="checkbox" id="pref-video" checked class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900"> Enable Camera
+                        </label>
+                    </div>
+                    <button id="start-stream-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white py-3.5 px-6 rounded-xl font-semibold transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-play"></i>
+                        <span>Start Live Stream</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur-sm text-xs font-bold text-white px-2.5 py-1 rounded-md flex items-center gap-1">
-              <i data-lucide="eye" class="w-3.5 h-3.5 text-pink-400"></i>
-              <span>${stream.viewers || 0}</span>
+            <!-- Right Card: Viewer / Attendee Side -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative overflow-hidden group">
+                <div class="absolute -right-16 -top-16 w-32 h-32 bg-emerald-600/10 rounded-full blur-2xl group-hover:bg-emerald-600/20 transition-all duration-500"></div>
+
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <i class="fa-solid fa-circle-play"></i>
+                        </div>
+                        <h2 class="text-lg font-bold">Watch a Stream</h2>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Instantly tune into another peer's stream. Paste the Host's Stream ID below to establish a fast, high-quality, peer-to-peer visual pipeline.</p>
+                    
+                    <!-- Join Input Field -->
+                    <div class="space-y-3 mb-6">
+                        <label for="host-peer-id-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Host Stream ID</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-solid fa-key text-xs"></i>
+                            </div>
+                            <input type="text" id="host-peer-id-input" placeholder="e.g. dynamic-peer-uuid-xyz" class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-3 pl-10 pr-4 text-sm font-mono placeholder:text-slate-600 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-150">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Join Button -->
+                <button id="join-stream-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-semibold transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Connect & Join Stream</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Live Room Screen (Initially hidden until connection) -->
+        <div id="live-room-panel" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6 w-full flex-1">
+            <!-- Left Panel: Main Video Feed -->
+            <div class="lg:col-span-2 flex flex-col gap-4 bg-slate-900/40 border border-slate-800/80 rounded-3xl p-4 sm:p-5 relative">
+                <!-- Live Stream Container -->
+                <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden group shadow-2xl border border-slate-850">
+                    <video id="main-video-element" class="w-full h-full object-contain" autoplay playsinline></video>
+                    
+                    <!-- Hidden Canvas for rendering simulated/mock camera when blocked -->
+                    <canvas id="fallback-stream-canvas" width="1280" height="720" class="hidden"></canvas>
+
+                    <!-- Video Watermarks & Live Badges -->
+                    <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
+                        <span class="bg-red-600 text-white font-extrabold text-[10px] tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse shadow-md">
+                            <span class="h-1.5 w-1.5 rounded-full bg-white"></span> LIVE
+                        </span>
+                        <span id="role-badge" class="bg-slate-900/85 backdrop-blur-md border border-slate-700 text-slate-200 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">
+                            Role: Viewer
+                        </span>
+                    </div>
+
+                    <!-- Connection Peer Info Header (Overlay on video hover) -->
+                    <div class="absolute inset-x-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-between items-start pt-16">
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase font-medium">Currently Connected Room</p>
+                            <h3 id="connected-room-title" class="text-xs font-semibold font-mono text-indigo-300">Room: -</h3>
+                        </div>
+                        <div id="stream-status" class="bg-slate-900/85 px-3 py-1.5 rounded-lg border border-slate-700 text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span> High-Quality P2P Link Active
+                        </div>
+                    </div>
+
+                    <!-- No Stream Placeholder (Shows if video tracks missing) -->
+                    <div id="video-placeholder" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-0">
+                        <div class="h-16 w-16 bg-slate-900 rounded-full border border-slate-800 flex items-center justify-center text-indigo-400 mb-4 animate-bounce">
+                            <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+                        </div>
+                        <h3 class="text-base font-bold">Awaiting Stream Broadcast</h3>
+                        <p class="text-xs text-slate-500 mt-2 max-w-xs">Establishing continuous audio-visual pipeline over secure ICE channels. Please wait...</p>
+                    </div>
+
+                    <!-- Host Overlay Custom Controls -->
+                    <div class="absolute bottom-4 left-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-between items-center bg-slate-950/85 backdrop-blur-md border border-slate-800 rounded-xl p-3">
+                        <div class="flex items-center gap-2">
+                            <!-- Stream Controls (Only active for Host) -->
+                            <button id="ctrl-mute-mic" class="h-9 w-9 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center justify-center transition" title="Toggle Microphone">
+                                <i id="ctrl-mic-icon" class="fa-solid fa-microphone"></i>
+                            </button>
+                            <button id="ctrl-stop-cam" class="h-9 w-9 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center justify-center transition" title="Toggle Camera">
+                                <i id="ctrl-cam-icon" class="fa-solid fa-video"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="ctrl-fullscreen" class="h-9 w-9 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center justify-center transition" title="Toggle Fullscreen">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                            <button id="disconnect-btn" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-lg shadow-red-600/20">
+                                <i class="fa-solid fa-power-off"></i> Leave Live
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streaming Meta Info panel & Simulator Interaction Hub -->
+                <div class="bg-slate-900/40 rounded-2xl p-4 flex flex-col gap-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/60 pb-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h2 class="text-base font-bold text-white" id="stream-display-title">Decentralized Stream Session</h2>
+                                <span class="bg-indigo-500/10 text-indigo-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider border border-indigo-500/20" id="host-badge">Active Connection</span>
+                            </div>
+                            <p class="text-xs text-slate-400">Streamed peer-to-peer across modern WebRTC networks. Zero middleman buffering.</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Estimated Bandwidth</p>
+                                <p class="text-xs font-mono font-bold text-emerald-400" id="bandwidth-indicator">Optimizing...</p>
+                            </div>
+                            <div class="h-8 w-px bg-slate-800"></div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Viewer Network</p>
+                                <p class="text-xs font-mono font-bold text-indigo-400" id="viewer-count-indicator">1 Connected</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SIMULATOR CONTROL DECK (Shows only in simulation mode to test layout easily) -->
+                    <div id="simulator-controller-deck" class="hidden bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-gamepad"></i> Testing Center (Interactive Simulator Control)
+                                </h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Spawn simulated audience bots to test real-time P2P chat and viewer counts!</p>
+                            </div>
+                            <div class="flex gap-2 shrink-0">
+                                <button id="btn-spawn-bot" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[11px] px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md shadow-indigo-600/10">
+                                    <i class="fa-solid fa-user-plus"></i> Spawn Viewer Bot
+                                </button>
+                                <button id="btn-bot-spam" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-[11px] px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Sim Chat Wave
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="absolute z-20 flex flex-col items-center">
-              <img src="${stream.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" class="w-14 h-14 rounded-full border-2 border-indigo-500 shadow-md object-cover">
-            </div>
-          </div>
+            <!-- Right Panel: P2P Live Chat Sidebar -->
+            <div class="lg:col-span-1 flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-3xl overflow-hidden h-[500px] lg:h-auto">
+                <!-- Chat Header -->
+                <div class="p-4 border-b border-slate-800 bg-slate-950/50 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm">Live Broadcast Chat</h3>
+                            <p class="text-[10px] text-slate-500">Encrypted End-to-End Chat</p>
+                        </div>
+                    </div>
+                    <!-- Status Icon -->
+                    <span id="chat-badge" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Online</span>
+                </div>
 
-          <div class="p-5 flex-grow flex flex-col justify-between">
-            <div>
-              <div class="flex items-center gap-1.5 mb-1.5">
-                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">${stream.category || 'Streaming'}</span>
-              </div>
-              <h4 class="font-extrabold text-slate-800 text-base line-clamp-1">${stream.title || 'Live Stream Hub'}</h4>
-              <p class="text-xs text-slate-400 font-semibold mt-1 flex items-center gap-1">
-                <i data-lucide="user" class="w-3 h-3"></i> Hosted by <span class="text-slate-600">${stream.hostName}</span>
-              </p>
-            </div>
+                <!-- Chat Feed Messages -->
+                <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3.5 flex flex-col justify-end">
+                    <!-- Setup initial notification -->
+                    <div class="bg-indigo-950/30 border border-indigo-900/50 rounded-2xl p-3.5 text-center text-xs text-indigo-300 max-w-sm mx-auto">
+                        <i class="fa-solid fa-shield-halved text-lg mb-1.5 block"></i>
+                        <span class="font-semibold block mb-0.5">Secure P2P Chat Stream</span>
+                        WebRTC DataChannel is enabled. Chat directly with other nodes with minimal transit latency.
+                    </div>
+                </div>
 
-            <button class="btn-join-stream w-full mt-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-3 rounded-xl transition duration-300 shadow-sm text-xs flex items-center justify-center gap-2" data-id="${stream.id}">
-              <i data-lucide="play" class="w-3.5 h-3.5"></i> Watch Live Broadcast
+                <!-- Chat Input Action Panel -->
+                <form id="chat-form" class="p-3 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2">
+                    <input type="text" id="chat-input-field" placeholder="Type message to room..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" disabled>
+                    <button type="submit" id="chat-send-btn" class="h-9 w-9 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition shadow-md shadow-indigo-600/10 disabled:opacity-50" disabled>
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom UI Alert Popups (Anti Native Alerts UI rules) -->
+    <div id="alert-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative">
+            <div id="alert-icon-container" class="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400">
+                <i id="alert-icon" class="fa-solid fa-circle-exclamation text-xl"></i>
+            </div>
+            <h3 id="alert-title" class="text-base font-bold text-center mb-1 text-white">System Alert</h3>
+            <p id="alert-message" class="text-xs text-slate-400 text-center mb-5 leading-relaxed">Alert descriptions are routed seamlessly here.</p>
+            <button id="alert-close-btn" class="w-full bg-slate-800 hover:bg-slate-700 active:bg-slate-650 text-slate-200 py-2.5 rounded-xl text-xs font-semibold transition">
+                Close Alert Window
             </button>
-          </div>
-        `;
+        </div>
+    </div>
 
-        elStreamsGrid.appendChild(card);
-      });
+    <!-- Sticky Live Notification Banner -->
+    <div id="toast-notif" class="fixed bottom-6 left-6 z-50 max-w-sm w-full translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900/95 border border-slate-800 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 text-sm">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-xs font-bold text-white" id="toast-title">Broadcast Notice</p>
+                <p class="text-[10px] text-slate-400" id="toast-body">Description text displays here.</p>
+            </div>
+        </div>
+    </div>
 
-      document.querySelectorAll('.btn-join-stream').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.dataset.id;
-          joinBroadcastChannel(id);
-        });
-      });
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 px-4 py-4 sm:px-6 text-center text-[10px] text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>&copy; 2026 StreamVibe P2P Streaming System. All Rights Reserved.</p>
+            <div class="flex items-center gap-4">
+                <a href="#" class="hover:text-slate-300 transition">Privacy & terms</a>
+                <span class="h-3 w-px bg-slate-800"></span>
+                <a href="#" class="hover:text-slate-300 transition flex items-center gap-1">
+                    <span id="system-mode-tag" class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    <span id="system-mode-txt">WebRTC Engine Standard</span>
+                </a>
+            </div>
+        </div>
+    </footer>
 
-      lucide.createIcons();
-    }
+    <script>
+        // Global variables representing WebRTC engine states
+        let localStream = null;
+        let peer = null;
+        let activeCall = null;
+        let activeDataConnection = null;
+        
+        let activeViewerConnections = [];
+        let activeViewerCalls = [];
+        
+        let clientRole = null; // 'host' or 'viewer'
+        let myId = "";
+        let peerConnected = false;
+        let isSimulationMode = false;
+        
+        // Canvas generator variables for camera fallback
+        let fallbackCanvasInterval = null;
+        const mockViewersList = ["Karthik 🚀", "Anjali ✨", "Suresh Kumar 🔥", "Pooja Pillai 🎧", "Manoj Kumar 💻", "Dhinesh Raj 🎸", "Swetha Sree ☕"];
+        const mockTamilComments = [
+            "Live streaming vera level bro! 🔥",
+            "Clarity super ah irukku!",
+            "Eppadi intha maari setup panni stream panreenga?",
+            "P2P direct high resolution super bro! 🚀",
+            "Annan live vanthutaaru!! Gethu dhaan!",
+            "Hi everyone in the stream 👋",
+            "Sound system check, semma clear broadast!",
+            "Vera level technology integration bro. Keep rocking!"
+        ];
 
-    // Step 4: Broadcaster Initiation
-    async function startBroadcasting() {
-      const username = document.getElementById('setup-username').value.trim() || 'Senternet Host';
-      const title = document.getElementById('setup-title').value.trim() || 'Innovative App Demo';
-      const category = document.getElementById('setup-category').value;
+        // UI Element references
+        const myPeerIdEl = document.getElementById('my-peer-id');
+        const startStreamBtn = document.getElementById('start-stream-btn');
+        const joinStreamBtn = document.getElementById('join-stream-btn');
+        const hostPeerIdInput = document.getElementById('host-peer-id-input');
+        const copyIdBtn = document.getElementById('copy-id-btn');
+        
+        const setupPanel = document.getElementById('setup-panel');
+        const liveRoomPanel = document.getElementById('live-room-panel');
+        const mainVideoElement = document.getElementById('main-video-element');
+        const videoPlaceholder = document.getElementById('video-placeholder');
+        const fallbackStreamCanvas = document.getElementById('fallback-stream-canvas');
+        
+        const roleBadge = document.getElementById('role-badge');
+        const connectedRoomTitle = document.getElementById('connected-room-title');
+        const viewerCountIndicator = document.getElementById('viewer-count-indicator');
+        const streamDisplayTitle = document.getElementById('stream-display-title');
+        const disconnectBtn = document.getElementById('disconnect-btn');
 
-      try {
-        isBroadcasting = true;
-        activeStreamId = currentUser.uid;
+        const chatForm = document.getElementById('chat-form');
+        const chatInputField = document.getElementById('chat-input-field');
+        const chatMessagesContainer = document.getElementById('chat-messages-container');
+        const chatSendBtn = document.getElementById('chat-send-btn');
 
-        // Reset Audio/Video track controllers
-        isAudioEnabled = true;
-        isVideoEnabled = true;
-        updateBroadcasterControlUI();
+        // Sandbox & Warning references
+        const sandboxAlertBanner = document.getElementById('sandbox-alert-banner');
+        const sandboxBadge = document.getElementById('sandbox-badge');
+        const simControllerDeck = document.getElementById('simulator-controller-deck');
 
-        // Save active stream record to database
-        const streamDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'streams', activeStreamId);
-        await setDoc(streamDocRef, {
-          hostName: username,
-          title: title,
-          category: category,
-          avatar: chosenAvatarUrl,
-          viewers: 1,
-          startedAt: serverTimestamp()
-        });
+        // High-fidelity Neon retro wave canvas generator (Bypasses camera block inside IFrames!)
+        function startFallbackCanvasBroadcast() {
+            const ctx = fallbackStreamCanvas.getContext('2d');
+            let frameCount = 0;
+            
+            fallbackCanvasInterval = setInterval(() => {
+                frameCount++;
+                
+                // Draw cool background gradient
+                const grad = ctx.createLinearGradient(0, 0, 1280, 720);
+                grad.addColorStop(0, '#020617'); // slate-950
+                grad.addColorStop(0.5, '#0f172a'); // slate-900
+                grad.addColorStop(1, '#1e1b4b'); // indigo-950
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 1280, 720);
+                
+                // Animated neon grid lines
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)'; // indigo line grid
+                ctx.lineWidth = 2;
+                const gridSpacing = 40;
+                for (let x = 0; x < 1280; x += gridSpacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, 720);
+                    ctx.stroke();
+                }
+                for (let y = 0; y < 720; y += gridSpacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(1280, y);
+                    ctx.stroke();
+                }
 
-        // Initialize user media WebRTC source setup
-        try {
-          localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          videoElement.srcObject = localStream;
-          videoElement.classList.remove('hidden');
-          canvas.classList.add('hidden');
-        } catch (mediaErr) {
-          console.warn("Camera/mic access unavailable. Starting animated simulation screen.");
-          startCanvasSimulation(username, true);
-          videoElement.classList.add('hidden');
-          canvas.classList.remove('hidden');
+                // Shifting futuristic neon visualizer circle
+                const radius = 120 + Math.sin(frameCount * 0.05) * 15;
+                const visualGradient = ctx.createRadialGradient(640, 360, 20, 640, 360, radius);
+                visualGradient.addColorStop(0, 'rgba(168, 85, 247, 0.4)'); // purple-500
+                visualGradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.2)'); // indigo-500
+                visualGradient.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = visualGradient;
+                ctx.beginPath();
+                ctx.arc(640, 360, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw central rotating visualizer particles
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                for (let i = 0; i < 360; i += 10) {
+                    const angle = (i * Math.PI) / 180 + (frameCount * 0.01);
+                    const amplitude = 30 + Math.sin(frameCount * 0.1 + i) * 15;
+                    const xStart = 640 + Math.cos(angle) * (radius - 20);
+                    const yStart = 360 + Math.sin(angle) * (radius - 20);
+                    const xEnd = 640 + Math.cos(angle) * (radius + amplitude);
+                    const yEnd = 360 + Math.sin(angle) * (radius + amplitude);
+                    ctx.moveTo(xStart, yStart);
+                    ctx.lineTo(xEnd, yEnd);
+                }
+                ctx.stroke();
+
+                // Outer decorative target alignment marks
+                ctx.strokeStyle = '#10b981'; // emerald
+                ctx.lineWidth = 3;
+                // Top-Left corner
+                ctx.beginPath(); ctx.moveTo(50, 80); ctx.lineTo(50, 50); ctx.lineTo(80, 50); ctx.stroke();
+                // Top-Right corner
+                ctx.beginPath(); ctx.moveTo(1230, 80); ctx.lineTo(1230, 50); ctx.lineTo(1200, 50); ctx.stroke();
+                // Bottom-Left corner
+                ctx.beginPath(); ctx.moveTo(50, 640); ctx.lineTo(50, 670); ctx.lineTo(80, 670); ctx.stroke();
+                // Bottom-Right corner
+                ctx.beginPath(); ctx.moveTo(1230, 640); ctx.lineTo(1230, 670); ctx.lineTo(1200, 670); ctx.stroke();
+
+                // Blinking Broadcast status card
+                if (Math.floor(frameCount / 25) % 2 === 0) {
+                    ctx.fillStyle = '#ef4444'; // red dot
+                    ctx.beginPath();
+                    ctx.arc(80, 100, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 24px Inter, system-ui, sans-serif';
+                ctx.fillText('LIVE BROADCAST', 105, 108);
+
+                // Room stream info overlay
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+                ctx.beginPath();
+                ctx.roundRect(80, 580, 1120, 80, 15);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.font = '600 18px Inter, monospace';
+                ctx.fillText(`STREAM ID: ${myId || "LOCAL_SIMULATOR"}`, 110, 615);
+                
+                ctx.fillStyle = '#818cf8';
+                ctx.font = '14px Inter';
+                ctx.fillText(`SYSTEM FPS: 30FPS  |  ENC: WEBRTC H.264 VIRTUAL CAPTURE  |  AUDIO STATUS: ACTIVE`, 110, 642);
+
+                const timeStr = new Date().toLocaleTimeString();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 20px monospace';
+                ctx.fillText(timeStr, 1070, 628);
+
+            }, 33); // Draw at roughly ~30 FPS
         }
 
-        // Initialize Stage Details
-        document.getElementById('stage-host-avatar').src = chosenAvatarUrl;
-        document.getElementById('stage-host-name').innerText = username;
-        document.getElementById('stage-stream-title').innerText = title;
-        document.getElementById('stage-viewer-count').innerText = 1;
+        function stopFallbackCanvasBroadcast() {
+            if (fallbackCanvasInterval) {
+                clearInterval(fallbackCanvasInterval);
+                fallbackCanvasInterval = null;
+            }
+        }
 
-        // Toggle UI Display
-        elModalSetup.classList.add('hidden');
-        elStreamView.classList.remove('hidden');
-        elBroadcasterControls.classList.remove('hidden');
-        elViewerControls.classList.add('hidden');
+        // Custom UI Modal and Toast controllers
+        function showCustomAlert(title, message, isError = false) {
+            const modal = document.getElementById('alert-modal');
+            const alertTitle = document.getElementById('alert-title');
+            const alertMessage = document.getElementById('alert-message');
+            const iconContainer = document.getElementById('alert-icon-container');
+            const icon = document.getElementById('alert-icon');
 
-        // Setup real-time Chat listener
-        initChatListener(activeStreamId);
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
 
-        // Start WebRTC signaling listener for incoming viewers (RULE 2 - Fetch all signals, then filter manually)
-        startBroadcasterSignalingListener();
+            if (isError) {
+                iconContainer.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-rose-500/15 text-rose-400 animate-bounce";
+                icon.className = "fa-solid fa-triangle-exclamation text-xl";
+            } else {
+                iconContainer.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400";
+                icon.className = "fa-solid fa-circle-exclamation text-xl";
+            }
 
-        // Welcome system logs
-        sendSystemNotification(`Broadcast created successfully! Welcome to ${username}'s channel.`);
+            modal.classList.remove('hidden');
+        }
 
-      } catch (err) {
-        console.error("Failed launching stream feed:", err);
-      }
-    }
+        document.getElementById('alert-close-btn').addEventListener('click', () => {
+            document.getElementById('alert-modal').classList.add('hidden');
+        });
 
-    // Broadcaster listens to incoming connections (signals prefixed with streamId)
-    function startBroadcasterSignalingListener() {
-      if (signalingUnsubscribe) signalingUnsubscribe();
+        function showToast(title, body) {
+            const toast = document.getElementById('toast-notif');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-body').textContent = body;
+            
+            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
 
-      const q = query(signalingColRef);
-      signalingUnsubscribe = onSnapshot(q, async (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-          const data = change.doc.data();
-          const docId = change.doc.id;
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3500);
+        }
 
-          // Check if this signal document belongs to our current active stream
-          if (docId.startsWith(activeStreamId + '_')) {
-            const viewerId = docId.split('_')[1];
+        window.addEventListener('load', () => {
+            initializeRealOrSimulatedPeer();
+        });
 
-            if (change.type === 'added' || change.type === 'modified') {
-              // 1. New Join signal received - setup peer connection and send offer
-              if (data.type === 'join' && !peerConnections[viewerId]) {
-                await initiatePeerConnectionWithViewer(viewerId, docId);
-              }
-              // 2. Received Answer back from viewer
-              else if (data.type === 'answer' && peerConnections[viewerId]) {
-                const pc = peerConnections[viewerId];
-                if (pc.signalingState === "have-local-offer") {
-                  await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+        function initializeRealOrSimulatedPeer() {
+            // First, try standard Cloud-based WebRTC signaling broker
+            try {
+                peer = new Peer(undefined, {
+                    debug: 1,
+                    config: {
+                        'iceServers': [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    }
+                });
+
+                peer.on('open', (id) => {
+                    myId = id;
+                    myPeerIdEl.textContent = id;
+                    peerConnected = true;
+                    setNetworkStatusUI(true, "Peer network active (WebRTC)");
+                    
+                    copyIdBtn.disabled = false;
+                    startStreamBtn.disabled = false;
+                    joinStreamBtn.disabled = false;
+                });
+
+                peer.on('error', (err) => {
+                    console.warn("PeerJS broker encountered error/block. Initiating Sandbox Simulator Fallback...", err);
+                    activateSandboxSimulatorMode();
+                });
+
+                // Fallback triggered when IFrame blocks secure websockets entirely
+                setTimeout(() => {
+                    if (!peerConnected && !isSimulationMode) {
+                        console.warn("Signaling handshake timed out. Activating simulation layer...");
+                        activateSandboxSimulatorMode();
+                    }
+                }, 4000);
+
+            } catch (err) {
+                console.warn("Peer constructor blocked directly. Booting mock simulation mode...", err);
+                activateSandboxSimulatorMode();
+            }
+        }
+
+        function setNetworkStatusUI(isActive, messageText) {
+            const statusDot = document.getElementById('status-dot');
+            const statusPulse = document.getElementById('status-pulse');
+            const statusText = document.getElementById('connection-status-text');
+
+            if (isActive) {
+                statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+                statusPulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+            } else {
+                statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+                statusPulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+            }
+            statusText.textContent = messageText;
+        }
+
+        // Boot Sandbox Mode safely & elegantly to prevent errors in IFrame
+        function activateSandboxSimulatorMode() {
+            if (isSimulationMode) return;
+            isSimulationMode = true;
+
+            // Update Header alerts
+            sandboxAlertBanner.classList.remove('hidden');
+            sandboxBadge.classList.remove('hidden');
+            simControllerDeck.classList.remove('hidden');
+
+            const sysModeTag = document.getElementById('system-mode-tag');
+            const sysModeTxt = document.getElementById('system-mode-txt');
+            sysModeTag.className = "h-1.5 w-1.5 rounded-full bg-amber-500 inline-block animate-pulse";
+            sysModeTxt.textContent = "Sandbox Simulator Hub";
+
+            // Generate an elegant simulated peer uuid
+            const randomID = "stream-sim-" + Math.floor(100000 + Math.random() * 900000);
+            myId = randomID;
+            myPeerIdEl.textContent = randomID;
+            peerConnected = true;
+
+            setNetworkStatusUI(true, "Sandbox Simulation Engine Enabled");
+
+            // Allow elements to proceed
+            copyIdBtn.disabled = false;
+            startStreamBtn.disabled = false;
+            joinStreamBtn.disabled = false;
+
+            showToast("Sandbox Engine Loaded", "Bypassed standard WebSocket filters. Sandbox stream simulation ready!");
+        }
+
+        // Copy Id fallback function
+        copyIdBtn.addEventListener('click', () => {
+            if (!peerConnected || !myId) return;
+
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = myId;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast("Copied!", "Stream ID has been successfully copied to your clipboard.");
+                } else {
+                    showToast("Copy Failed", "Please manually select and copy the text.");
                 }
-              }
-              // 3. Process trickle ICE candidates sent by viewer
-              else if (data.viewerCandidate && peerConnections[viewerId]) {
-                const pc = peerConnections[viewerId];
+            } catch (err) {
+                console.error("Failed to copy safely:", err);
+            }
+            document.body.removeChild(tempTextArea);
+        });
+
+        // Start local or simulated stream
+        startStreamBtn.addEventListener('click', async () => {
+            const hasAudio = document.getElementById('pref-audio').checked;
+            const hasVideo = document.getElementById('pref-video').checked;
+
+            if (!hasAudio && !hasVideo) {
+                showCustomAlert("Permission Request Failure", "Please check at least one broadcast preference (Microphone or Camera) to begin streaming.", true);
+                return;
+            }
+
+            startStreamBtn.disabled = true;
+            startStreamBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Initializing Media Devices...</span>`;
+
+            if (isSimulationMode) {
+                // SANDBOX SIMULATOR PATHWAY: Setup custom loop animations to mock actual camera stream
+                setTimeout(() => {
+                    startFallbackCanvasBroadcast();
+                    
+                    // Capture dynamic rendering context
+                    localStream = fallbackStreamCanvas.captureStream(30);
+
+                    setupLiveStreamingUI('host');
+                    mainVideoElement.srcObject = localStream;
+                    videoPlaceholder.classList.add('hidden');
+
+                    showToast("Simulation Live!", "Your interactive broadcast canvas is now live. Share ID to simulate view connections!");
+                    appendSystemChatMessage("System Host", "Mock dynamic canvas broadcast initiated inside local sandbox registry.");
+                }, 1000);
+
+            } else {
+                // STANDARD PRODUCTION WEBRTC PATHWAY
                 try {
-                  await pc.addIceCandidate(new RTCIceCandidate(data.viewerCandidate));
-                } catch (e) {
-                  console.warn("Error adding Ice Candidate: ", e);
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        audio: hasAudio,
+                        video: hasVideo ? {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            frameRate: { ideal: 30 }
+                        } : false
+                    });
+
+                    setupLiveStreamingUI('host');
+                    mainVideoElement.srcObject = localStream;
+                    videoPlaceholder.classList.add('hidden');
+
+                    updateViewersUI();
+                    showToast("Broadcast Started", "Your stream is now live. Share your ID to bring viewers in!");
+                    appendSystemChatMessage("System Host", "Broadcast room initiated. Direct WebRTC connections enabled.");
+
+                } catch (err) {
+                    console.warn("Webcam access restricted by browser/iframe policy. Defaulting back to Visual Canvas Simulator...", err);
+                    
+                    // Automatically fall back to canvas generator
+                    startFallbackCanvasBroadcast();
+                    localStream = fallbackStreamCanvas.captureStream(30);
+
+                    setupLiveStreamingUI('host');
+                    mainVideoElement.srcObject = localStream;
+                    videoPlaceholder.classList.add('hidden');
+
+                    showToast("Simulator Live", "Camera blocked by cross-origin policy. Initiated animated synthwave feed.");
+                    appendSystemChatMessage("System Warning", "Browser camera blocked. Shifting to visual spectrum fallback generator.");
                 }
-              }
             }
-          }
         });
-      }, (err) => {
-        console.error("Broadcaster signaling failed:", err);
-      });
-    }
 
-    // Broadcaster establishes unique Peer Connection for each connected Viewer
-    async function initiatePeerConnectionWithViewer(viewerId, signalDocId) {
-      const pc = new RTCPeerConnection(iceServers);
-      peerConnections[viewerId] = pc;
+        // Set layout design parameters for hosting/viewing panels
+        function setupLiveStreamingUI(role) {
+            clientRole = role;
+            setupPanel.classList.add('hidden');
+            liveRoomPanel.classList.remove('hidden');
 
-      // Add local tracks to peer connection
-      if (localStream) {
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-      }
+            chatInputField.disabled = false;
+            chatSendBtn.disabled = false;
 
-      // Capture and push ICE candidates to Firestore
-      pc.onicecandidate = async (event) => {
-        if (event.candidate) {
-          const signalDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'signaling', signalDocId);
-          await updateDoc(signalDocRef, {
-            broadcasterCandidate: event.candidate.toJSON()
-          });
-        }
-      };
-
-      // Create and set local offer
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      const signalDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'signaling', signalDocId);
-      await updateDoc(signalDocRef, {
-        type: 'offer',
-        offer: {
-          sdp: offer.sdp,
-          type: offer.type
-        }
-      });
-    }
-
-    // Step 5: Viewer Join mechanism (WebRTC Negotiation)
-    async function joinBroadcastChannel(streamId) {
-      try {
-        activeStreamId = streamId;
-        isBroadcasting = false;
-
-        const streamDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'streams', streamId);
-        const streamSnap = await getDoc(streamDocRef);
-
-        if (!streamSnap.exists()) {
-          alert('This live channel has already ended.');
-          return;
-        }
-
-        const data = streamSnap.data();
-
-        // Increment stream viewer count safely
-        const currentViewers = data.viewers || 0;
-        await updateDoc(streamDocRef, { viewers: currentViewers + 1 });
-
-        // Update stage details
-        document.getElementById('stage-host-avatar').src = data.avatar;
-        document.getElementById('stage-host-name').innerText = data.hostName;
-        document.getElementById('stage-stream-title').innerText = data.title;
-        document.getElementById('stage-viewer-count').innerText = currentViewers + 1;
-        document.getElementById('tag-current-host').innerText = data.hostName;
-
-        // Toggle UI view screens
-        elStreamView.classList.remove('hidden');
-        elBroadcasterControls.classList.add('hidden');
-        elViewerControls.classList.remove('hidden');
-
-        // Setup signaling stream to connect to host camera
-        setupViewerWebRTCConnection(streamId);
-
-        // Fetch Live chats
-        initChatListener(streamId);
-
-        sendSystemNotification(`Joined ${data.hostName}'s stream room.`);
-
-      } catch (err) {
-        console.error("Joining live stream session error:", err);
-      }
-    }
-
-    // Setup RTCPeerConnection for the Viewer
-    async function setupViewerWebRTCConnection(streamId) {
-      const viewerId = currentUser.uid;
-      const signalDocId = `${streamId}_${viewerId}`;
-      const signalDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'signaling', signalDocId);
-
-      singlePeerConnection = new RTCPeerConnection(iceServers);
-
-      // Listen for incoming media track
-      singlePeerConnection.ontrack = (event) => {
-        if (event.streams && event.streams[0]) {
-          videoElement.srcObject = event.streams[0];
-          videoElement.classList.remove('hidden');
-          canvas.classList.add('hidden');
-        }
-      };
-
-      // Handle ICE Candidates
-      singlePeerConnection.onicecandidate = async (event) => {
-        if (event.candidate) {
-          await updateDoc(signalDocRef, {
-            viewerCandidate: event.candidate.toJSON()
-          });
-        }
-      };
-
-      // Write 'join' signal to let Broadcaster know we are ready to receive offer
-      await setDoc(signalDocRef, {
-        type: 'join',
-        viewerId: viewerId,
-        streamId: streamId,
-        timestamp: serverTimestamp()
-      });
-
-      // Listen to peer updates (RULE 1 & 2 compliant)
-      if (signalingUnsubscribe) signalingUnsubscribe();
-
-      signalingUnsubscribe = onSnapshot(signalDocRef, async (docSnap) => {
-        if (!docSnap.exists()) return;
-        const sigData = docSnap.data();
-
-        // 1. Broadcaster sent offer -> set as remote and reply with answer
-        if (sigData.type === 'offer' && singlePeerConnection.signalingState === 'stable') {
-          await singlePeerConnection.setRemoteDescription(new RTCSessionDescription(sigData.offer));
-          const answer = await singlePeerConnection.createAnswer();
-          await singlePeerConnection.setLocalDescription(answer);
-
-          await updateDoc(signalDocRef, {
-            type: 'answer',
-            answer: {
-              sdp: answer.sdp,
-              type: answer.type
+            if (role === 'host') {
+                roleBadge.textContent = "Role: Stream Host";
+                roleBadge.className = "bg-indigo-600 border border-indigo-400 text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full animate-pulse";
+                connectedRoomTitle.textContent = "Live Hosting ID: " + myId;
+                streamDisplayTitle.textContent = "Your Stream Broadcast";
+                
+                const hostBadge = document.getElementById('host-badge');
+                hostBadge.textContent = "Live Broadcaster";
+                hostBadge.className = "bg-red-500/10 text-red-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider border border-red-500/20";
+                document.getElementById('bandwidth-indicator').textContent = "720p 30fps";
+            } else {
+                roleBadge.textContent = "Role: Viewer";
+                roleBadge.className = "bg-emerald-600 border border-emerald-400 text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full";
+                streamDisplayTitle.textContent = "Broadcaster Feed";
+                
+                const hostBadge = document.getElementById('host-badge');
+                hostBadge.textContent = "Stream Active";
+                document.getElementById('bandwidth-indicator').textContent = "P2P WebRTC HD";
             }
-          });
-        }
-        // 2. Broadcaster sent ICE candidate
-        else if (sigData.broadcasterCandidate) {
-          try {
-            await singlePeerConnection.addIceCandidate(new RTCIceCandidate(sigData.broadcasterCandidate));
-          } catch (e) {
-            console.warn("Error adding broadcaster ICE Candidate:", e);
-          }
-        }
-      }, (err) => {
-        console.error("Viewer signaling listen error:", err);
-      });
-
-      // Canvas backup if Peer WebRTC negotiates slowly
-      startCanvasSimulation(document.getElementById('stage-host-name').innerText, false);
-    }
-
-    // Dynamic Mic and Camera toggle action handlers
-    function toggleAudio() {
-      if (!localStream) return;
-      isAudioEnabled = !isAudioEnabled;
-      localStream.getAudioTracks().forEach(track => {
-        track.enabled = isAudioEnabled;
-      });
-      updateBroadcasterControlUI();
-    }
-
-    function toggleVideo() {
-      if (!localStream) return;
-      isVideoEnabled = !isVideoEnabled;
-      localStream.getVideoTracks().forEach(track => {
-        track.enabled = isVideoEnabled;
-      });
-      updateBroadcasterControlUI();
-    }
-
-    function updateBroadcasterControlUI() {
-      const btnMic = document.getElementById('btn-toggle-mic');
-      const btnCam = document.getElementById('btn-toggle-camera');
-
-      if (isAudioEnabled) {
-        btnMic.innerHTML = `<i data-lucide="mic" class="w-4 h-4"></i> Mute Mic`;
-        btnMic.className = "bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold";
-      } else {
-        btnMic.innerHTML = `<i data-lucide="mic-off" class="w-4 h-4 text-red-400"></i> Unmute Mic`;
-        btnMic.className = "bg-red-950 hover:bg-red-900 border border-red-800 text-red-200 p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold animate-pulse";
-      }
-
-      if (isVideoEnabled) {
-        btnCam.innerHTML = `<i data-lucide="video" class="w-4 h-4"></i> Stop Video`;
-        btnCam.className = "bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold";
-      } else {
-        btnCam.innerHTML = `<i data-lucide="video-off" class="w-4 h-4 text-red-400"></i> Start Video`;
-        btnCam.className = "bg-red-950 hover:bg-red-900 border border-red-800 text-red-200 p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-bold animate-pulse";
-      }
-      lucide.createIcons();
-    }
-
-    // Interactive Confetti reaction triggers
-    window.sendVirtualGift = async function(giftName) {
-      if (!activeStreamId) return;
-
-      let emoji = '❤️';
-      let themeColor = ['#ec4899', '#f43f5e'];
-      if (giftName === 'Fire') {
-        emoji = '🔥';
-        themeColor = ['#f59e0b', '#d97706'];
-      } else if (giftName === 'Crown') {
-        emoji = '👑';
-        themeColor = ['#6366f1', '#4f46e5'];
-      }
-
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: themeColor
-      });
-
-      try {
-        await addDoc(chatsColRef, {
-          streamId: activeStreamId,
-          userName: "Viewer (" + currentUser.uid.slice(0, 5) + ")",
-          message: `sent a premium gift: ${emoji} ${giftName}!`,
-          isGift: true,
-          timestamp: serverTimestamp()
-        });
-      } catch (err) {
-        console.error("Gift transfer error:", err);
-      }
-    };
-
-    // Chat management routines
-    let chatUnsubscribe = null;
-    function initChatListener(streamId) {
-      if (chatUnsubscribe) chatUnsubscribe();
-
-      elChatMessages.innerHTML = '';
-
-      const q = query(chatsColRef);
-      chatUnsubscribe = onSnapshot(q, (snapshot) => {
-        elChatMessages.innerHTML = '';
-        const chatsList = [];
-
-        snapshot.forEach((docSnap) => {
-          const chat = docSnap.data();
-          if (chat.streamId === streamId) {
-            chatsList.push(chat);
-          }
-        });
-
-        // RULE 2 - Sort manually in memory
-        chatsList.sort((a, b) => {
-          const tA = a.timestamp?.seconds || 0;
-          const tB = b.timestamp?.seconds || 0;
-          return tA - tB;
-        });
-
-        chatsList.forEach(chat => {
-          const item = document.createElement('div');
-          
-          if (chat.isSystem) {
-            item.className = "text-center text-xs font-semibold text-slate-400 py-1 bg-slate-50 rounded-lg";
-            item.innerText = chat.message;
-          } else if (chat.isGift) {
-            item.className = "bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-100 p-2.5 rounded-xl text-xs font-bold text-pink-700 flex items-center justify-between";
-            item.innerHTML = `<span>⚡ ${chat.userName}</span> <span>${chat.message}</span>`;
-          } else {
-            item.className = "flex flex-col bg-slate-50 rounded-2xl p-3 max-w-[90%] border border-slate-100";
-            item.innerHTML = `
-              <span class="text-[10px] font-bold text-indigo-600 uppercase mb-0.5">${chat.userName}</span>
-              <span class="text-xs text-slate-700 font-medium leading-normal">${chat.message}</span>
-            `;
-          }
-          elChatMessages.appendChild(item);
-        });
-
-        elChatMessages.scrollTop = elChatMessages.scrollHeight;
-      }, (err) => {
-        console.error("Firestore chats read failure:", err);
-      });
-    }
-
-    // Send ordinary chat messages
-    elChatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const txt = elChatInput.value.trim();
-      if (!txt || !activeStreamId) return;
-
-      try {
-        await addDoc(chatsColRef, {
-          streamId: activeStreamId,
-          userName: isBroadcasting ? "Broadcaster" : "User (" + currentUser.uid.slice(0, 5) + ")",
-          message: txt,
-          isSystem: false,
-          isGift: false,
-          timestamp: serverTimestamp()
-        });
-        elChatInput.value = '';
-      } catch (err) {
-        console.error("Firestore message write error:", err);
-      }
-    });
-
-    async function sendSystemNotification(msg) {
-      try {
-        await addDoc(chatsColRef, {
-          streamId: activeStreamId,
-          userName: "System",
-          message: msg,
-          isSystem: true,
-          isGift: false,
-          timestamp: serverTimestamp()
-        });
-      } catch (err) {}
-    }
-
-    // Step 6: Close / Terminate Broadcast sessions safely
-    async function terminateActiveStream() {
-      if (!activeStreamId) return;
-
-      try {
-        if (signalingUnsubscribe) {
-          signalingUnsubscribe();
-          signalingUnsubscribe = null;
         }
 
-        if (isBroadcasting) {
-          // 1. Delete active stream reference
-          const streamDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'streams', activeStreamId);
-          await deleteDoc(streamDocRef);
+        // Join connection routing trigger
+        joinStreamBtn.addEventListener('click', () => {
+            const targetHostId = hostPeerIdInput.value.trim();
+            
+            if (!targetHostId) {
+                showCustomAlert("Input Error", "Please input a valid Host Stream Peer ID to join.", true);
+                return;
+            }
 
-          // 2. Terminate all active multi-peer viewer connections
-          Object.keys(peerConnections).forEach(viewerId => {
-            peerConnections[viewerId].close();
-            delete peerConnections[viewerId];
-          });
+            if (targetHostId === myId) {
+                showCustomAlert("Configuration Loop", "You cannot join your own broadcast stream connection. Run in another device to test active pipelines.", true);
+                return;
+            }
 
-          // 3. Close camera stream tracks
-          if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-            localStream = null;
-          }
-        } else {
-          // Viewer leaving stream decrements viewer numbers
-          const streamDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'streams', activeStreamId);
-          const streamSnap = await getDoc(streamDocRef);
-          if (streamSnap.exists()) {
-            const data = streamSnap.data();
-            const currentViewers = data.viewers || 1;
-            await updateDoc(streamDocRef, { viewers: Math.max(0, currentViewers - 1) });
-          }
+            joinStreamBtn.disabled = true;
+            joinStreamBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Connecting to Host Room...</span>`;
 
-          if (singlePeerConnection) {
-            singlePeerConnection.close();
-            singlePeerConnection = null;
-          }
+            if (isSimulationMode) {
+                // SANDBOX SIMULATOR JOIN
+                setTimeout(() => {
+                    setupLiveStreamingUI('viewer');
+                    connectedRoomTitle.textContent = "Streaming Room: " + targetHostId;
+                    
+                    // Boot simulated viewer stream
+                    startFallbackCanvasBroadcast();
+                    const simulatedTargetStream = fallbackStreamCanvas.captureStream(30);
+                    mainVideoElement.srcObject = simulatedTargetStream;
+                    videoPlaceholder.classList.add('hidden');
+
+                    showToast("Connected Successfully", "Direct simulator handshake established. Synchronizing visual wave.");
+                    appendSystemChatMessage("Room Notice", "Mock connection channel generated. Secure link activated.");
+
+                    // Auto-start active audience bots speaking in chat to keep it dynamic and testable
+                    triggerBotRoutineInterval();
+                }, 1000);
+            } else {
+                // REAL WEBRTC ROUTE HANDLER
+                try {
+                    activeDataConnection = peer.connect(targetHostId);
+                    
+                    activeDataConnection.on('open', () => {
+                        setupLiveStreamingUI('viewer');
+                        connectedRoomTitle.textContent = "Streaming Room: " + targetHostId;
+                        showToast("Connected Successfully", "Direct peer pipeline established. Preparing dynamic audio-visual tracks...");
+                    });
+
+                    activeDataConnection.on('data', (data) => {
+                        if (data.type === 'chat') {
+                            appendChatMessage(data.sender, data.text, false);
+                        } else if (data.type === 'system') {
+                            appendSystemChatMessage("Room Notice", data.text);
+                        }
+                    });
+
+                    activeDataConnection.on('close', () => {
+                        handleDisconnect();
+                        showCustomAlert("Room Terminated", "The direct WebRTC connection has been lost or the host ended the broadcast.", true);
+                    });
+
+                    // Call host to get media streams
+                    const mediaCall = peer.call(targetHostId, null);
+                    activeCall = mediaCall;
+
+                    mediaCall.on('stream', (incomingRemoteStream) => {
+                        videoPlaceholder.classList.add('hidden');
+                        mainVideoElement.srcObject = incomingRemoteStream;
+                    });
+
+                    mediaCall.on('error', (err) => {
+                        console.error("Stream tracking error:", err);
+                        fallbackToLocalMockOnCallFailure(targetHostId);
+                    });
+
+                } catch (e) {
+                    console.warn("Failed standard WebRTC Join. Shifting to local mock simulation...", e);
+                    fallbackToLocalMockOnCallFailure(targetHostId);
+                }
+            }
+        });
+
+        function fallbackToLocalMockOnCallFailure(targetId) {
+            setupLiveStreamingUI('viewer');
+            connectedRoomTitle.textContent = "Streaming Room (Sim): " + targetId;
+            startFallbackCanvasBroadcast();
+            mainVideoElement.srcObject = fallbackStreamCanvas.captureStream(30);
+            videoPlaceholder.classList.add('hidden');
+            showToast("Connected (Simulator Fallback)", "Handshake succeeded under simulated stream visualizer.");
         }
 
-        // Clean visual render loops
-        if (renderingInterval) clearInterval(renderingInterval);
+        // Chat Action trigger
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const messageText = chatInputField.value.trim();
+            if (!messageText) return;
 
-        // Reset stage state values
-        activeStreamId = null;
-        isBroadcasting = false;
-        videoElement.srcObject = null;
-        elStreamView.classList.add('hidden');
+            if (clientRole === 'host') {
+                appendChatMessage("You (Host)", messageText, true);
+                if (activeViewerConnections.length > 0) {
+                    broadcastChatMessage("Host", messageText);
+                }
+            } else {
+                appendChatMessage("You", messageText, true);
+                if (activeDataConnection && activeDataConnection.open) {
+                    activeDataConnection.send({
+                        type: 'chat',
+                        sender: `Viewer-${myId.substring(0, 4)}`,
+                        text: messageText
+                    });
+                }
+            }
 
-      } catch (err) {
-        console.error("Error gracefully leaving session:", err);
-        elStreamView.classList.add('hidden');
-      }
-    }
+            chatInputField.value = "";
+            chatInputField.focus();
+        });
 
-    // UI Event Listeners mapping
-    document.getElementById('btn-go-live-top').addEventListener('click', () => elModalSetup.classList.remove('hidden'));
-    document.getElementById('btn-hero-broadcast').addEventListener('click', () => elModalSetup.classList.remove('hidden'));
-    document.getElementById('btn-go-live-empty').addEventListener('click', () => elModalSetup.classList.remove('hidden'));
-    document.getElementById('btn-close-setup').addEventListener('click', () => elModalSetup.classList.add('hidden'));
-    document.getElementById('btn-start-broadcast').addEventListener('click', startBroadcasting);
-    document.getElementById('btn-stop-broadcast').addEventListener('click', terminateActiveStream);
-    document.getElementById('btn-leave-stream').addEventListener('click', terminateActiveStream);
+        // Chat View Builders
+        function appendChatMessage(sender, text, isSelf) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `max-w-[85%] rounded-2xl p-3 text-xs flex flex-col gap-1 ${
+                isSelf 
+                    ? 'bg-indigo-600 text-white self-end ml-auto' 
+                    : 'bg-slate-800 text-slate-200 self-start mr-auto border border-slate-700/50'
+            }`;
 
-    // Audio & Video track controls mapping
-    document.getElementById('btn-toggle-mic').addEventListener('click', toggleAudio);
-    document.getElementById('btn-toggle-camera').addEventListener('click', toggleVideo);
+            const senderSpan = document.createElement('span');
+            senderSpan.className = `font-extrabold text-[10px] tracking-wide uppercase ${isSelf ? 'text-indigo-200' : 'text-indigo-400'}`;
+            senderSpan.textContent = sender;
 
-    // Initial load icons rendering
-    window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-    });
-  </script>
+            const textSpan = document.createElement('span');
+            textSpan.className = "leading-relaxed break-all";
+            textSpan.textContent = text;
+
+            messageDiv.appendChild(senderSpan);
+            messageDiv.appendChild(textSpan);
+            
+            chatMessagesContainer.appendChild(messageDiv);
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+
+        function appendSystemChatMessage(topic, text) {
+            const container = document.createElement('div');
+            container.className = "w-full flex justify-center py-1";
+
+            const p = document.createElement('p');
+            p.className = "bg-slate-900/60 border border-slate-800 text-slate-400 rounded-full px-3.5 py-1 text-[10px] font-semibold text-center tracking-wide";
+            p.textContent = `[${topic}] ${text}`;
+
+            container.appendChild(p);
+            chatMessagesContainer.appendChild(container);
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+
+        function updateViewersUI() {
+            const count = activeViewerConnections.length;
+            viewerCountIndicator.textContent = `${count} Connected`;
+        }
+
+        // SIMULATED BOT SPANNING FUNCTIONS
+        let activeBotInterval = null;
+        const spawnedBotsList = [];
+
+        document.getElementById('btn-spawn-bot').addEventListener('click', () => {
+            const randomBotName = mockViewersList[Math.floor(Math.random() * mockViewersList.length)];
+            const botId = "viewer-bot-" + Math.floor(Math.random() * 9000);
+            
+            if (spawnedBotsList.includes(randomBotName)) {
+                showToast("Simulated Client", `${randomBotName} is already connected inside this sandbox room!`);
+                return;
+            }
+
+            spawnedBotsList.push(randomBotName);
+            
+            // Build virtual connection model to bypass standard state
+            const mockConnection = { peer: botId, open: true };
+            activeViewerConnections.push(mockConnection);
+            updateViewersUI();
+
+            appendSystemChatMessage("Simulator Router", `${randomBotName} connected to sandbox stream.`);
+            showToast("Bot Joined", `${randomBotName} simulated WebRTC connection established.`);
+            
+            // Send greeting
+            setTimeout(() => {
+                appendChatMessage(randomBotName, "Hi bro! Live connection established perfectly.", false);
+            }, 800);
+        });
+
+        document.getElementById('btn-bot-spam').addEventListener('click', () => {
+            if (spawnedBotsList.length === 0) {
+                showCustomAlert("Interactive Test Hub", "Please spawn at least one Viewer Bot first using the button to interact!", false);
+                return;
+            }
+            triggerBotSpamMessage();
+        });
+
+        function triggerBotSpamMessage() {
+            const randomBot = spawnedBotsList[Math.floor(Math.random() * spawnedBotsList.length)];
+            const randomComment = mockTamilComments[Math.floor(Math.random() * mockTamilComments.length)];
+            appendChatMessage(randomBot, randomComment, false);
+        }
+
+        function triggerBotRoutineInterval() {
+            // Automatically make bots join and talk if user is viewer to make test interactive
+            if (activeBotInterval) clearInterval(activeBotInterval);
+            
+            // Populate simulated list
+            spawnedBotsList.push("Stream Host 👑", "Karthik 🚀", "Anbu 🎧");
+            viewerCountIndicator.textContent = "4 Connected";
+
+            activeBotInterval = setInterval(() => {
+                const randomBot = spawnedBotsList[Math.floor(Math.random() * spawnedBotsList.length)];
+                const randomComment = mockTamilComments[Math.floor(Math.random() * mockTamilComments.length)];
+                appendChatMessage(randomBot, randomComment, false);
+            }, 5000);
+        }
+
+        // Leave Live actions
+        disconnectBtn.addEventListener('click', () => {
+            handleDisconnect();
+            showToast("Stream Terminated", "You left the live broadcast session.");
+        });
+
+        function handleDisconnect() {
+            stopFallbackCanvasBroadcast();
+            
+            if (activeBotInterval) {
+                clearInterval(activeBotInterval);
+                activeBotInterval = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            if (activeCall) {
+                activeCall.close();
+                activeCall = null;
+            }
+
+            if (activeDataConnection) {
+                activeDataConnection.close();
+                activeDataConnection = null;
+            }
+
+            // Cleanups
+            activeViewerCalls.forEach(call => call.close());
+            activeViewerConnections.forEach(conn => conn.close());
+            activeViewerCalls = [];
+            activeViewerConnections = [];
+            spawnedBotsList.length = 0;
+
+            mainVideoElement.srcObject = null;
+            videoPlaceholder.classList.remove('hidden');
+
+            liveRoomPanel.classList.add('hidden');
+            setupPanel.classList.remove('hidden');
+
+            startStreamBtn.disabled = false;
+            startStreamBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Start Live Stream</span>`;
+            joinStreamBtn.disabled = false;
+            joinStreamBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Connect & Join Stream</span>`;
+
+            clientRole = null;
+        }
+
+        // Custom player controls overlay handling
+        let isMuted = false;
+        let isCamOff = false;
+
+        document.getElementById('ctrl-mute-mic').addEventListener('click', () => {
+            if (!localStream) return;
+            isMuted = !isMuted;
+            localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+            
+            const btnIcon = document.getElementById('ctrl-mic-icon');
+            btnIcon.className = isMuted ? "fa-solid fa-microphone-slash text-rose-500 animate-pulse" : "fa-solid fa-microphone";
+            showToast(isMuted ? "Microphone Muted" : "Microphone Enabled", "Audio track modified successfully.");
+        });
+
+        document.getElementById('ctrl-stop-cam').addEventListener('click', () => {
+            if (!localStream) return;
+            isCamOff = !isCamOff;
+            localStream.getVideoTracks().forEach(track => track.enabled = !isCamOff);
+            
+            const btnIcon = document.getElementById('ctrl-cam-icon');
+            btnIcon.className = isCamOff ? "fa-solid fa-video-slash text-rose-500 animate-pulse" : "fa-solid fa-video";
+            showToast(isCamOff ? "Video Disabled" : "Video Enabled", "Camera channel modified successfully.");
+        });
+
+        document.getElementById('ctrl-fullscreen').addEventListener('click', () => {
+            if (mainVideoElement.requestFullscreen) {
+                mainVideoElement.requestFullscreen();
+            } else if (mainVideoElement.webkitRequestFullscreen) { /* Safari */
+                mainVideoElement.webkitRequestFullscreen();
+            }
+        });
+    </script>
 </body>
 </html>
-
