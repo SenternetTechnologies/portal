@@ -1,1511 +1,1236 @@
 <!DOCTYPE html>
-<html lang="ta" class="h-full bg-slate-950 text-slate-100">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpinLounge - P2P Roulette & Live Stream</title>
-    
-    <!-- Tailwind CSS for modern responsive utility classes -->
+    <title>SENTERNET P2P Live - Decentralized Broadcast Studio</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for premium typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome for sleek modern icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PeerJS for seamless WebRTC Peer-to-Peer connections -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
-    <!-- Confetti library for celebration effects -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        cyber: ['Rajdhani', 'sans-serif'],
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow-pulse': 'glow 1.5s infinite alternate',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(139, 92, 246, 0.5)' },
-                            '100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.9)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PeerJS Library -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a; /* Slate 900 for premium dark mode theater experience */
+        }
+        /* Custom scrollbar for chat */
         ::-webkit-scrollbar {
             width: 6px;
-            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #090d16;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #1e1b4b;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #8b5cf6;
+            background: rgba(255, 255, 255, 0.4);
         }
-        .neon-border {
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+        /* Floating Emoji Animation Keyframes */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100%) translateX(0) scale(0.5);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(80%) translateX(10px) scale(1.2);
+            }
+            80% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-120%) translateX(-20px) scale(0.8);
+                opacity: 0;
+            }
+        }
+        .floating-reaction {
+            position: absolute;
+            bottom: 20px;
+            pointer-events: none;
+            animation: floatUp 3s ease-out forwards;
+            font-size: 2rem;
+            z-index: 40;
         }
     </style>
 </head>
-<body class="font-sans antialiased h-full flex flex-col justify-between overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/40 via-slate-950 to-slate-950">
+<body class="min-h-screen text-slate-100 flex flex-col justify-between">
 
-    <header class="border-b border-indigo-900/40 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3 sm:px-6">
+    <!-- Header Section -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3 shadow-lg">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="h-10 w-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
-                    <i class="fa-solid fa-circle-notch fa-spin text-lg text-white"></i>
+                <div class="bg-rose-600 text-white p-2.5 rounded-xl shadow-md shadow-rose-950 animate-pulse">
+                    <i class="fa-solid fa-tower-broadcast text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-violet-400 bg-clip-text text-transparent font-cyber">SPINLOUNGE P2P</h1>
-                    <p class="text-[10px] text-indigo-300 font-medium uppercase tracking-wider">Multiplayer Roulette & Live Cast</p>
+                    <h1 class="font-extrabold text-lg text-white tracking-tight flex items-center gap-2">
+                        SENTERNET P2P Live 
+                        <span class="text-[10px] bg-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded-full border border-rose-500/30">STUDIO</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Serverless Decentralized WebRTC Streaming Hub</p>
                 </div>
             </div>
-            
-            <!-- Room Info & Balance Panel -->
-            <div class="flex items-center gap-3">
-                <div class="bg-violet-950/40 border border-violet-800/40 rounded-full py-1.5 px-4 flex items-center gap-2 text-xs font-bold text-violet-300 shadow-inner">
-                    <i class="fa-solid fa-coins text-amber-400 animate-bounce"></i>
-                    <span>Bal: <span id="user-balance-indicator">1000</span> Chips</span>
-                </div>
 
-                <div id="connection-status-badge" class="bg-slate-900 border border-slate-800 rounded-full py-1.5 px-3.5 flex items-center gap-2 text-xs">
-                    <span class="relative flex h-2 w-2">
-                        <span id="status-pulse" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                    </span>
-                    <span id="status-text" class="text-slate-300 font-medium">Syncing Cloud...</span>
+            <!-- Connection Status Panel -->
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+                <div id="myIdContainer" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-300 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Your ID: <span id="myPeerId" class="text-rose-400 select-all font-mono tracking-wider">Generating...</span></span>
+                    <button onclick="copyMyId()" class="hover:text-rose-400 text-slate-400 transition ml-1" title="Copy My ID">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
                 </div>
+                
+                <span id="connectionBadge" class="bg-slate-800 text-slate-400 border border-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle text-[8px] text-slate-500"></i> Signaling Offline
+                </span>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 justify-center">
-
-        <!-- STEP 1: Landing Portal Screen (Create/Join Room) -->
-        <div id="landing-portal" class="max-w-md w-full mx-auto bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl animate-fade-in relative overflow-hidden">
-            <div class="absolute -right-16 -top-16 w-32 h-32 bg-violet-600/10 rounded-full blur-2xl"></div>
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Panel: Mode Switcher & Stream Controls (Lg: 4/12) -->
+        <div class="lg:col-span-4 flex flex-col gap-5">
             
-            <div class="text-center mb-6">
-                <div class="h-16 w-16 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-500/10">
-                    <i class="fa-solid fa-dice text-3xl text-white"></i>
-                </div>
-                <h2 class="text-2xl font-black tracking-tight font-cyber text-white">Enter the SpinLounge</h2>
-                <p class="text-xs text-slate-400 mt-1">Create a room, spin with friends, bet chips, and live stream video concurrently!</p>
-            </div>
+            <!-- Setup Actions Card -->
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-rose-500"></i> Stream Controller
+                </h2>
 
-            <!-- Profile Info Settings -->
-            <div class="space-y-4 mb-6">
-                <div>
-                    <label class="block text-xs font-bold text-indigo-300 uppercase tracking-wider mb-1.5">Your Nickname</label>
-                    <input type="text" id="user-nickname-input" placeholder="Enter your name..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-violet-500 outline-none transition text-slate-100 placeholder:text-slate-600">
-                </div>
-
-                <div class="h-px bg-slate-800 my-4"></div>
-
-                <!-- Create Room Row -->
-                <div class="space-y-2">
-                    <button id="create-room-btn" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3 px-5 rounded-xl transition shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Create New Spin Room</span>
+                <!-- Tabs to choose Broadcaster vs Viewer -->
+                <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                    <button id="btnModeHost" onclick="switchAppMode('host')" class="py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow-lg">
+                        <i class="fa-solid fa-video"></i> Go Live (Host)
+                    </button>
+                    <button id="btnModeJoin" onclick="switchAppMode('join')" class="py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-eye"></i> Join Live (Viewer)
                     </button>
                 </div>
 
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-slate-800"></div>
-                    <span class="flex-shrink mx-4 text-xs font-bold text-slate-500 uppercase tracking-widest">OR JOIN ROOM</span>
-                    <div class="flex-grow border-t border-slate-800"></div>
+                <!-- Host Panel Setup Options -->
+                <div id="setupHostControls" class="space-y-4">
+                    <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-700/40">
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Stream Information</label>
+                        <input type="text" id="streamTitleInput" value="My Awesome P2P Live Stream" placeholder="Enter stream title" class="w-full bg-slate-850 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500 mb-2">
+                        <input type="text" id="hostNameInput" value="Broadcaster" placeholder="Your Display Name" class="w-full bg-slate-850 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500">
+                    </div>
+
+                    <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-700/40 space-y-2">
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wide">AV Stream Quality</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button id="btnQualityVideo" onclick="toggleLocalTrack('video')" class="py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 font-semibold transition flex items-center justify-center gap-2 text-rose-400">
+                                <i id="iconQualityVideo" class="fa-solid fa-video"></i> Camera On
+                            </button>
+                            <button id="btnQualityAudio" onclick="toggleLocalTrack('audio')" class="py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 font-semibold transition flex items-center justify-center gap-2 text-rose-400">
+                                <i id="iconQualityAudio" class="fa-solid fa-microphone"></i> Mic On
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="startLiveBtn" onclick="initiateLiveBroadcast()" class="flex-1 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-lg shadow-rose-950/40 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Start Live Broadcast
+                        </button>
+                        <button id="screenShareBtn" onclick="toggleScreenShare()" class="bg-slate-700 hover:bg-slate-600 text-white p-3 rounded-xl transition flex items-center justify-center" title="Share Screen" disabled>
+                            <i class="fa-solid fa-desktop"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Join Room Row -->
-                <div class="flex gap-2">
-                    <input type="text" id="room-code-input" placeholder="Enter Room Code..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-sm font-mono focus:ring-2 focus:ring-violet-500 outline-none transition uppercase tracking-wider text-center text-violet-300">
-                    <button id="join-room-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl transition flex items-center gap-2">
-                        <span>Join</span>
-                        <i class="fa-solid fa-right-to-bracket"></i>
+                <!-- Viewer Panel Setup Options -->
+                <div id="setupViewerControls" class="space-y-4 hidden">
+                    <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-700/40 space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Your Nickname</label>
+                            <input type="text" id="viewerNameInput" value="Spectator" placeholder="Enter Your Nickname" class="w-full bg-slate-850 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Host Peer ID</label>
+                            <input type="text" id="hostPeerIdInput" placeholder="Paste Broadcaster ID" class="w-full bg-slate-850 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-rose-500">
+                        </div>
+                    </div>
+
+                    <button id="joinLiveBtn" onclick="joinLiveBroadcast()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plug"></i> Connect & Join Stream
+                    </button>
+                </div>
+
+                <!-- Help Info -->
+                <div class="pt-3 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-400 font-medium">
+                    <span>How it works?</span>
+                    <button onclick="showInstructions()" class="text-rose-400 hover:underline flex items-center gap-1">
+                        <i class="fa-regular fa-circle-question"></i> View Guide
                     </button>
                 </div>
             </div>
 
-            <div class="bg-slate-950/60 rounded-xl p-3 text-center border border-slate-800/50">
-                <p class="text-[10px] text-slate-500 leading-relaxed">
-                    <i class="fa-solid fa-shield-halved text-indigo-400 mr-1"></i> Synchronized multiplayer lobby matches are hosted entirely within secure Google Cloud storage channels.
-                </p>
+            <!-- Participants & Viewers List Card -->
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 rounded-2xl p-5 shadow-xl flex flex-col flex-1 min-h-[180px] max-h-[250px] overflow-hidden">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-users text-rose-500"></i> Peer Participants
+                    </span>
+                    <span id="activeCount" class="text-[10px] bg-slate-900 text-slate-300 font-mono px-2 py-0.5 rounded-full border border-slate-700/60">0 Connected</span>
+                </h3>
+                <div id="viewerListContainer" class="flex-grow overflow-y-auto space-y-2 text-xs">
+                    <div id="emptyViewersMessage" class="text-center text-slate-500 py-6 italic">
+                        No peers active in session
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Details -->
+            <div class="text-center p-3 bg-slate-950/40 rounded-xl border border-slate-800/80">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">SENTERNET TECHNOLOGIES</p>
+                <p class="text-[9px] text-slate-500 font-semibold mt-0.5">Aranthangi, Pudukkottai | WhatsApp: +91 81900 38085</p>
             </div>
         </div>
 
-        <!-- STEP 2: Main Interactive Game Room (Initially Hidden) -->
-        <div id="game-room" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            
-            <!-- Left Side: Spinning Wheel & Stream Video Overlay (7 Cols) -->
-            <div class="lg:col-span-8 flex flex-col gap-6">
+        <!-- Right Panel: Broadcaster Theater / Stage (Lg: 8/12) -->
+        <div class="lg:col-span-8 flex flex-col gap-5">
+
+            <!-- Video Player Stage Container -->
+            <div class="bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl relative flex flex-col aspect-video w-full min-h-[350px]">
                 
-                <!-- Main Gaming & Stream Screen Grid -->
-                <div class="bg-slate-900/40 border border-indigo-950/50 rounded-3xl p-5 relative overflow-hidden shadow-2xl flex flex-col justify-between">
+                <!-- Floating Video Overlays -->
+                <div class="absolute top-4 left-4 z-30 flex items-center gap-2">
+                    <span id="liveBadge" class="bg-slate-900/80 backdrop-blur border border-slate-800 text-slate-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-slate-500"></span> OFFLINE
+                    </span>
+                    <span id="viewerCountOverlay" class="bg-slate-900/80 backdrop-blur border border-slate-800 text-slate-400 text-xs font-bold px-3 py-1 rounded-full hidden flex items-center gap-1">
+                        <i class="fa-solid fa-eye text-[10px]"></i> <span id="overlayViewersCount">0</span>
+                    </span>
+                </div>
+
+                <!-- Floating Stream Stats Overlay -->
+                <div class="absolute top-4 right-4 z-30 flex items-center gap-2">
+                    <span id="uptimeBadge" class="bg-slate-900/80 backdrop-blur border border-slate-800 text-slate-300 text-xs font-mono font-bold px-3 py-1 rounded-full hidden">
+                        00:00:00
+                    </span>
+                </div>
+
+                <!-- Main Video Element -->
+                <div class="flex-grow w-full h-full relative flex items-center justify-center bg-slate-950">
+                    <video id="mainStageVideo" class="w-full h-full object-cover hidden" playsinline muted></video>
                     
-                    <!-- Top Panel Room Info -->
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-indigo-950/50">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
-                                <h3 id="active-room-title" class="font-bold text-base font-cyber text-white">ROOM: GENERAL</h3>
-                                <span class="bg-indigo-950 border border-indigo-800/40 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" id="active-user-role-badge font-mono">Loading...</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Spin interval resets every 10 seconds. Place bets on wheel names to win multipliers!</p>
+                    <!-- Fallback / Preview Thumbnail Container -->
+                    <div id="videoFallbackContainer" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-radial from-slate-900 to-slate-950">
+                        <div class="w-20 h-20 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 text-slate-600 text-3xl shadow-inner">
+                            <i class="fa-solid fa-film"></i>
                         </div>
-                        
-                        <!-- Actions & Exit -->
-                        <div class="flex items-center gap-2">
-                            <button id="copy-room-code" class="bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-800 flex items-center gap-1.5 transition">
-                                <i class="fa-solid fa-copy"></i>
-                                <span id="copy-btn-text">Room Code</span>
-                            </button>
-                            <button id="leave-room-btn" class="bg-rose-950/40 hover:bg-rose-900/40 text-rose-300 border border-rose-900/40 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                                <span>Leave Lounge</span>
-                            </button>
-                        </div>
+                        <h4 id="fallbackTitle" class="text-base font-bold text-white mb-1">Live Broadcaster Stage ready</h4>
+                        <p id="fallbackSubtitle" class="text-xs text-slate-400 max-w-sm">Start your own live broadcast to share stream, or enter a host Peer ID on the left menu to enjoy.</p>
                     </div>
 
-                    <!-- Central Play Arena (Wheel & Camera Dual Display) -->
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 py-6 items-center min-h-[380px]">
-                        
-                        <!-- Spinning Wheel Area (7 Cols) -->
-                        <div class="md:col-span-7 flex flex-col items-center justify-center relative">
-                            
-                            <!-- Phase & Timer Banner overlay inside wheel -->
-                            <div class="absolute -top-4 bg-slate-950/80 border border-indigo-800/40 px-4 py-1.5 rounded-full text-xs font-bold font-cyber flex items-center gap-2 shadow-lg z-20">
-                                <i class="fa-solid fa-hourglass-half text-violet-400 animate-spin"></i>
-                                <span id="game-phase-label" class="text-violet-300 uppercase tracking-widest">BETTING ACTIVE</span>
-                                <span id="countdown-timer-text" class="text-white text-sm bg-violet-600 px-2 py-0.5 rounded ml-1 animate-pulse">10s</span>
-                            </div>
+                    <!-- Dynamic Floating Emojis Zone -->
+                    <div id="reactionZone" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
 
-                            <!-- The HTML5 Wheel Canvas -->
-                            <div class="relative p-2 rounded-full border-4 border-indigo-900/30 bg-slate-950 shadow-inner max-w-[290px] md:max-w-[320px]">
-                                <!-- Wheel Pointer Indicator Arrow -->
-                                <div class="absolute -right-2 top-1/2 -translate-y-1/2 z-30 drop-shadow-[0_0_8px_rgba(239,68,68,0.7)] text-red-500 transform rotate-180">
-                                    <i class="fa-solid fa-caret-left text-3xl"></i>
-                                </div>
-                                <canvas id="wheel-canvas" width="400" height="400" class="w-full h-full aspect-square transition-transform duration-100 ease-out rounded-full"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Stream Cameraman Panel (5 Cols) -->
-                        <div class="md:col-span-5 flex flex-col gap-3 h-full justify-center">
-                            
-                            <!-- Video Stream Container -->
-                            <div class="relative aspect-video md:aspect-[4/5] bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex flex-col justify-end group">
-                                <video id="stream-video" class="w-full h-full object-cover absolute inset-0" autoplay playsinline></video>
-                                <canvas id="mock-fallback-canvas" width="640" height="480" class="hidden absolute inset-0 w-full h-full object-cover"></canvas>
-                                
-                                <!-- No stream watermark -->
-                                <div id="video-overlay-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-950/85 z-10">
-                                    <div class="h-12 w-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 mb-2 animate-pulse">
-                                        <i class="fa-solid fa-video-slash"></i>
-                                    </div>
-                                    <p class="text-[11px] font-bold text-slate-300">Live Host Video Offline</p>
-                                    <p class="text-[9px] text-slate-500 max-w-[150px] mt-0.5 leading-relaxed">Turn on camera broadcast if you are the host dealer!</p>
-                                </div>
-
-                                <!-- Host live streaming stream state badge -->
-                                <div class="absolute top-3 left-3 z-20 flex items-center gap-1.5">
-                                    <span class="bg-red-600 text-white font-extrabold text-[8px] tracking-widest uppercase px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse shadow">
-                                        <span class="h-1 w-1 rounded-full bg-white"></span> LIVE STREAM
-                                    </span>
-                                </div>
-
-                                <!-- Overlay Stream Options -->
-                                <div class="absolute bottom-2 left-2 right-2 z-20 bg-slate-950/80 backdrop-blur-md border border-slate-800/80 rounded-xl p-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <div class="flex gap-1.5">
-                                        <button id="toggle-camera" class="h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition" title="Start/Stop Camera">
-                                            <i class="fa-solid fa-video"></i>
-                                        </button>
-                                        <button id="toggle-mic" class="h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition" title="Mute Mic">
-                                            <i class="fa-solid fa-microphone"></i>
-                                        </button>
-                                    </div>
-                                    <span class="text-[9px] font-bold text-slate-400 font-mono" id="stream-client-uuid">P2P: Disconnected</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Betting & Dashboard Row -->
-                    <div class="mt-4 border-t border-indigo-950/50 pt-4 grid grid-cols-1 md:grid-cols-12 gap-4">
-                        
-                        <!-- Left Panel: Add Name to Wheel (5 Cols) -->
-                        <div class="md:col-span-5 bg-slate-950/50 rounded-2xl p-3 border border-indigo-950/50">
-                            <label class="block text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1.5">Add Name on Wheel Slice</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="add-wheel-name-input" placeholder="e.g. Winner, Jackpot, Pooja" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-violet-500 outline-none transition">
-                                <button id="add-slice-btn" class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-4 rounded-xl transition flex items-center justify-center gap-1">
-                                    <i class="fa-solid fa-circle-plus"></i>
-                                    <span>Add</span>
-                                </button>
-                            </div>
-                            <div class="mt-2 flex flex-wrap gap-1.5 max-h-[70px] overflow-y-auto" id="wheel-slices-tags">
-                                <!-- Dynamic Slices Rendered -->
-                                <span class="text-[9px] text-slate-500 italic">No custom names added yet...</span>
-                            </div>
-                        </div>
-
-                        <!-- Right Panel: Place Betting Chips (7 Cols) -->
-                        <div class="md:col-span-7 bg-slate-950/50 rounded-2xl p-3 border border-indigo-950/50 flex flex-col justify-between">
-                            <div class="flex justify-between items-center mb-1.5">
-                                <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Place Your Wheel Bet</label>
-                                <span class="text-[10px] font-semibold text-slate-400">Winning Payout is Multiplied!</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <!-- Name Selector -->
-                                <div>
-                                    <select id="bet-target-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-violet-500">
-                                        <option value="">-- Choose Name --</option>
-                                    </select>
-                                </div>
-                                <!-- Chips Input -->
-                                <div class="relative">
-                                    <input type="number" id="bet-chips-input" min="10" max="5000" placeholder="Bet Amount (e.g., 50)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-violet-500 outline-none transition text-slate-200">
-                                </div>
-                                <!-- Confirm Bet Button -->
-                                <button id="place-bet-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl py-2 px-4 transition flex items-center justify-center gap-1.5 shadow shadow-emerald-600/20">
-                                    <i class="fa-solid fa-gavel"></i>
-                                    <span>Lock Bet</span>
-                                </button>
-                            </div>
-
-                            <!-- List of active bets for this round -->
-                            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400 bg-slate-900/40 p-1.5 px-3 rounded-lg border border-slate-800/40">
-                                <div class="flex items-center gap-1 text-slate-300">
-                                    <i class="fa-solid fa-receipt text-indigo-400"></i>
-                                    <span id="current-bet-display">Active Bet: None placed yet</span>
-                                </div>
-                                <span id="total-pool-display" class="font-bold text-violet-400">Total Pool: 0 Chips</span>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Simulator Tester Center (For Easy Solo Play / Sandbox testing) -->
-                <div class="bg-gradient-to-r from-amber-950/10 via-slate-900/40 to-indigo-950/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-start gap-3">
-                        <div class="h-9 w-9 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 shrink-0">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-amber-300">Sandbox Testing Station (Direct Simulator Integration)</h4>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Test multiplayer synchronization on yourself! Spawn bot accounts, trigger mock roulette rounds, and chat automatically.</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 shrink-0">
-                        <button id="sim-add-bot-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow flex items-center gap-1">
-                            <i class="fa-solid fa-user-astronaut"></i> Spawn Bot Player
-                        </button>
-                        <button id="sim-trigger-round-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[10px] px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                            <i class="fa-solid fa-forward"></i> Instant Spin
-                        </button>
+                    <!-- Audio Visualizer Overlay (Broadcaster only) -->
+                    <div id="visualizerContainer" class="absolute bottom-4 left-4 z-30 h-8 w-32 flex items-end gap-[3px] hidden bg-black/40 p-1.5 rounded-lg border border-white/5">
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
+                        <div class="visualizer-bar w-1.5 bg-rose-500 rounded-full transition-all duration-75 h-1"></div>
                     </div>
                 </div>
 
+                <!-- Bottom Interactive Controls Bar overlay -->
+                <div id="stageControlsBar" class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent p-4 z-30 hidden flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div id="streamBroadcasterAvatar" class="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-xs font-bold text-white">B</div>
+                        <div>
+                            <p id="streamDisplayTitle" class="text-xs font-bold text-white leading-none">Broadcasting Live</p>
+                            <p id="streamDisplayBroadcaster" class="text-[10px] text-rose-400 font-semibold mt-1">Host ID: <span id="displayHostId" class="font-mono">...</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Host & Viewer Control Utilities -->
+                    <div class="flex items-center gap-3">
+                        <!-- Stream reactions (Visible to both but trigger animations) -->
+                        <div class="flex items-center bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1.5 gap-2.5">
+                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider select-none hidden md:inline">Send Reaction:</span>
+                            <button onclick="sendLocalReaction('❤️')" class="hover:scale-125 transform transition text-sm active:scale-95" title="Love">❤️</button>
+                            <button onclick="sendLocalReaction('👍')" class="hover:scale-125 transform transition text-sm active:scale-95" title="Thumbs Up">👍</button>
+                            <button onclick="sendLocalReaction('😂')" class="hover:scale-125 transform transition text-sm active:scale-95" title="Laugh">😂</button>
+                            <button onclick="sendLocalReaction('🔥')" class="hover:scale-125 transform transition text-sm active:scale-95" title="Fire">🔥</button>
+                            <button onclick="sendLocalReaction('👏')" class="hover:scale-125 transform transition text-sm active:scale-95" title="Applaud">👏</button>
+                        </div>
+
+                        <!-- Mic / Cam Control on stage (Broadcaster Only) -->
+                        <div id="broadcasterStageControls" class="flex items-center gap-1.5 hidden">
+                            <button id="stageBtnMuteMic" onclick="toggleLocalTrack('audio')" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-rose-400">
+                                <i id="stageIconMuteMic" class="fa-solid fa-microphone"></i>
+                            </button>
+                            <button id="stageBtnMuteCam" onclick="toggleLocalTrack('video')" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-rose-400">
+                                <i id="stageIconMuteCam" class="fa-solid fa-video"></i>
+                            </button>
+                            <button id="endBroadcastBtn" onclick="terminateBroadcast()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-md shadow-red-950/20">
+                                <i class="fa-solid fa-stop mr-1"></i> End Stream
+                            </button>
+                        </div>
+
+                        <!-- Viewer controls (Mute stream visual playback locally) -->
+                        <div id="viewerStageControls" class="flex items-center gap-1.5 hidden">
+                            <button id="btnLocalMuteStream" onclick="toggleViewerStreamMute()" class="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-white">
+                                <i id="iconLocalMuteStream" class="fa-solid fa-volume-high"></i>
+                            </button>
+                            <button id="btnLeaveStream" onclick="leaveCurrentStream()" class="bg-red-600/20 hover:bg-red-600 border border-red-500/30 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+                                <i class="fa-solid fa-right-from-bracket mr-1"></i> Leave
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Right Panel: Players List & Live Chat Lobby (4 Cols) -->
-            <div class="lg:col-span-4 flex flex-col gap-6">
-                
-                <!-- Room Members Panel -->
-                <div class="bg-slate-900/40 border border-indigo-950/50 rounded-3xl p-4 flex flex-col gap-3 max-h-[220px] overflow-hidden">
-                    <div class="flex items-center justify-between border-b border-indigo-950/40 pb-2">
-                        <h4 class="text-xs font-extrabold uppercase tracking-widest text-indigo-300 font-cyber flex items-center gap-1.5">
-                            <i class="fa-solid fa-users text-indigo-400"></i>
-                            <span>Players Lounge</span>
-                        </h4>
-                        <span id="player-count-badge" class="bg-indigo-950 border border-indigo-800/40 text-indigo-300 text-[9px] px-2 py-0.5 rounded font-bold font-mono">0 In Lobby</span>
-                    </div>
+            <!-- Real-Time Chat & Activity Feed -->
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 rounded-3xl p-5 shadow-xl flex flex-col flex-1 min-h-[250px] relative">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-regular fa-comments text-rose-500 animate-pulse"></i> Stream Interaction Chat
+                    </span>
+                    <span class="text-[9px] bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase">Encrypted WebRTC P2P</span>
+                </h3>
 
-                    <!-- Member list scrollable -->
-                    <div id="players-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                        <!-- Rendered players list -->
+                <!-- Chat Messages Feed Box -->
+                <div id="chatMessages" class="flex-grow overflow-y-auto space-y-3 p-3 bg-slate-900/60 rounded-2xl border border-slate-800/80 max-h-[160px] min-h-[120px] text-xs">
+                    <div class="text-center text-slate-500 py-4 italic">
+                        Live stream chat is currently offline. Connect to broadcast or watch a stream to unlock interaction.
                     </div>
                 </div>
 
-                <!-- Live Chat Sidebar Box -->
-                <div class="bg-slate-900/40 border border-indigo-950/50 rounded-3xl overflow-hidden flex flex-col h-[400px]">
-                    <!-- Chat Header -->
-                    <div class="p-4 border-b border-indigo-950/40 bg-slate-950/50 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <div class="h-7 w-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                                <i class="fa-solid fa-comments"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xs">Lounge Live Chat</h3>
-                                <p class="text-[9px] text-slate-500">Real-Time Cloud Broadcast</p>
-                            </div>
-                        </div>
-                        <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Active</span>
-                    </div>
-
-                    <!-- Chat Feed Messages -->
-                    <div id="chat-messages-scroll" class="flex-1 overflow-y-auto p-4 space-y-3.5 flex flex-col justify-end">
-                        <!-- Setup initial notification info -->
-                        <div class="bg-indigo-950/20 border border-indigo-900/30 rounded-2xl p-4 text-center text-[11px] text-indigo-300 max-w-sm mx-auto">
-                            <i class="fa-solid fa-circle-info text-base mb-1 block"></i>
-                            <span class="font-semibold block mb-0.5">SpinLounge Chatroom</span>
-                            Discuss betting odds, add name slices, and call out winners. All chat is encrypted in real-time.
-                        </div>
-                    </div>
-
-                    <!-- Chat Input form -->
-                    <form id="chat-form" class="p-3 bg-slate-950/85 border-t border-slate-900/60 flex items-center gap-2">
-                        <input type="text" id="chat-input" placeholder="Type message..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
-                        <button type="submit" class="h-9 w-9 bg-violet-600 hover:bg-violet-500 text-white rounded-xl flex items-center justify-center transition shrink-0 shadow-lg shadow-violet-600/15">
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                        </button>
-                    </form>
+                <!-- Chat Input Controls Section -->
+                <div class="mt-3 flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Enter peer chat message..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500 transition" disabled>
+                    <button id="sendChatBtn" onclick="handleChatSubmit()" class="bg-slate-800 border border-slate-700 text-slate-400 hover:bg-rose-600 hover:text-white px-4 rounded-xl transition shadow-md flex items-center justify-center" disabled>
+                        <i class="fa-regular fa-paper-plane text-sm"></i>
+                    </button>
                 </div>
-
             </div>
 
         </div>
-
     </main>
 
-    <!-- Custom System Alert Modal (Bypasses window.alert blocker) -->
-    <div id="alert-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative">
-            <div id="alert-icon-wrap" class="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400">
-                <i id="alert-modal-icon" class="fa-solid fa-bell text-xl"></i>
+    <!-- App Instructions Modal -->
+    <div id="instructionsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 text-slate-200 rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeInstructions()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-base font-extrabold text-white mb-4 flex items-center gap-2">
+                <i class="fa-regular fa-lightbulb text-amber-500"></i> Serverless WebRTC Streaming
+            </h3>
+            <div class="space-y-4 text-xs leading-relaxed text-slate-400 font-medium">
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs shrink-0 font-bold">1</span>
+                    <p>Open this page on two different devices/browsers. Make sure to allow camera and microphone access to test hosting.</p>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs shrink-0 font-bold">2</span>
+                    <p><strong>To Broadcast (Host)</strong>: Stay in "Go Live" tab, set a stream title, and click <strong>Start Live Broadcast</strong>. Copy your unique peer ID.</p>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs shrink-0 font-bold">3</span>
+                    <p><strong>To Watch (Viewer)</strong>: Switch to "Join Live" tab on the second screen, enter a nickname, paste the host's Peer ID, and click <strong>Connect & Join</strong>.</p>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs shrink-0 font-bold">4</span>
+                    <p>Enjoy low-latency real-time video/audio stream, peer interactive emojis, and direct decentralized stream chat!</p>
+                </div>
             </div>
-            <h3 id="alert-modal-title" class="text-base font-bold text-center mb-1 text-white">Lounge Alert</h3>
-            <p id="alert-modal-msg" class="text-xs text-slate-400 text-center mb-5 leading-relaxed">Alert details are processed securely.</p>
-            <button id="alert-modal-close" class="w-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-violet-600/20">
-                Acknowledge & Close
+            <button onclick="closeInstructions()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-3 rounded-xl mt-6 transition shadow-md">
+                Get Started!
             </button>
         </div>
     </div>
 
-    <!-- Toast Notification Overlay -->
-    <div id="toast-overlay" class="fixed bottom-6 left-6 z-50 max-w-sm w-full translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
-        <div class="bg-slate-900/95 border border-slate-800 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center gap-3">
-            <div class="h-9 w-9 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400 text-sm">
-                <i class="fa-solid fa-bullhorn text-xs"></i>
-            </div>
-            <div class="flex-1">
-                <p class="text-xs font-bold text-white" id="toast-title">Notice</p>
-                <p class="text-[10px] text-slate-400" id="toast-desc">Information body description text.</p>
-            </div>
-        </div>
+    <!-- Toast Notification Message -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 border border-slate-800 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-2.5 z-50">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-rose-500"></i>
+        <span id="toastMessage">Completed successfully!</span>
     </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-900/60 bg-slate-950 px-4 py-4 sm:px-6 text-center text-[10px] text-slate-500">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p>&copy; 2026 SpinLounge WebRTC. Pure peer-synchronized betting. No middleman margins.</p>
-            <div class="flex items-center gap-4">
-                <a href="#" class="hover:text-slate-300 transition">Privacy & terms</a>
-                <span class="h-3 w-px bg-slate-800"></span>
-                <span class="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                    <span>System Sync Enabled</span>
-                </span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Firestore and App Engine Core Module Integration -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Local environment variable parameters
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spinlounge-lobby';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "",
-            authDomain: "mock-app.firebaseapp.com",
-            projectId: "mock-app",
-            storageBucket: "mock-app.appspot.com",
-            messagingSenderId: "12345678",
-            appId: "1:12345678:web:1234"
-        };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
-
-        // Establish core app entities
-        let app, db, auth;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch(e) {
-            console.error("Firebase init failed, switching to isolated simulated mode.", e);
-        }
-
-        // Setup sound generation context using Web Audio API to prevent cross-origin block assets
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        let audioCtxInstance = null;
-
-        function playSynthBeep(freq, type = 'sine', duration = 0.1) {
-            try {
-                if (!audioCtxInstance) {
-                    audioCtxInstance = new AudioCtx();
-                }
-                if (audioCtxInstance.state === 'suspended') {
-                    audioCtxInstance.resume();
-                }
-                const osc = audioCtxInstance.createOscillator();
-                const gain = audioCtxInstance.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtxInstance.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtxInstance.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtxInstance.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtxInstance.destination);
-                osc.start();
-                osc.stop(audioCtxInstance.currentTime + duration);
-            } catch (err) {
-                console.warn("Audio Context block or unsupported", err);
-            }
-        }
-
-        // Global State Parameters
-        let currentUser = {
-            uid: crypto.randomUUID(),
-            displayName: "Guest Player",
-            chips: 1000
-        };
-        let currentRoomId = null;
-        let currentRoomDocRef = null;
-        let roomSubscription = null;
-        let currentRoomState = {};
-
-        // WebRTC variables
-        let myPeer = null;
-        let activeCall = null;
-        let localStream = null;
-        let isCameraActive = false;
-        let isMicActive = false;
-
-        // Mock Fallback interval for host simulation
-        let mockCameraInterval = null;
-
-        // Wheel rendering params
-        let currentWheelAngle = 0;
-        let isWheelSpinning = false;
-        let animationFrameId = null;
-        let slicesList = ["Jackpot 💎", "No Luck 💀", "Bonus Mini 🎁", "Super X2 🔥", "Mega Coin 🚀", "Loose Bet 💔"];
-        let sliceColors = [
-            "#6d28d9", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#1e293b",
-            "#4c1d95", "#1d4ed8", "#047857", "#b45309", "#b91c1c", "#0f172a"
-        ];
-
-        // DOM Handles
-        const portalScreen = document.getElementById('landing-portal');
-        const gameRoomScreen = document.getElementById('game-room');
-        const nicknameInput = document.getElementById('user-nickname-input');
-        const createRoomBtn = document.getElementById('create-room-btn');
-        const roomCodeInput = document.getElementById('room-code-input');
-        const joinRoomBtn = document.getElementById('join-room-btn');
-        const activeRoomTitle = document.getElementById('active-room-title');
-        const userBalanceIndicator = document.getElementById('user-balance-indicator');
-        const copyRoomCodeBtn = document.getElementById('copy-room-code');
-        const leaveRoomBtn = document.getElementById('leave-room-btn');
-        const streamVideoEl = document.getElementById('stream-video');
-        const mockFallbackCanvas = document.getElementById('mock-fallback-canvas');
-        const videoOverlayPlaceholder = document.getElementById('video-overlay-placeholder');
+    <script>
+        // Active Global State 
+        let peer = null;                // PeerJS Client connection instance
+        let currentMode = "host";       // 'host' or 'join'
+        let myId = "";                  // Our unique Peer ID generated
+        let myNickname = "Broadcaster"; // Current user profile display nickname
         
-        const wheelCanvas = document.getElementById('wheel-canvas');
-        const gamePhaseLabel = document.getElementById('game-phase-label');
-        const countdownTimerText = document.getElementById('countdown-timer-text');
-        
-        const slicesTagsContainer = document.getElementById('wheel-slices-tags');
-        const addWheelNameInput = document.getElementById('add-wheel-name-input');
-        const addSliceBtn = document.getElementById('add-slice-btn');
-        const betTargetSelect = document.getElementById('bet-target-select');
-        const betChipsInput = document.getElementById('bet-chips-input');
-        const placeBetBtn = document.getElementById('place-bet-btn');
-        
-        const currentBetDisplay = document.getElementById('current-bet-display');
-        const totalPoolDisplay = document.getElementById('total-pool-display');
-        const playersListContainer = document.getElementById('players-list-container');
-        const playerCountBadge = document.getElementById('player-count-badge');
-        
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const chatMessagesScroll = document.getElementById('chat-messages-scroll');
-        
-        const simAddBotBtn = document.getElementById('sim-add-bot-btn');
-        const simTriggerRoundBtn = document.getElementById('sim-trigger-round-btn');
+        // Host Broadcaster Specific Data
+        let localStream = null;         // MediaStream object (Camera/Audio Track)
+        let displayStream = null;       // MediaStream object (Screen Share)
+        let activeViewers = {};         // key: viewerPeerId -> { conn: dataConn, username: String }
+        let streamTitle = "P2P Studio Stream";
+        let isBroadcasting = false;
+        let isScreenSharing = false;
+        let streamUptimeInterval = null;
+        let streamUptimeSeconds = 0;
+        let audioCtx = null;
+        let analyser = null;
+        let dataArray = null;
+        let micLevelInterval = null;
 
-        // Custom Modal Utilities
-        function showModal(title, msg, isAlert = false) {
-            const modal = document.getElementById('alert-modal');
-            const icon = document.getElementById('alert-modal-icon');
-            const wrapper = document.getElementById('alert-icon-wrap');
-            
-            document.getElementById('alert-modal-title').textContent = title;
-            document.getElementById('alert-modal-msg').textContent = msg;
+        // Viewer Specific Data
+        let hostConnection = null;      // PeerJS connection to current host
+        let hostCall = null;            // Audio/Video Call stream representation
+        let joinedHostId = "";          // Currently watching host ID
 
-            if (isAlert) {
-                wrapper.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-rose-500/15 text-rose-400";
-                icon.className = "fa-solid fa-circle-exclamation text-xl";
-            } else {
-                wrapper.className = "h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-500/15 text-indigo-400";
-                icon.className = "fa-solid fa-circle-check text-xl";
-            }
-            modal.classList.remove('hidden');
-        }
+        // Settings
+        let videoTrackEnabled = true;
+        let audioTrackEnabled = true;
 
-        document.getElementById('alert-modal-close').addEventListener('click', () => {
-            document.getElementById('alert-modal').classList.add('hidden');
+        // Start initialization process
+        window.addEventListener('DOMContentLoaded', () => {
+            initializePeerClient();
+            setupKeyboardInputHandler();
         });
 
-        function showToast(title, desc) {
-            const toast = document.getElementById('toast-overlay');
-            document.getElementById('toast-title').textContent = title;
-            document.getElementById('toast-desc').textContent = desc;
-
-            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
-                toast.classList.remove('translate-y-0', 'opacity-100');
-            }, 3000);
-        }
-
-        // Initialize Anonymous Auth Connection
-        async function authenticateAndSetup() {
-            try {
-                if (auth) {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            currentUser.uid = user.uid;
-                            setConnectionStatus(true, "Cloud Connected");
-                        }
-                    });
-                } else {
-                    setConnectionStatus(true, "Mock Sandbox Active");
-                }
-            } catch (err) {
-                console.warn("Auth process failure, continuing in isolated mode.", err);
-                setConnectionStatus(true, "Simulator Sandbox Node");
-            }
-        }
-
-        function setConnectionStatus(connected, txt) {
-            const badge = document.getElementById('connection-status-badge');
-            const pulse = document.getElementById('status-pulse');
-            const dot = document.getElementById('status-dot');
-            const statusTxt = document.getElementById('status-text');
-
-            statusTxt.textContent = txt;
-            if (connected) {
-                dot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
-                pulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-            } else {
-                dot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
-                pulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
-            }
-        }
-
-        // Drawing HTML5 Canvas Wheel
-        function drawWheel(angle = 0) {
-            const ctx = wheelCanvas.getContext('2d');
-            const width = wheelCanvas.width;
-            const height = wheelCanvas.height;
-            const centerX = width / 2;
-            const centerY = height / 2;
-            const radius = width / 2 - 20;
-
-            ctx.clearRect(0, 0, width, height);
-
-            const slices = slicesList.length > 0 ? slicesList : ["Lucky Spin"];
-            const sliceAngle = (Math.PI * 2) / slices.length;
-
-            // Draw shadow base for 3D look
-            ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
-            ctx.beginPath();
-            ctx.arc(centerX + 4, centerY + 6, radius + 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            slices.forEach((slice, i) => {
-                const currentAngle = angle + i * sliceAngle;
-
-                // Draw Slice Fill
-                ctx.fillStyle = sliceColors[i % sliceColors.length];
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
-                ctx.closePath();
-                ctx.fill();
-
-                // Draw Slice Stroke Accent
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                // Draw text label on slice
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(currentAngle + sliceAngle / 2);
-                
-                // Text Styling
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 13px Inter, sans-serif";
-                ctx.textAlign = "right";
-                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-                ctx.shadowBlur = 4;
-                ctx.fillText(slice.substring(0, 15), radius - 30, 5);
-                ctx.restore();
+        // Initialize PeerJS framework
+        function initializePeerClient() {
+            peer = new Peer({
+                host: '0.peerjs.com',
+                port: 443,
+                secure: true,
+                debug: 1
             });
 
-            // Drawing central metal pin with a modern glowing gradient
-            const pinGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 28);
-            pinGrad.addColorStop(0, "#8b5cf6"); // violet-500
-            pinGrad.addColorStop(0.5, "#4c1d95"); // violet-900
-            pinGrad.addColorStop(1, "#0f172a"); // slate-900
-            
-            ctx.fillStyle = pinGrad;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Ring frame accent around pin
-            ctx.strokeStyle = "#818cf8";
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Outer decorative ring line
-            ctx.strokeStyle = "rgba(99, 102, 241, 0.4)";
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 2, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        // Update tags list UI below the selection
-        function renderSlicesTags() {
-            slicesTagsContainer.innerHTML = '';
-            slicesList.forEach((slice, idx) => {
-                const tag = document.createElement('span');
-                tag.className = `text-[10px] font-bold px-2.5 py-1 rounded-full text-white flex items-center gap-1 border border-white/10`;
-                tag.style.backgroundColor = sliceColors[idx % sliceColors.length];
-                tag.innerHTML = `
-                    <span>${slice}</span>
-                    <button class="remove-slice-btn hover:text-black transition" data-idx="${idx}">&times;</button>
-                `;
-                slicesTagsContainer.appendChild(tag);
+            peer.on('open', (id) => {
+                myId = id;
+                document.getElementById('myPeerId').innerText = id;
+                updateSignalingBadge(true);
+                showToast("Connected to Signaling Server!", "fa-circle-nodes", "text-emerald-400");
             });
 
-            // Re-hook listeners
-            document.querySelectorAll('.remove-slice-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
-                    slicesList.splice(idx, 1);
-                    await updateRoomDoc({ slices: slicesList });
-                });
+            peer.on('error', (err) => {
+                console.error("PeerJS Core Error:", err);
+                updateSignalingBadge(false);
+                document.getElementById('myPeerId').innerText = "Reconnecting...";
+                showToast("Peer Server Error. Trying to reconnect...", "fa-circle-exclamation", "text-rose-500");
             });
 
-            // Update selectors
-            const selectOptions = ['<option value="">-- Choose Name --</option>'];
-            slicesList.forEach(slice => {
-                selectOptions.push(`<option value="${slice}">${slice}</option>`);
-            });
-            betTargetSelect.innerHTML = selectOptions.join('');
-        }
-
-        // Renders animated neon synthwave visuals directly to a canvas stream if camera blocked
-        function startMockCameraCanvas() {
-            mockFallbackCanvas.classList.remove('hidden');
-            const ctx = mockFallbackCanvas.getContext('2d');
-            let frames = 0;
-            
-            mockCameraInterval = setInterval(() => {
-                frames++;
-                // Gradient background
-                const grad = ctx.createLinearGradient(0, 0, 640, 480);
-                grad.addColorStop(0, '#030712');
-                grad.addColorStop(1, '#1e1b4b');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 640, 480);
-
-                // Sound Wave Generator line
-                ctx.strokeStyle = '#8b5cf6';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(0, 240);
-                for(let x=0; x<640; x+=10) {
-                    const y = 240 + Math.sin(x*0.02 + frames*0.08) * 45;
-                    ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-
-                // Holographic camera details overlay
-                ctx.fillStyle = '#ffffff';
-                ctx.font = "bold 14px Rajdhani";
-                ctx.fillText(`CAM BROADCATER FEED [SANDBOX MODEL]`, 30, 50);
-
-                ctx.fillStyle = '#10b981';
-                ctx.font = "11px monospace";
-                ctx.fillText(`FPS: 30 | SOURCE: FALLBACK DIGITAL SYNTHWAVE`, 30, 75);
-
-                // Red Blinking Dot
-                if (Math.floor(frames / 15) % 2 === 0) {
-                    ctx.fillStyle = '#ef4444';
-                    ctx.beginPath();
-                    ctx.arc(600, 45, 6, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                // Show current host nickname watermark
-                const hostName = currentRoomState.hostName || "Dashing Dealer";
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-                ctx.fillRect(30, 410, 580, 40);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = "bold 12px Inter";
-                ctx.fillText(`CURRENT HOST DEALER: ${hostName.toUpperCase()}`, 45, 434);
-
-            }, 33);
-        }
-
-        function stopMockCameraCanvas() {
-            if (mockCameraInterval) {
-                clearInterval(mockCameraInterval);
-                mockCameraInterval = null;
-            }
-            mockFallbackCanvas.classList.add('hidden');
-        }
-
-        // Master room synchronization onSnapshot hookup
-        function syncRoomWithFirestore(roomId) {
-            currentRoomId = roomId;
-            
-            // STRICT PATH: /artifacts/{appId}/public/data/rooms/{roomId}
-            if (db) {
-                currentRoomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
-                
-                roomSubscription = onSnapshot(currentRoomDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        currentRoomState = data;
-                        handleStateUpdate(data);
-                    } else {
-                        // Document doesn't exist yet, we initialize it
-                        initializeNewRoomDoc(roomId);
-                    }
-                }, (error) => {
-                    console.error("Firestore Error in Room Sync:", error);
-                    showModal("Cloud Error", "There was an error communicating with Google Cloud. Falling back to simulated local state.", true);
-                    initSimulatedLocalRoom();
-                });
-            } else {
-                initSimulatedLocalRoom();
-            }
-        }
-
-        async function initializeNewRoomDoc(roomId) {
-            const initialData = {
-                roomId: roomId,
-                hostId: currentUser.uid,
-                hostName: currentUser.displayName,
-                status: 'joining', // joining, spinning, showing_winner
-                slices: slicesList,
-                bets: [],
-                players: [{
-                    uid: currentUser.uid,
-                    displayName: currentUser.displayName,
-                    chips: currentUser.chips
-                }],
-                winner: "",
-                winningIndex: -1,
-                timerStart: Date.now(),
-                chat: [
-                    { sender: "System", text: `SpinLounge Room ${roomId} created! Write names, bet chips, and enjoy!`, timestamp: Date.now() }
-                ]
-            };
-            if (currentRoomDocRef) {
-                await setDoc(currentRoomDocRef, initialData);
-            } else {
-                currentRoomState = initialData;
-                handleStateUpdate(initialData);
-            }
-        }
-
-        async function updateRoomDoc(fieldsToChange) {
-            if (db && currentRoomDocRef) {
-                try {
-                    await updateDoc(currentRoomDocRef, fieldsToChange);
-                } catch (e) {
-                    console.warn("Update doc failed", e);
-                }
-            } else {
-                // local update fallback
-                currentRoomState = { ...currentRoomState, ...fieldsToChange };
-                handleStateUpdate(currentRoomState);
-            }
-        }
-
-        // Setup active UI updates based on fetched room model state
-        function handleStateUpdate(data) {
-            slicesList = data.slices || [];
-            renderSlicesTags();
-
-            // Update title
-            activeRoomTitle.textContent = `ROOM: ${data.roomId.toUpperCase()}`;
-
-            // Update role badge
-            const badge = document.getElementById('active-user-role-badge font-mono');
-            if (badge) {
-                if (data.hostId === currentUser.uid) {
-                    badge.textContent = "HOST DEALER";
-                    badge.className = "bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider";
-                } else {
-                    badge.textContent = "ACTIVE PLAYER";
-                    badge.className = "bg-indigo-950 border border-indigo-800/40 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider";
-                }
-            }
-
-            // Sync players panel
-            renderPlayersLounge(data.players || []);
-
-            // Check if user is in players list, if not add them
-            const hasJoinedLobby = (data.players || []).some(p => p.uid === currentUser.uid);
-            if (!hasJoinedLobby) {
-                const currentList = data.players || [];
-                currentList.push({
-                    uid: currentUser.uid,
-                    displayName: currentUser.displayName,
-                    chips: currentUser.chips
-                });
-                updateRoomDoc({ players: currentList });
-            } else {
-                // sync balance indicator from database index
-                const matchingData = (data.players || []).find(p => p.uid === currentUser.uid);
-                if (matchingData) {
-                    currentUser.chips = matchingData.chips;
-                    userBalanceIndicator.textContent = matchingData.chips;
-                }
-            }
-
-            // Sync total pools and display
-            let totalPool = 0;
-            (data.bets || []).forEach(b => totalPool += parseInt(b.chips));
-            totalPoolDisplay.textContent = `Total Pool: ${totalPool} Chips`;
-
-            // Display current active bet
-            const myBet = (data.bets || []).find(b => b.uid === currentUser.uid);
-            if (myBet) {
-                currentBetDisplay.innerHTML = `<span class="font-bold text-emerald-400">Locked ${myBet.chips} Chips on ${myBet.target}</span>`;
-            } else {
-                currentBetDisplay.textContent = "Active Bet: None placed yet";
-            }
-
-            // Sync chat logs
-            renderChatFeed(data.chat || []);
-
-            // Run Loop Phase Trigger Manager
-            runCoreGameTimerLoop(data);
-        }
-
-        // Renders active users and bots in the sidebar panel
-        function renderPlayersLounge(players) {
-            playerCountBadge.textContent = `${players.length} In Lounge`;
-            playersListContainer.innerHTML = '';
-            
-            players.forEach(p => {
-                const row = document.createElement('div');
-                row.className = `flex items-center justify-between p-2 rounded-xl border border-indigo-950/40 ${
-                    p.uid === currentUser.uid ? 'bg-indigo-950/30' : 'bg-slate-950/40'
-                }`;
-
-                row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <div class="h-6 w-6 rounded-lg bg-violet-600/10 flex items-center justify-center text-xs text-violet-400">
-                            <i class="fa-solid fa-user-astronaut"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs font-bold text-slate-200">${p.displayName}</span>
-                            ${p.uid === currentRoomState.hostId ? '<span class="text-[8px] bg-red-600 px-1 py-0.2 rounded font-extrabold ml-1">DEALER</span>' : ''}
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs font-mono text-emerald-400 font-bold">${p.chips} 🪙</span>
-                    </div>
-                `;
-                playersListContainer.appendChild(row);
-            });
-        }
-
-        // Render live chat history stream
-        function renderChatFeed(chatLogs) {
-            chatMessagesScroll.innerHTML = '';
-            chatLogs.forEach(log => {
-                const bubble = document.createElement('div');
-                const isSelf = log.uid === currentUser.uid;
-                bubble.className = `max-w-[85%] rounded-2xl p-3 text-xs flex flex-col gap-1 ${
-                    log.sender === "System" 
-                        ? 'bg-slate-950/60 text-indigo-300 self-center border border-indigo-950 text-center mx-auto' 
-                        : isSelf 
-                            ? 'bg-violet-600 text-white self-end ml-auto' 
-                            : 'bg-slate-800 text-slate-200 self-start mr-auto border border-slate-700/50'
-                }`;
-
-                bubble.innerHTML = `
-                    ${log.sender !== "System" ? `<span class="font-extrabold text-[9px] tracking-wider uppercase ${isSelf ? 'text-indigo-200' : 'text-violet-400'}">${log.sender}</span>` : ''}
-                    <span class="leading-relaxed break-all">${log.text}</span>
-                `;
-                chatMessagesScroll.appendChild(bubble);
-            });
-            chatMessagesScroll.scrollTop = chatMessagesScroll.scrollHeight;
-        }
-
-        // Synced Countdown core execution logic
-        let loopTimeoutId = null;
-
-        function runCoreGameTimerLoop(data) {
-            if (loopTimeoutId) clearTimeout(loopTimeoutId);
-
-            const elapsedSeconds = Math.floor((Date.now() - data.timerStart) / 1000);
-            
-            if (data.status === 'joining') {
-                const timeLeft = Math.max(0, 10 - elapsedSeconds);
-                gamePhaseLabel.textContent = "BETTING ACTIVE";
-                gamePhaseLabel.className = "text-violet-300 uppercase tracking-widest";
-                countdownTimerText.textContent = `${timeLeft}s`;
-
-                // Beep warning on low time
-                if (timeLeft <= 3 && timeLeft > 0) {
-                    playSynthBeep(440, 'triangle', 0.08);
-                }
-
-                // Auto Trigger Wheel Spin transition if you are host and time is up
-                if (timeLeft === 0) {
-                    if (data.hostId === currentUser.uid) {
-                        triggerSynchronizedSpin();
-                    }
-                } else {
-                    // tick loop again in 1s
-                    loopTimeoutId = setTimeout(() => {
-                        runCoreGameTimerLoop(data);
-                    }, 1000);
-                }
-            } else if (data.status === 'spinning') {
-                gamePhaseLabel.textContent = "WHEEL SPINNING";
-                gamePhaseLabel.className = "text-amber-400 uppercase tracking-widest animate-pulse";
-                countdownTimerText.textContent = "SPIN";
-
-                // Trigger Wheel spinning rendering loop
-                if (!isWheelSpinning) {
-                    triggerSpinRenderAnimation(data.winningIndex, () => {
-                        // Completed spin callback, host triggers result board next
-                        if (data.hostId === currentUser.uid) {
-                            triggerResultPayoutTransition(data.winner);
-                        }
-                    });
-                }
-            } else if (data.status === 'showing_winner') {
-                gamePhaseLabel.textContent = "WINNER REVEALED";
-                gamePhaseLabel.className = "text-emerald-400 uppercase tracking-widest animate-bounce";
-                countdownTimerText.textContent = `🎯`;
-
-                // Show winner highlight frame overlay
-                const resultTimerLeft = Math.max(0, 5 - elapsedSeconds);
-                
-                if (resultTimerLeft === 0) {
-                    if (data.hostId === currentUser.uid) {
-                        resetGameLobbyForNextRound();
-                    }
-                } else {
-                    loopTimeoutId = setTimeout(() => {
-                        runCoreGameTimerLoop(data);
-                    }, 1000);
-                }
-            }
-        }
-
-        // Host trigger: Determine random winning name and launch spin
-        async function triggerSynchronizedSpin() {
-            if (slicesList.length === 0) {
-                // populate if empty
-                slicesList = ["Lucky Spin 🍀", "No Luck 💀", "Prize Splash 🪙"];
-            }
-            const winIdx = Math.floor(Math.random() * slicesList.length);
-            const winnerName = slicesList[winIdx];
-
-            await updateRoomDoc({
-                status: 'spinning',
-                winner: winnerName,
-                winningIndex: winIdx,
-                timerStart: Date.now()
-            });
-        }
-
-        // Complete dynamic spinning simulation cycle
-        function triggerSpinRenderAnimation(targetIndex, onFinished) {
-            isWheelSpinning = true;
-            let startRotation = currentWheelAngle;
-            
-            // Choose a target angle that matches the target slice on the right-hand pointer arrow
-            const slicesCount = slicesList.length;
-            const sliceSize = (Math.PI * 2) / slicesCount;
-            
-            // Pointer is at angle 0 (3 o'clock position / right side). 
-            // Slices start from 12 o'clock or standard radial direction.
-            // Target angle to face right: 2*PI - (targetIndex * sliceAngle + sliceAngle/2)
-            const targetSliceAngle = (Math.PI * 2) - (targetIndex * sliceSize + sliceSize / 2);
-            
-            // Multi revolutions + alignment offset
-            const finalRotation = startRotation + (Math.PI * 2 * 4) + targetSliceAngle;
-            
-            const spinDuration = 4000; // 4 seconds spin duration
-            const spinStart = Date.now();
-
-            function animate() {
-                const elapsed = Date.now() - spinStart;
-                const progress = Math.min(elapsed / spinDuration, 1);
-                
-                // Ease-out cubic curve
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                currentWheelAngle = startRotation + (finalRotation - startRotation) * easeOut;
-
-                // Play rotation audio clicks
-                if (Math.floor(currentWheelAngle * 4) % 2 === 0) {
-                    playSynthBeep(780, 'sine', 0.02);
-                }
-
-                drawWheel(currentWheelAngle);
-
-                if (progress < 1) {
-                    animationFrameId = requestAnimationFrame(animate);
-                } else {
-                    isWheelSpinning = false;
-                    playSynthBeep(1200, 'sine', 0.35);
+            // Handle incoming calls (Broadcaster answers, Viewers accept incoming streams)
+            peer.on('call', (incomingCall) => {
+                if (currentMode === 'join') {
+                    // Viewer receives broadcast stream
+                    hostCall = incomingCall;
+                    incomingCall.answer(); // Viewer doesn't send their own media back
                     
-                    // Confetti explosion decoration
-                    confetti({
-                        particleCount: 150,
-                        spread: 80,
-                        origin: { y: 0.6 }
+                    incomingCall.on('stream', (remoteStream) => {
+                        const videoElement = document.getElementById('mainStageVideo');
+                        videoElement.srcObject = remoteStream;
+                        videoElement.classList.remove('hidden');
+                        document.getElementById('videoFallbackContainer').classList.add('hidden');
+                        
+                        // play video automatically
+                        videoElement.play().catch(e => {
+                            console.log("Auto-play blocked. Adding mute as fallback.");
+                            videoElement.muted = true;
+                            videoElement.play();
+                        });
                     });
 
-                    onFinished();
-                }
-            }
-            animate();
-        }
-
-        // Host calculates user point additions and completes round
-        async function triggerResultPayoutTransition(winnerLabel) {
-            const bets = currentRoomState.bets || [];
-            const players = currentRoomState.players || [];
-            const updatedPlayers = [...players];
-
-            // Payout multipliers count
-            const sliceCount = slicesList.length;
-            const multiplier = Math.max(2, sliceCount); // Dynamic payout multiplier matching slices
-
-            bets.forEach(bet => {
-                if (bet.target === winnerLabel) {
-                    // Win bet!
-                    const winChips = parseInt(bet.chips) * multiplier;
-                    const playerIndex = updatedPlayers.findIndex(p => p.uid === bet.uid);
-                    if (playerIndex !== -1) {
-                        updatedPlayers[playerIndex].chips += winChips;
-                    }
+                    incomingCall.on('close', () => {
+                        handleDisconnectFromHost();
+                    });
+                } else if (currentMode === 'host') {
+                    // Host answers calls (Optional if we wish viewer to stream back, not needed in typical live setup)
+                    incomingCall.answer();
                 }
             });
 
-            // Send notification chat
-            const nextChat = [...(currentRoomState.chat || [])];
-            nextChat.push({
-                sender: "System",
-                text: `🎉 ROUND WINNER IS: [${winnerLabel}]! Payout Multiplier was x${multiplier}!`,
-                timestamp: Date.now()
+            // Handle incoming direct P2P data channels
+            peer.on('connection', (dataConn) => {
+                if (currentMode === 'host') {
+                    // Establish data connection as host
+                    setupHostDataConnection(dataConn);
+                } else {
+                    // Block random connections if viewer
+                    dataConn.close();
+                }
             });
+        }
 
-            // Trim logs to prevent document bloat
-            if (nextChat.length > 25) {
-                nextChat.splice(0, nextChat.length - 25);
+        // Initialize the Host's broadcast camera & sound pipeline
+        async function initiateLiveBroadcast() {
+            if (isBroadcasting) {
+                terminateBroadcast();
+                return;
             }
 
-            await updateRoomDoc({
-                status: 'showing_winner',
-                players: updatedPlayers,
-                chat: nextChat,
-                timerStart: Date.now()
-            });
-        }
+            streamTitle = document.getElementById('streamTitleInput').value.trim() || "My Awesome P2P Live Stream";
+            myNickname = document.getElementById('hostNameInput').value.trim() || "Broadcaster";
+            
+            showToast("Initializing media equipment...", "fa-camera", "text-amber-400");
 
-        // Restart loop back to joining state
-        async function resetGameLobbyForNextRound() {
-            await updateRoomDoc({
-                status: 'joining',
-                bets: [],
-                timerStart: Date.now()
-            });
-        }
-
-        // Fallback simulated room context for offline test loops
-        function initSimulatedLocalRoom() {
-            setConnectionStatus(true, "Sim Sandbox Active");
-            const data = {
-                roomId: currentRoomId || "sandbox-lounge",
-                hostId: currentUser.uid,
-                hostName: currentUser.displayName,
-                status: 'joining',
-                slices: slicesList,
-                bets: [],
-                players: [{
-                    uid: currentUser.uid,
-                    displayName: currentUser.displayName,
-                    chips: currentUser.chips
-                }],
-                winner: "",
-                winningIndex: -1,
-                timerStart: Date.now(),
-                chat: [
-                    { sender: "System", text: "Offline Local sandbox activated. Spawning bot clients is recommended!", timestamp: Date.now() }
-                ]
-            };
-            currentRoomState = data;
-            handleStateUpdate(data);
-        }
-
-        // Stream connections interface
-        function setupLoungeStreamingPeer() {
             try {
-                myPeer = new Peer(undefined, {
-                    debug: 1,
-                    config: {
-                        'iceServers': [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' }
-                        ]
+                // Request camera and mic
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 24 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true
                     }
                 });
 
-                myPeer.on('open', (id) => {
-                    document.getElementById('stream-client-uuid').textContent = `ID: ${id.substring(0, 6)}`;
-                });
+                // Attach to local player stage preview
+                const videoElement = document.getElementById('mainStageVideo');
+                videoElement.srcObject = localStream;
+                videoElement.classList.remove('hidden');
+                videoElement.muted = true; // Avoid feedback
+                videoElement.play();
 
-                myPeer.on('call', (call) => {
-                    activeCall = call;
-                    call.answer();
-                    call.on('stream', (remoteStream) => {
-                        videoOverlayPlaceholder.classList.add('hidden');
-                        streamVideoEl.srcObject = remoteStream;
-                    });
-                });
+                document.getElementById('videoFallbackContainer').classList.add('hidden');
 
-                myPeer.on('error', (err) => {
-                    console.warn("PeerJS handshake block inside iframe sandbox. Camera bypass fallback enabled.", err);
-                });
+                // Track controls state
+                localStream.getVideoTracks().forEach(track => track.enabled = videoTrackEnabled);
+                localStream.getAudioTracks().forEach(track => track.enabled = audioTrackEnabled);
 
-            } catch(e) {
-                console.warn("WebRTC blocked initialization.");
+                // Start WebAudio API Mic visualizer
+                setupAudioVisualizer(localStream);
+
+                // Set broadcasting state
+                isBroadcasting = true;
+                activeViewers = {};
+                
+                // Toggle UI controls
+                toggleUIForLiveState(true);
+                startStreamTimer();
+
+                showToast("Broadcast Studio Live! Share your ID.", "fa-tower-broadcast", "text-emerald-400");
+                appendSystemChat("Broadcast initiated. Share your Peer ID so others can join instantly!");
+
+            } catch (error) {
+                console.error("Media acquisition failed:", error);
+                showToast("Camera/Mic Permission Denied!", "fa-circle-exclamation", "text-rose-500");
             }
         }
 
-        // Actions hook
-        createRoomBtn.addEventListener('click', async () => {
-            const nick = nicknameInput.value.trim();
-            if (!nick) {
-                showModal("Name Missing", "Please enter a valid nickname to enter the lounge.", true);
-                return;
+        // Set up WebAudio API visual feedback for host mic levels
+        function setupAudioVisualizer(stream) {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(stream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 32;
+                source.connect(analyser);
+                
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                document.getElementById('visualizerContainer').classList.remove('hidden');
+                
+                micLevelInterval = setInterval(() => {
+                    if (analyser) {
+                        analyser.getByteFrequencyData(dataArray);
+                        const bars = document.querySelectorAll('.visualizer-bar');
+                        bars.forEach((bar, index) => {
+                            const value = dataArray[index] || 0;
+                            const heightPercentage = Math.max(10, Math.min(100, (value / 255) * 100));
+                            bar.style.height = `${heightPercentage}%`;
+                        });
+                    }
+                }, 100);
+            } catch (e) {
+                console.log("Audio visualizer failed to construct:", e);
             }
-            currentUser.displayName = nick;
+        }
 
-            const newCode = "spin-" + Math.floor(1000 + Math.random() * 9000);
-            
-            portalScreen.classList.add('hidden');
-            gameRoomScreen.classList.remove('hidden');
-
-            setupLoungeStreamingPeer();
-            syncRoomWithFirestore(newCode);
-            drawWheel(0);
-        });
-
-        joinRoomBtn.addEventListener('click', async () => {
-            const nick = nicknameInput.value.trim();
-            const code = roomCodeInput.value.trim().toLowerCase();
-            
-            if (!nick || !code) {
-                showModal("Inputs Missing", "Please input both your nickname and a valid lounge room code to join.", true);
-                return;
-            }
-            currentUser.displayName = nick;
-
-            portalScreen.classList.add('hidden');
-            gameRoomScreen.classList.remove('hidden');
-
-            setupLoungeStreamingPeer();
-            syncRoomWithFirestore(code);
-            drawWheel(0);
-        });
-
-        // Add custom slice
-        addSliceBtn.addEventListener('click', async () => {
-            const name = addWheelNameInput.value.trim();
-            if (!name) return;
-
-            if (slicesList.includes(name)) {
-                showModal("Slice Exists", `${name} is already registered on the wheel slices index.`, true);
-                return;
-            }
-
-            slicesList.push(name);
-            addWheelNameInput.value = '';
-
-            await updateRoomDoc({ slices: slicesList });
-            showToast("Slice Added", `${name} added to roulette indices.`);
-        });
-
-        // Place bet locking
-        placeBetBtn.addEventListener('click', async () => {
-            const target = betTargetSelect.value;
-            const chips = parseInt(betChipsInput.value);
-
-            if (!target) {
-                showModal("Bet Target Required", "Please choose a name from the wheel slices list first.", true);
-                return;
-            }
-
-            if (isNaN(chips) || chips < 10) {
-                showModal("Invalid Amount", "Minimum bet limit is 10 chips.", true);
-                return;
-            }
-
-            if (chips > currentUser.chips) {
-                showModal("Insufficient Balance", "You do not have enough chips inside your balance registry.", true);
-                return;
-            }
-
-            if (currentRoomState.status !== 'joining') {
-                showModal("Betting Period Closed", "You can only place or update bets during the 10-second joining period.", true);
-                return;
-            }
-
-            // Deduct locally and lock
-            currentUser.chips -= chips;
-            userBalanceIndicator.textContent = currentUser.chips;
-
-            // Sync bet record to document
-            const currentBets = [...(currentRoomState.bets || [])];
-            // remove existing bet from same user if any
-            const existingIdx = currentBets.findIndex(b => b.uid === currentUser.uid);
-            if (existingIdx !== -1) {
-                currentBets.splice(existingIdx, 1);
-            }
-
-            currentBets.push({
-                uid: currentUser.uid,
-                displayName: currentUser.displayName,
-                target: target,
-                chips: chips
+        // Host handles incoming viewer direct connections
+        function setupHostDataConnection(conn) {
+            conn.on('open', () => {
+                // Connection made
             });
 
-            // Update user balance inside cloud list too
-            const players = [...(currentRoomState.players || [])];
-            const pIdx = players.findIndex(p => p.uid === currentUser.uid);
-            if (pIdx !== -1) {
-                players[pIdx].chips = currentUser.chips;
-            }
+            conn.on('data', (data) => {
+                if (data.type === 'join-stream') {
+                    // Record viewer
+                    activeViewers[conn.peer] = {
+                        conn: conn,
+                        username: data.nickname || "Spectator"
+                    };
 
-            await updateRoomDoc({
-                bets: currentBets,
-                players: players
+                    // Send active stream confirmation to viewer
+                    conn.send({
+                        type: 'stream-meta',
+                        title: streamTitle,
+                        hostName: myNickname,
+                        hostId: myId
+                    });
+
+                    // Trigger direct WebRTC call to send the streaming track directly to spectator
+                    setTimeout(() => {
+                        if (localStream) {
+                            peer.call(conn.peer, localStream);
+                        }
+                    }, 800);
+
+                    // Announce viewer connection and update counters
+                    appendSystemChat(`${data.nickname || 'Guest'} joined the stream.`);
+                    updateViewerCount();
+                    broadcastViewerList();
+                }
+
+                // Handle interactive chat messages from spectators
+                if (data.type === 'chat') {
+                    // Broadcaster acts as room hub: relay message to all viewers
+                    relayDataToAllViewers({
+                        type: 'chat',
+                        sender: data.sender,
+                        text: data.text
+                    });
+                    appendUserChat(data.sender, data.text);
+                }
+
+                // Handle emojis triggers from spectators
+                if (data.type === 'reaction') {
+                    relayDataToAllViewers({
+                        type: 'reaction',
+                        value: data.value
+                    });
+                    triggerReactionAnimation(data.value);
+                }
             });
 
-            betChipsInput.value = '';
-            showToast("Bet Locked", `Locked ${chips} chips on ${target}!`);
-            playSynthBeep(980, 'sine', 0.15);
-        });
+            conn.on('close', () => {
+                if (activeViewers[conn.peer]) {
+                    appendSystemChat(`${activeViewers[conn.peer].username} left the stream.`);
+                    delete activeViewers[conn.peer];
+                    updateViewerCount();
+                    broadcastViewerList();
+                }
+            });
+        }
 
-        // Copy room code
-        copyRoomCodeBtn.addEventListener('click', () => {
-            if (!currentRoomId) return;
-            const temp = document.createElement('textarea');
-            temp.value = currentRoomId;
-            document.body.appendChild(temp);
-            temp.select();
+        // Relays chat message/activity to all registered live spectators
+        function relayDataToAllViewers(payload) {
+            Object.values(activeViewers).forEach(viewer => {
+                if (viewer.conn && viewer.conn.open) {
+                    viewer.conn.send(payload);
+                }
+            });
+        }
+
+        // Screen share toggle for the active host broadcaster
+        async function toggleScreenShare() {
+            if (!isBroadcasting) return;
+
+            try {
+                if (!isScreenSharing) {
+                    // Request screen capture
+                    displayStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: true,
+                        audio: true
+                    });
+
+                    const videoTrack = displayStream.getVideoTracks()[0];
+                    
+                    // Replace video track in local preview
+                    const videoElement = document.getElementById('mainStageVideo');
+                    videoElement.srcObject = displayStream;
+                    videoElement.play();
+
+                    // Switch tracks for all live viewers
+                    replaceActiveTracks(videoTrack);
+
+                    videoTrack.onended = () => {
+                        stopScreenSharingTracks();
+                    };
+
+                    isScreenSharing = true;
+                    document.getElementById('screenShareBtn').className = "bg-rose-600 text-white p-3 rounded-xl transition flex items-center justify-center";
+                    showToast("Sharing screen!", "fa-desktop", "text-emerald-400");
+                } else {
+                    stopScreenSharingTracks();
+                }
+            } catch (err) {
+                console.error("Screen capture failed:", err);
+                showToast("Could not share screen.", "fa-circle-exclamation", "text-rose-500");
+            }
+        }
+
+        function stopScreenSharingTracks() {
+            if (!isScreenSharing) return;
+
+            if (displayStream) {
+                displayStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Restore camera track
+            const videoTrack = localStream.getVideoTracks()[0];
+            const videoElement = document.getElementById('mainStageVideo');
+            videoElement.srcObject = localStream;
+            videoElement.play();
+
+            replaceActiveTracks(videoTrack);
+
+            isScreenSharing = false;
+            document.getElementById('screenShareBtn').className = "bg-slate-700 hover:bg-slate-600 text-white p-3 rounded-xl transition flex items-center justify-center";
+            showToast("Restored camera stream.", "fa-camera", "text-emerald-400");
+        }
+
+        // Helper to switch outgoing WebRTC call tracks
+        function replaceActiveTracks(newTrack) {
+            Object.keys(activeViewers).forEach(peerId => {
+                const callObj = peer._connections[peerId];
+                if (callObj) {
+                    callObj.forEach(conn => {
+                        if (conn.peerConnection) {
+                            const senders = conn.peerConnection.getSenders();
+                            const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+                            if (videoSender) {
+                                videoSender.replaceTrack(newTrack);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Viewer connects to Broadcaster
+        function joinLiveBroadcast() {
+            const hostId = document.getElementById('hostPeerIdInput').value.trim();
+            myNickname = document.getElementById('viewerNameInput').value.trim() || "Spectator";
+
+            if (!hostId) {
+                showToast("Please enter a Host Peer ID.", "fa-circle-exclamation", "text-rose-500");
+                return;
+            }
+            if (hostId === myId) {
+                showToast("You cannot connect to your own ID!", "fa-circle-exclamation", "text-rose-500");
+                return;
+            }
+
+            showToast("Connecting to stream broadcast...", "fa-plug", "text-amber-400");
+            joinedHostId = hostId;
+
+            // Connect to broadcaster data channel
+            hostConnection = peer.connect(hostId);
+            
+            hostConnection.on('open', () => {
+                // Request host to dispatch the stream tracks
+                hostConnection.send({
+                    type: 'join-stream',
+                    nickname: myNickname
+                });
+
+                toggleUIForLiveState(true);
+                showToast("Connected! Fetching stream...", "fa-video", "text-emerald-400");
+                appendSystemChat("Connected to live channel host. Buffering stream stream...");
+            });
+
+            hostConnection.on('data', (data) => {
+                if (data.type === 'stream-meta') {
+                    // Update stream profile details from host
+                    document.getElementById('streamDisplayTitle').innerText = data.title;
+                    document.getElementById('streamDisplayBroadcaster').innerHTML = `Broadcaster: <strong>${data.hostName}</strong>`;
+                    document.getElementById('streamBroadcasterAvatar').innerText = data.hostName.charAt(0).toUpperCase();
+                    document.getElementById('displayHostId').innerText = data.hostId;
+                }
+
+                // Relayed chats
+                if (data.type === 'chat') {
+                    appendUserChat(data.sender, data.text);
+                }
+
+                // Reaction broadcasts
+                if (data.type === 'reaction') {
+                    triggerReactionAnimation(data.value);
+                }
+
+                // Viewer catalog updates
+                if (data.type === 'viewers-update') {
+                    renderViewersCatalog(data.viewers);
+                }
+            });
+
+            hostConnection.on('close', () => {
+                handleDisconnectFromHost();
+            });
+
+            hostConnection.on('error', (err) => {
+                console.error("Host connection broken:", err);
+                handleDisconnectFromHost();
+            });
+        }
+
+        // Clean disconnect sequence if Host leaves or shuts down
+        function handleDisconnectFromHost() {
+            showToast("Broadcaster ended the stream.", "fa-ban", "text-rose-500");
+            appendSystemChat("The connection to the host has been severed.");
+            leaveCurrentStream();
+        }
+
+        // Cleanly detach and reset stream configurations
+        function leaveCurrentStream() {
+            if (hostCall) {
+                hostCall.close();
+                hostCall = null;
+            }
+            if (hostConnection) {
+                hostConnection.close();
+                hostConnection = null;
+            }
+            
+            resetMainTheaterStage();
+            toggleUIForLiveState(false);
+            showToast("Disconnected from stream.", "fa-circle-check", "text-emerald-400");
+        }
+
+        // Broadcaster shutting down stream
+        function terminateBroadcast() {
+            if (!isBroadcasting) return;
+
+            showToast("Shutting down broadcast studio...", "fa-power-off", "text-rose-500");
+            
+            // Send end sequence signal to data clients
+            relayDataToAllViewers({
+                type: 'stream-end'
+            });
+
+            // Disconnect camera/mics
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if (displayStream) {
+                displayStream.getTracks().forEach(track => track.stop());
+                displayStream = null;
+                isScreenSharing = false;
+            }
+
+            // Stop visualizers
+            if (micLevelInterval) clearInterval(micLevelInterval);
+            if (audioCtx) {
+                audioCtx.close();
+                audioCtx = null;
+                analyser = null;
+            }
+            document.getElementById('visualizerContainer').classList.add('hidden');
+
+            // Close spectator sockets
+            Object.values(activeViewers).forEach(viewer => {
+                if (viewer.conn) viewer.conn.close();
+            });
+            activeViewers = {};
+
+            clearInterval(streamUptimeInterval);
+            isBroadcasting = false;
+
+            resetMainTheaterStage();
+            toggleUIForLiveState(false);
+            appendSystemChat("You terminated your live stream broadcast session.");
+        }
+
+        // Mute stream audio volume on client player locally
+        function toggleViewerStreamMute() {
+            const video = document.getElementById('mainStageVideo');
+            const btn = document.getElementById('btnLocalMuteStream');
+            const icon = document.getElementById('iconLocalMuteStream');
+
+            if (video.muted) {
+                video.muted = false;
+                icon.className = "fa-solid fa-volume-high";
+                btn.className = "w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-800 transition text-white";
+                showToast("Audio Unmuted.", "fa-volume-high", "text-emerald-400");
+            } else {
+                video.muted = true;
+                icon.className = "fa-solid fa-volume-xmark";
+                btn.className = "w-9 h-9 bg-rose-950 border border-rose-900 text-rose-400 rounded-xl flex items-center justify-center hover:bg-slate-800 transition";
+                showToast("Audio Muted.", "fa-volume-xmark", "text-amber-400");
+            }
+        }
+
+        // Re-calculate view count display for host and spectators
+        function updateViewerCount() {
+            const count = Object.keys(activeViewers).length;
+            document.getElementById('activeCount').innerText = `${count} Spectators`;
+            document.getElementById('overlayViewersCount').innerText = count;
+        }
+
+        // Broadcast current viewers roster to all connected peers
+        function broadcastViewerList() {
+            const list = Object.values(activeViewers).map(v => v.username);
+            
+            // Render locally on host panel
+            renderViewersCatalog(list);
+
+            // Forward list to viewers so everyone can see who is watching
+            relayDataToAllViewers({
+                type: 'viewers-update',
+                viewers: list
+            });
+        }
+
+        // Render connected peers names visually
+        function renderViewersCatalog(viewerArray) {
+            const container = document.getElementById('viewerListContainer');
+            if (viewerArray.length === 0) {
+                container.innerHTML = `
+                    <div id="emptyViewersMessage" class="text-center text-slate-500 py-6 italic">
+                        No peers active in session
+                    </div>
+                `;
+                return;
+            }
+
+            let htmlContent = "";
+            viewerArray.forEach(name => {
+                htmlContent += `
+                    <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 p-2 rounded-xl">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="font-bold text-slate-200">${name}</span>
+                        <span class="text-[9px] bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded ml-auto">Viewer</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = htmlContent;
+        }
+
+        // Toggle host tracks (Mic/Cam) independently
+        function toggleLocalTrack(type) {
+            if (type === 'video') {
+                videoTrackEnabled = !videoTrackEnabled;
+                
+                // Toggle camera icon colors
+                updateButtonState('btnQualityVideo', 'iconQualityVideo', 'fa-video', 'fa-video-slash', videoTrackEnabled);
+                updateButtonState('stageBtnMuteCam', 'stageIconMuteCam', 'fa-video', 'fa-video-slash', videoTrackEnabled);
+
+                if (localStream && localStream.getVideoTracks().length > 0) {
+                    localStream.getVideoTracks()[0].enabled = videoTrackEnabled;
+                    showToast(videoTrackEnabled ? "Camera Enabled." : "Camera Disabled.", "fa-video", videoTrackEnabled ? "text-emerald-400" : "text-amber-400");
+                }
+            } else if (type === 'audio') {
+                audioTrackEnabled = !audioTrackEnabled;
+
+                // Toggle mic icon colors
+                updateButtonState('btnQualityAudio', 'iconQualityAudio', 'fa-microphone', 'fa-microphone-slash', audioTrackEnabled);
+                updateButtonState('stageBtnMuteMic', 'stageIconMuteMic', 'fa-microphone', 'fa-microphone-slash', audioTrackEnabled);
+
+                if (localStream && localStream.getAudioTracks().length > 0) {
+                    localStream.getAudioTracks()[0].enabled = audioTrackEnabled;
+                    showToast(audioTrackEnabled ? "Microphone Active." : "Microphone Muted.", "fa-microphone", audioTrackEnabled ? "text-emerald-400" : "text-amber-400");
+                }
+            }
+        }
+
+        // Standardize dynamic button statuses
+        function updateButtonState(btnId, iconId, activeIconClass, inactiveIconClass, isEnabled) {
+            const btn = document.getElementById(btnId);
+            const icon = document.getElementById(iconId);
+            if (!btn || !icon) return;
+
+            if (isEnabled) {
+                icon.className = `fa-solid ${activeIconClass}`;
+                btn.className = btn.className.replace('text-slate-500', 'text-rose-400').replace('bg-rose-950/20', 'bg-slate-800');
+            } else {
+                icon.className = `fa-solid ${inactiveIconClass}`;
+                btn.className = btn.className.replace('text-rose-400', 'text-slate-500').replace('bg-slate-800', 'bg-rose-950/20');
+            }
+        }
+
+        // Switch panel visibility on connection mode change
+        function switchAppMode(mode) {
+            currentMode = mode;
+            
+            const btnHost = document.getElementById('btnModeHost');
+            const btnJoin = document.getElementById('btnModeJoin');
+            
+            const setupHost = document.getElementById('setupHostControls');
+            const setupViewer = document.getElementById('setupViewerControls');
+
+            if (mode === 'host') {
+                btnHost.className = "py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow-lg";
+                btnJoin.className = "py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white";
+                setupHost.classList.remove('hidden');
+                setupViewer.classList.add('hidden');
+            } else {
+                btnJoin.className = "py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow-lg";
+                btnHost.className = "py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white";
+                setupViewer.classList.remove('hidden');
+                setupHost.classList.add('hidden');
+            }
+        }
+
+        // Process Chat input submit
+        function handleChatSubmit() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (currentMode === 'host') {
+                // Relays host's chat to all viewers
+                relayDataToAllViewers({
+                    type: 'chat',
+                    sender: myNickname,
+                    text: text
+                });
+                appendUserChat(myNickname, text);
+            } else if (currentMode === 'join' && hostConnection) {
+                // Sends spectator message to host, which will relay it to the audience
+                hostConnection.send({
+                    type: 'chat',
+                    sender: myNickname,
+                    text: text
+                });
+                appendUserChat("You", text);
+            }
+
+            input.value = "";
+        }
+
+        function appendUserChat(sender, text) {
+            const feed = document.getElementById('chatMessages');
+            if (feed.innerText.includes("chat is currently offline")) {
+                feed.innerHTML = "";
+            }
+
+            const bubble = document.createElement('div');
+            bubble.className = "bg-slate-800/60 border border-slate-700/30 p-2.5 rounded-xl shadow-sm text-xs";
+            bubble.innerHTML = `
+                <p class="font-extrabold text-rose-400 tracking-wide mb-0.5">${sender}</p>
+                <p class="text-slate-200 break-words leading-relaxed">${text}</p>
+            `;
+
+            feed.appendChild(bubble);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function appendSystemChat(text) {
+            const feed = document.getElementById('chatMessages');
+            if (feed.innerText.includes("chat is currently offline")) {
+                feed.innerHTML = "";
+            }
+
+            const alertBox = document.createElement('div');
+            alertBox.className = "bg-slate-900/40 border border-slate-800 text-slate-400 p-2 rounded-xl text-center italic font-semibold text-[10px]";
+            alertBox.innerText = `[SYSTEM] ${text}`;
+
+            feed.appendChild(alertBox);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        // Broadcasters & Viewers triggering reactions animation
+        function sendLocalReaction(symbol) {
+            triggerReactionAnimation(symbol);
+
+            if (currentMode === 'host') {
+                relayDataToAllViewers({
+                    type: 'reaction',
+                    value: symbol
+                });
+            } else if (currentMode === 'join' && hostConnection) {
+                hostConnection.send({
+                    type: 'reaction',
+                    value: symbol
+                });
+            }
+        }
+
+        // Inject floating animation icons inside screen stage overlay
+        function triggerReactionAnimation(emoji) {
+            const zone = document.getElementById('reactionZone');
+            const reactionNode = document.createElement('span');
+            reactionNode.className = "floating-reaction";
+            reactionNode.innerText = emoji;
+
+            // Shift element left randomly to float upward creatively
+            const randomOffsetLeft = Math.floor(Math.random() * 80) + 10;
+            reactionNode.style.left = `${randomOffsetLeft}%`;
+
+            zone.appendChild(reactionNode);
+
+            // Dispose element safely on transition end
+            reactionNode.addEventListener('animationend', () => {
+                reactionNode.remove();
+            });
+        }
+
+        // Timer controller for showing stream duration
+        function startStreamTimer() {
+            clearInterval(streamUptimeInterval);
+            streamUptimeSeconds = 0;
+            const badge = document.getElementById('uptimeBadge');
+            badge.classList.remove('hidden');
+
+            streamUptimeInterval = setInterval(() => {
+                streamUptimeSeconds++;
+                const hours = Math.floor(streamUptimeSeconds / 3600).toString().padStart(2, '0');
+                const minutes = Math.floor((streamUptimeSeconds % 3600) / 60).toString().padStart(2, '0');
+                const seconds = (streamUptimeSeconds % 60).toString().padStart(2, '0');
+                badge.innerText = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        // Setup signaling badge interface on host
+        function updateSignalingBadge(online) {
+            const badge = document.getElementById('connectionBadge');
+            if (online) {
+                badge.innerHTML = `<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> PeerJS Signaling Online`;
+                badge.className = "bg-slate-800 border border-emerald-500/30 text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm shadow-emerald-950/20";
+            } else {
+                badge.innerHTML = `<i class="fa-solid fa-circle text-[8px]"></i> Signaling Offline`;
+                badge.className = "bg-slate-800 text-slate-400 border border-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5";
+            }
+        }
+
+        // Reset stage and fallbacks
+        function resetMainTheaterStage() {
+            const video = document.getElementById('mainStageVideo');
+            video.srcObject = null;
+            video.classList.add('hidden');
+            
+            const fallback = document.getElementById('videoFallbackContainer');
+            fallback.classList.remove('hidden');
+
+            document.getElementById('fallbackTitle').innerText = "Live Broadcaster Stage ready";
+            document.getElementById('fallbackSubtitle').innerText = "Start your own live broadcast to share stream, or enter a host Peer ID on the left menu to enjoy.";
+            
+            document.getElementById('visualizerContainer').classList.add('hidden');
+        }
+
+        // Toggle elements state when live connection starts
+        function toggleUIForLiveState(isLive) {
+            const liveBadge = document.getElementById('liveBadge');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendChatBtn');
+            const viewerOverlay = document.getElementById('viewerCountOverlay');
+            const stageBar = document.getElementById('stageControlsBar');
+            const screenBtn = document.getElementById('screenShareBtn');
+            const btnHost = document.getElementById('startLiveBtn');
+            const btnJoin = document.getElementById('joinLiveBtn');
+
+            if (isLive) {
+                liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> LIVE`;
+                liveBadge.className = "bg-rose-950/80 backdrop-blur border border-rose-900 text-rose-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5";
+                
+                chatInput.removeAttribute('disabled');
+                sendBtn.removeAttribute('disabled');
+                sendBtn.className = "bg-rose-600 border border-rose-500 text-white px-4 rounded-xl transition shadow-md shadow-rose-950/20 flex items-center justify-center";
+
+                viewerOverlay.classList.remove('hidden');
+                stageBar.classList.remove('hidden');
+
+                if (currentMode === 'host') {
+                    screenBtn.removeAttribute('disabled');
+                    document.getElementById('broadcasterStageControls').classList.remove('hidden');
+                    document.getElementById('viewerStageControls').classList.add('hidden');
+                    
+                    // Host details update
+                    document.getElementById('streamDisplayTitle').innerText = streamTitle;
+                    document.getElementById('streamDisplayBroadcaster').innerHTML = `Broadcaster: <strong>${myNickname} (You)</strong>`;
+                    document.getElementById('streamBroadcasterAvatar').innerText = myNickname.charAt(0).toUpperCase();
+                    document.getElementById('displayHostId').innerText = myId;
+
+                    btnHost.innerHTML = `<i class="fa-solid fa-square"></i> Stop Broadcast`;
+                    btnHost.className = "flex-1 bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2";
+                } else {
+                    document.getElementById('viewerStageControls').classList.remove('hidden');
+                    document.getElementById('broadcasterStageControls').classList.add('hidden');
+
+                    btnJoin.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> Leave Stream`;
+                    btnJoin.className = "w-full bg-red-600/30 hover:bg-red-600/50 text-white font-bold text-xs py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2";
+                }
+            } else {
+                liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span> OFFLINE`;
+                liveBadge.className = "bg-slate-900/80 backdrop-blur border border-slate-800 text-slate-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5";
+                
+                chatInput.value = "";
+                chatInput.setAttribute('disabled', 'true');
+                sendBtn.setAttribute('disabled', 'true');
+                sendBtn.className = "bg-slate-800 border border-slate-700 text-slate-400 px-4 rounded-xl transition flex items-center justify-center";
+
+                viewerOverlay.classList.add('hidden');
+                stageBar.classList.add('hidden');
+                document.getElementById('uptimeBadge').classList.add('hidden');
+
+                screenBtn.setAttribute('disabled', 'true');
+                document.getElementById('broadcasterStageControls').classList.add('hidden');
+                document.getElementById('viewerStageControls').classList.add('hidden');
+
+                btnHost.innerHTML = `<i class="fa-solid fa-play"></i> Start Live Broadcast`;
+                btnHost.className = "flex-1 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-lg shadow-rose-950/40 transition-all flex items-center justify-center gap-2";
+
+                btnJoin.innerHTML = `<i class="fa-solid fa-plug"></i> Connect & Join Stream`;
+                btnJoin.className = "w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2";
+
+                renderViewersCatalog([]);
+                document.getElementById('activeCount').innerText = "0 Connected";
+            }
+        }
+
+        // Copy Clipboard API fallback method
+        function copyMyId() {
+            if (!myId) {
+                showToast("Generating ID...", "fa-circle-notch", "text-amber-400");
+                return;
+            }
+
+            const tempInput = document.createElement("input");
+            tempInput.value = myId;
+            document.body.appendChild(tempInput);
+            tempInput.select();
             
             try {
                 document.execCommand('copy');
-                document.getElementById('copy-btn-text').textContent = "Copied!";
-                setTimeout(() => {
-                    document.getElementById('copy-btn-text').textContent = "Room Code";
-                }, 1500);
-            } catch(e) {
-                console.error("Copy blocked");
+                showToast("Your Peer ID copied to clipboard!", "fa-circle-check", "text-rose-400");
+            } catch (err) {
+                console.error("Clipboard copy failed: ", err);
+                showToast("Failed to copy. Copy manually.", "fa-triangle-exclamation", "text-amber-500");
             }
-            document.body.removeChild(temp);
-        });
+            document.body.removeChild(tempInput);
+        }
 
-        // Disconnect
-        leaveRoomBtn.addEventListener('click', () => {
-            location.reload();
-        });
-
-        // Live Chat submission Form
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = chatInput.value.trim();
-            if (!text) return;
-
-            const chatLogs = [...(currentRoomState.chat || [])];
-            chatLogs.push({
-                uid: currentUser.uid,
-                sender: currentUser.displayName,
-                text: text,
-                timestamp: Date.now()
-            });
-
-            // Trim long list
-            if (chatLogs.length > 25) {
-                chatLogs.splice(0, chatLogs.length - 25);
-            }
-
-            await updateRoomDoc({ chat: chatLogs });
-            chatInput.value = '';
-            chatInput.focus();
-        });
-
-        // Media devices triggers
-        document.getElementById('toggle-camera').addEventListener('click', async () => {
-            const btn = document.getElementById('toggle-camera');
-            if (!isCameraActive) {
-                btn.className = "h-7 w-7 rounded bg-red-600 text-xs text-white flex items-center justify-center transition";
-                isCameraActive = true;
-                
-                // Try capturing media
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    streamVideoEl.srcObject = localStream;
-                    videoOverlayPlaceholder.classList.add('hidden');
-                } catch(err) {
-                    console.warn("Camera blocked inside sandboxed frame. Spawning high fidelity neon simulator broadcast bypass.", err);
-                    startMockCameraCanvas();
-                    const mockStream = mockFallbackCanvas.captureStream(30);
-                    streamVideoEl.srcObject = mockStream;
-                    videoOverlayPlaceholder.classList.add('hidden');
+        // Setup chat enter keyboard listener
+        function setupKeyboardInputHandler() {
+            document.getElementById('chatInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleChatSubmit();
                 }
-                showToast("Camera On", "Broadcast is streaming to lounge participants.");
-            } else {
-                btn.className = "h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition";
-                isCameraActive = false;
-                
-                if (localStream) {
-                    localStream.getTracks().forEach(t => t.stop());
-                    localStream = null;
-                }
-                stopMockCameraCanvas();
-                streamVideoEl.srcObject = null;
-                videoOverlayPlaceholder.classList.remove('hidden');
-                showToast("Camera Off", "Live video feed suspended.");
-            }
-        });
-
-        document.getElementById('toggle-mic').addEventListener('click', () => {
-            const btn = document.getElementById('toggle-mic');
-            if (!isMicActive) {
-                btn.className = "h-7 w-7 rounded bg-red-600 text-xs text-white flex items-center justify-center transition";
-                isMicActive = true;
-                showToast("Mic Active", "Audio streams are active.");
-            } else {
-                btn.className = "h-7 w-7 rounded bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-center transition";
-                isMicActive = false;
-                showToast("Mic Muted", "Audio track suspended.");
-            }
-        });
-
-        // Spawning mock players for direct interactive feedback
-        const botNames = ["Karthik 🚀", "Anjali ✨", "Suresh Kumar 🔥", "Priya Pillai ☕", "Manoj Kumar 💻"];
-        const mockTamilComments = [
-            "Tamil Nadu spin lounge super layout bro! 🔥",
-            "Clarity super ah irukku!",
-            "Jackpot name-la 200 chips bet pannirukken eppo spin aagum?",
-            "10s speed spin timing automatic ah nadakardhu semma feature!"
-        ];
-
-        simAddBotBtn.addEventListener('click', async () => {
-            const randomBotName = botNames[Math.floor(Math.random() * botNames.length)];
-            const botId = "sim-bot-" + Math.floor(Math.random() * 9000);
-
-            const players = [...(currentRoomState.players || [])];
-            if (players.some(p => p.displayName === randomBotName)) {
-                showToast("Duplicate Bot", `${randomBotName} has already entered the lounge.`);
-                return;
-            }
-
-            players.push({
-                uid: botId,
-                displayName: randomBotName,
-                chips: 1000
             });
+        }
 
-            // Put a mock bet automatically during betting period
-            const currentBets = [...(currentRoomState.bets || [])];
-            if (currentRoomState.status === 'joining' && slicesList.length > 0) {
-                const randomTarget = slicesList[Math.floor(Math.random() * slicesList.length)];
-                currentBets.push({
-                    uid: botId,
-                    displayName: randomBotName,
-                    target: randomTarget,
-                    chips: 100
-                });
-            }
+        // Toast display feedback system
+        function showToast(message, iconClass = "fa-circle-check", textThemeClass = "text-rose-500") {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toastMessage');
+            const iconNode = document.getElementById('toastIcon');
 
-            // Random bot tamil comment trigger
-            const chatLogs = [...(currentRoomState.chat || [])];
-            const botMsg = mockTamilComments[Math.floor(Math.random() * mockTamilComments.length)];
-            chatLogs.push({
-                uid: botId,
-                sender: randomBotName,
-                text: botMsg,
-                timestamp: Date.now()
-            });
+            msgSpan.innerText = message;
+            iconNode.className = `fa-solid ${iconClass} ${textThemeClass}`;
 
-            await updateRoomDoc({
-                players: players,
-                bets: currentBets,
-                chat: chatLogs
-            });
+            // Make visual
+            toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-slate-800 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-0 opacity-100 flex items-center gap-2.5 z-50";
 
-            showToast("Bot Joined Lobby", `${randomBotName} connected and placed a 100 chip bet!`);
-            playSynthBeep(650, 'triangle', 0.12);
-        });
+            setTimeout(() => {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-slate-800 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-2.5 z-50";
+            }, 3000);
+        }
 
-        // Simulate instant host skip to spin wheel
-        simTriggerRoundBtn.addEventListener('click', () => {
-            if (currentRoomState.status === 'joining') {
-                triggerSynchronizedSpin();
-            } else {
-                showToast("Action Locked", "Round state is already running.");
-            }
-        });
-
-        // App boot initiation triggers
-        authenticateAndSetup();
-        drawWheel(0);
-
+        // Modal triggers
+        function showInstructions() {
+            document.getElementById('instructionsModal').classList.remove('hidden');
+        }
+        function closeInstructions() {
+            document.getElementById('instructionsModal').classList.add('hidden');
+        }
     </script>
 </body>
 </html>
