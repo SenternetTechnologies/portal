@@ -4,134 +4,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTERNET V-Connect | Professional WebRTC Video Conferencing</title>
-    <link rel="icon" type="image/png" href="https://picsum.photos/32/32">
+    <title>SENTERNET V-Connect Pro | High-Performance WebRTC Video Call</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Premium Icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- PeerJS CDN -->
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        .gradient-brand {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
         }
-        .video-container {
+        .video-box {
             position: relative;
-            background-color: #1e293b;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            aspect-ratio: 16 / 9;
-        }
-        .local-video-pip {
-            position: absolute;
-            bottom: 1rem;
-            right: 1rem;
-            width: 25%;
-            aspect-ratio: 16 / 9;
-            border-radius: 0.5rem;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            z-index: 10;
             background-color: #0f172a;
-            object-fit: cover;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
+        }
+        .local-pip {
+            position: absolute;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            width: 160px;
+            aspect-ratio: 4 / 3;
+            border-radius: 1rem;
+            border: 3px solid #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            background-color: #1e293b;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror local view */
         }
     </style>
 </head>
-<body class="gradient-bg min-h-screen text-slate-800 font-sans flex flex-col justify-between">
+<body class="gradient-brand min-h-screen text-slate-800 font-sans flex flex-col justify-between">
 
-    <!-- Top Navbar -->
+    <!-- Navbar Section -->
     <header class="bg-white border-b border-slate-200/80 px-6 py-4 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200">
-                    <i class="fa-solid fa-video text-xl"></i>
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid fa-circle-nodes text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-xl tracking-tight text-slate-900">SENTERNET <span class="text-indigo-600">V-Connect</span></h1>
-                    <p class="text-xs text-slate-500 font-medium">Enterprise-Grade WebRTC Calling Platform</p>
+                    <h1 class="font-extrabold text-xl tracking-tight text-slate-900">SENTERNET <span class="text-indigo-600">V-Connect Pro</span></h1>
+                    <p class="text-xs text-slate-500 font-bold">STUN-Traversed Enterprise WebRTC Engine</p>
                 </div>
             </div>
-            <!-- Peer Connection Status Indicator -->
-            <div id="connectionStatus" class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 px-3.5 py-1.5 rounded-full text-xs font-semibold">
-                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                Connecting to Network...
+            
+            <div id="connectionStatus" class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-1.5 rounded-full text-xs font-bold">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                WebRTC Engine Initializing...
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Container -->
-    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 flex-grow flex flex-col justify-center items-center">
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-grow flex flex-col justify-center items-center gap-6">
         
-        <!-- ================= LOBBY & JOIN SCREEN ================= -->
-        <div id="lobbyScreen" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-10 transition-all duration-300">
+        <!-- Real-time Diagnostics Log Bar (Crucial for Debugging) -->
+        <div class="w-full max-w-4xl bg-slate-900 text-slate-300 rounded-xl p-3 text-xs font-mono shadow-inner border border-slate-800 flex flex-col gap-1">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-1.5">
+                <span class="text-indigo-400 font-bold"><i class="fa-solid fa-bug mr-1"></i> WebRTC Connection Live Logs</span>
+                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">Diag Mode</span>
+            </div>
+            <div id="diagnosticsLog" class="max-h-24 overflow-y-auto space-y-1">
+                <div>[System] Initializing SENTERNET WebRTC instance...</div>
+            </div>
+        </div>
+
+        <!-- ================= LOBBY SCREEN ================= -->
+        <div id="lobbyScreen" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 transition-all duration-300">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <!-- Left Column: Camera Preview and Device Checks -->
-                <div class="lg:col-span-7 flex flex-col justify-between gap-4">
+                <!-- Left: Preview Cam -->
+                <div class="lg:col-span-7 flex flex-col gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-950 mb-1">Join Video Call</h2>
-                        <p class="text-slate-500 text-sm mb-4">Verify your audio & video before joining your professional room session.</p>
+                        <h2 class="text-xl font-bold text-slate-950">Setup Your Video Feed</h2>
+                        <p class="text-slate-500 text-xs">Allow your browser camera and mic permissions to stream seamlessly.</p>
                     </div>
 
-                    <!-- Video Preview Panel -->
-                    <div class="relative w-full aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-                        <video id="lobbyPreviewVideo" autoplay muted playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
-                        <div id="cameraOffPlaceholder" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-slate-400 gap-3 hidden">
+                    <div class="relative w-full aspect-video bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+                        <video id="lobbyPreview" autoplay muted playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
+                        <div id="lobbyCamOff" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-500 gap-3 hidden">
                             <i class="fa-solid fa-video-slash text-4xl"></i>
-                            <span class="text-sm font-medium">Your Camera is Muted</span>
+                            <span class="text-xs font-bold">Camera Stream Muted</span>
                         </div>
-                        
-                        <!-- Mini Preview Overlays -->
-                        <div class="absolute bottom-3 left-3 flex gap-2">
-                            <button id="toggleLobbyCamBtn" class="bg-white/90 hover:bg-white text-slate-800 p-2.5 rounded-lg shadow-sm transition-all text-xs font-semibold flex items-center gap-1.5">
-                                <i id="lobbyCamIcon" class="fa-solid fa-video"></i> Camera
-                            </button>
-                            <button id="toggleLobbyMicBtn" class="bg-white/90 hover:bg-white text-slate-800 p-2.5 rounded-lg shadow-sm transition-all text-xs font-semibold flex items-center gap-1.5">
-                                <i id="lobbyMicIcon" class="fa-solid fa-microphone"></i> Mic
-                            </button>
-                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="lobbyCamToggle" onclick="toggleLobbyCam()" class="flex-grow bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                            <i id="lobbyCamIcon" class="fa-solid fa-video text-emerald-600"></i> Toggle Camera
+                        </button>
+                        <button id="lobbyMicToggle" onclick="toggleLobbyMic()" class="flex-grow bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                            <i id="lobbyMicIcon" class="fa-solid fa-microphone text-emerald-600"></i> Toggle Microphone
+                        </button>
                     </div>
                 </div>
 
-                <!-- Right Column: Room Creation & Connection Controls -->
+                <!-- Right: Calling Panel -->
                 <div class="lg:col-span-5 flex flex-col justify-center gap-6 border-t lg:border-t-0 lg:border-l border-slate-100 pt-6 lg:pt-0 lg:pl-8">
                     
-                    <!-- Peer ID Initialization Notice -->
-                    <div class="bg-indigo-50/50 border border-indigo-100/80 rounded-xl p-4">
-                        <span class="text-xs text-indigo-700 font-bold uppercase tracking-wider">Your Live Calling ID</span>
-                        <div class="flex items-center gap-2 mt-1">
-                            <input id="myPeerIdDisplay" type="text" readonly class="bg-white text-slate-700 font-mono text-sm border border-indigo-200/60 rounded-lg px-3 py-1.5 w-full font-semibold focus:outline-none" value="Generating ID...">
-                            <button onclick="copyMyId()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg transition-colors shadow-sm" title="Copy calling ID">
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                        <span class="text-[10px] text-indigo-700 font-extrabold uppercase tracking-wider block mb-1">Your Connection Peer ID</span>
+                        <div class="flex gap-2">
+                            <input id="myPeerIdField" type="text" readonly class="bg-white text-slate-800 font-mono text-xs border border-indigo-200 rounded-lg px-3 py-2 w-full font-bold focus:outline-none" value="Acquiring ID...">
+                            <button onclick="copyMyPeerId()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 rounded-lg transition-colors flex items-center justify-center" title="Copy Connection ID">
                                 <i class="fa-regular fa-copy"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="space-y-4">
-                        <!-- Action 1: Create a Brand New Room -->
                         <div>
-                            <span class="block text-sm font-bold text-slate-700 mb-2">Create & Share</span>
-                            <button onclick="createRoom()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-plus"></i> Create Instant Room
+                            <span class="block text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">Option A: Host Call</span>
+                            <button onclick="hostMeetingRoom()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-phone"></i> Create and Await Connection
                             </button>
                         </div>
 
-                        <div class="relative flex py-2 items-center">
+                        <div class="relative flex py-1 items-center">
                             <div class="flex-grow border-t border-slate-200"></div>
-                            <span class="flex-shrink mx-4 text-slate-400 text-xs uppercase font-extrabold tracking-wider">OR JOIN</span>
+                            <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold tracking-wider">OR DIAL OUT</span>
                             <div class="flex-grow border-t border-slate-200"></div>
                         </div>
 
-                        <!-- Action 2: Connect to existing peer ID -->
                         <div class="space-y-2">
-                            <label for="targetPeerId" class="block text-sm font-bold text-slate-700">Enter Host Calling ID</label>
+                            <span class="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">Option B: Connect Peer</span>
                             <div class="flex gap-2">
-                                <input id="targetPeerId" type="text" placeholder="Paste your friend's ID" class="border border-slate-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-xl px-4 py-2.5 text-sm w-full font-mono outline-none transition-all">
-                                <button onclick="connectToPeer()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold px-5 rounded-xl transition-all shadow-md shadow-emerald-200 flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-phone"></i> Call
+                                <input id="targetPeerId" type="text" placeholder="Paste Remote Call ID here" class="border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs w-full font-mono outline-none transition-all">
+                                <button onclick="dialOutgoingPeer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs">
+                                    <i class="fa-solid fa-link"></i> Connect
                                 </button>
                             </div>
                         </div>
@@ -142,573 +147,385 @@
         </div>
 
         <!-- ================= ACTIVE CALL SYSTEM ================= -->
-        <div id="callContainer" class="w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col lg:flex-row transition-all duration-300 hidden">
+        <div id="callScreen" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col hidden transition-all duration-300">
             
-            <!-- Call Area (Video Streams) -->
-            <div class="flex-grow p-4 sm:p-6 flex flex-col justify-between gap-4">
+            <!-- Video Stage -->
+            <div class="p-4 sm:p-6 flex-grow flex flex-col gap-4">
                 
-                <!-- Dynamic Meeting Header -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Call Active
-                            </span>
-                            <span id="callPartnerLabel" class="text-sm font-semibold text-slate-600 font-mono">Host Mode</span>
-                        </div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Active WebRTC Call
+                        </span>
+                        <span id="partnerStatusLabel" class="text-xs font-mono font-bold text-slate-500">Connecting media pipeline...</span>
                     </div>
-                    
-                    <!-- Fast Copy Invite ID -->
-                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-200/80 rounded-lg p-1 max-w-xs">
-                        <span class="text-xs font-mono text-slate-500 px-2 truncate" id="roomShareId">ID: ...</span>
-                        <button onclick="copyRoomId()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-md font-bold transition-all flex items-center gap-1">
-                            <i class="fa-solid fa-copy"></i> Copy Link
+
+                    <!-- Room ID Share -->
+                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                        <span class="text-[10px] font-mono text-slate-500 px-2" id="shareRoomLabel">ID: ...</span>
+                        <button onclick="copyShareLink()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2.5 py-1 rounded font-bold transition-all">
+                            Copy ID
                         </button>
                     </div>
                 </div>
 
-                <!-- Video Grid Area -->
-                <div class="video-container flex-grow relative">
-                    <!-- Remote Video (Fills Screen) -->
-                    <video id="remoteVideo" autoplay class="w-full h-full object-cover" playsinline></video>
+                <div class="video-box flex-grow aspect-video relative">
+                    <!-- Remote Video Frame -->
+                    <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
                     
-                    <!-- Call Connected Watermark / Splash screen before stream arrives -->
-                    <div id="remotePlaceholder" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-slate-400 gap-4">
-                        <div class="w-16 h-16 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
-                        <p class="text-sm font-semibold tracking-wide">Waiting for peer stream to connect...</p>
+                    <!-- Pre-Call Overlay Loader -->
+                    <div id="remoteStreamLoader" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-slate-400 gap-3 z-10">
+                        <div class="w-10 h-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                        <p class="text-xs font-bold text-slate-300">Awaiting stream packets from Peer...</p>
                     </div>
 
-                    <!-- Local Video Screen-in-Screen (PIP) -->
-                    <video id="localVideo" autoplay muted playsinline class="local-video-pip"></video>
+                    <!-- Local PIP Video Stream -->
+                    <video id="localVideo" autoplay muted playsinline class="local-pip"></video>
                 </div>
 
-                <!-- Interactive Media Bar Controls -->
-                <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-4 py-2 border-t border-slate-100 mt-2">
-                    <!-- Toggle Video Option -->
-                    <button id="btnToggleVideo" onclick="toggleLocalVideo()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all" title="Toggle Camera">
-                        <i id="controlCamIcon" class="fa-solid fa-video text-lg"></i>
+                <!-- Call Actions Toolbar -->
+                <div class="flex justify-center items-center gap-4 py-2 border-t border-slate-100 mt-2">
+                    <button id="callCamToggle" onclick="toggleActiveCallCam()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-11 h-11 rounded-xl flex items-center justify-center transition-all" title="Toggle Cam">
+                        <i id="callCamIcon" class="fa-solid fa-video text-base"></i>
+                    </button>
+                    
+                    <button id="callMicToggle" onclick="toggleActiveCallMic()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-11 h-11 rounded-xl flex items-center justify-center transition-all" title="Toggle Mic">
+                        <i id="callMicIcon" class="fa-solid fa-microphone text-base"></i>
                     </button>
 
-                    <!-- Toggle Audio Option -->
-                    <button id="btnToggleAudio" onclick="toggleLocalAudio()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all" title="Toggle Mic">
-                        <i id="controlMicIcon" class="fa-solid fa-microphone text-lg"></i>
-                    </button>
+                    <span class="w-px h-6 bg-slate-200"></span>
 
-                    <!-- Screen Share Option -->
-                    <button id="btnScreenShare" onclick="toggleScreenShare()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all" title="Share Screen">
-                        <i id="controlScreenIcon" class="fa-solid fa-desktop text-lg"></i>
-                    </button>
-
-                    <!-- Toggle Chat Panel on Mobile -->
-                    <button id="btnToggleChat" onclick="toggleChatPanel()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all lg:hidden" title="Toggle Chat">
-                        <i class="fa-solid fa-message text-lg"></i>
-                    </button>
-
-                    <span class="w-px h-8 bg-slate-200 mx-2"></span>
-
-                    <!-- End Connection/Leave Call -->
-                    <button onclick="hangUp()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-rose-200">
-                        <i class="fa-solid fa-phone-slash"></i> Hang Up
+                    <button onclick="terminateActiveCall()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-rose-200 text-xs uppercase">
+                        <i class="fa-solid fa-phone-slash"></i> Terminate Call
                     </button>
                 </div>
 
             </div>
-
-            <!-- Instant Chat Sidebar Interface -->
-            <div id="chatSidebar" class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-slate-100 bg-slate-50/50 flex flex-col justify-between h-[450px] lg:h-auto">
-                <div class="p-4 border-b border-slate-100 bg-white flex justify-between items-center">
-                    <span class="font-bold text-slate-800 text-sm tracking-wide flex items-center gap-2">
-                        <i class="fa-solid fa-comments text-indigo-600"></i> Room Messages
-                    </span>
-                    <button onclick="toggleChatPanel()" class="text-slate-400 hover:text-slate-600 lg:hidden">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <!-- Chat Messages Feed -->
-                <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-3 flex flex-col text-sm max-h-[350px] lg:max-h-none">
-                    <div class="text-center text-xs text-slate-400 font-medium my-2">
-                        Peer connection chats are secured & end-to-end peer encrypted.
-                    </div>
-                </div>
-
-                <!-- Chat Input Controller -->
-                <div class="p-3 border-t border-slate-100 bg-white">
-                    <form id="chatForm" onsubmit="sendChatMessage(event)" class="flex gap-2">
-                        <input id="chatInput" type="text" placeholder="Type a message..." autocomplete="off" class="border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm w-full outline-none transition-all">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-lg transition-colors flex items-center justify-center shadow-sm">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
         </div>
 
     </main>
 
-    <!-- Custom Notification Toast/System -->
-    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl flex items-center gap-3 shadow-lg">
+    <!-- Interactive Toast Banner -->
+    <div id="customToast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-950 text-white px-5 py-3 rounded-xl flex items-center gap-3 shadow-lg">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
-        <span id="toastMessage" class="text-xs font-semibold">Action Successful</span>
+        <span id="toastText" class="text-xs font-bold">Standard Alert Triggered</span>
     </div>
 
-    <!-- Senternet Technologies Signature Footer -->
-    <footer class="bg-white border-t border-slate-200/80 px-6 py-5 text-center text-xs text-slate-500 font-semibold tracking-wide">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <!-- SENTERNET Footer signature -->
+    <footer class="bg-white border-t border-slate-200/80 px-6 py-4 text-center text-xs text-slate-500 font-semibold tracking-wide">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
             <p>© 2026 <span class="text-indigo-600">SENTERNET TECHNOLOGIES</span>, Aranthangi. All rights reserved.</p>
-            <div class="flex items-center gap-5">
-                <a href="https://rebrand.ly/senternet" target="_blank" class="hover:text-indigo-600 transition-colors">Website</a>
+            <div class="flex items-center gap-4">
+                <a href="mailto:senternettechnologies@gmail.com" class="hover:text-indigo-600 transition-colors">Developer Help Desk</a>
                 <span>•</span>
-                <a href="mailto:senternettechnologies@gmail.com" class="hover:text-indigo-600 transition-colors">Support Desk</a>
-                <span>•</span>
-                <a href="https://wa.me/918190038085" target="_blank" class="text-emerald-600 font-bold hover:underline transition-all">
-                    <i class="fa-brands fa-whatsapp"></i> Chat Support: +91 81900 38085
+                <a href="https://wa.me/918190038085" target="_blank" class="text-emerald-600 font-bold hover:underline">
+                    <i class="fa-brands fa-whatsapp"></i> Chat Developer: +91 81900 38085
                 </a>
             </div>
         </div>
     </footer>
 
-    <!-- JavaScript Logic Handling WebRTC Web Application -->
+    <!-- Video Calling Logic JS Script -->
     <script>
-        // App Core State
-        let localStream = null;
-        let remoteStream = null;
-        let peer = null;
-        let activeCall = null;
-        let activeConn = null; // Data Connection for Messaging
-        let myPeerId = null;
-        let screenStream = null;
+        // WebRTC Global State Properties
+        let localMediaStream = null;
+        let remoteMediaStream = null;
+        let peerInstance = null;
+        let callConnection = null;
+        let currentPeerId = null;
 
-        // Camera/Mic Toggles
-        let videoEnabled = true;
-        let audioEnabled = true;
+        // Dev/Lobby Toggle states
+        let lobbyVideoEnabled = true;
+        let lobbyAudioEnabled = true;
+        let callVideoEnabled = true;
+        let callAudioEnabled = true;
 
-        // UI References
-        const lobbyScreen = document.getElementById('lobbyScreen');
-        const callContainer = document.getElementById('callContainer');
-        const lobbyPreviewVideo = document.getElementById('lobbyPreviewVideo');
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const myPeerIdDisplay = document.getElementById('myPeerIdDisplay');
-        const targetPeerIdInput = document.getElementById('targetPeerId');
-        const roomShareId = document.getElementById('roomShareId');
+        // DOM Cache References
+        const diagLogContainer = document.getElementById('diagnosticsLog');
         const connectionStatus = document.getElementById('connectionStatus');
-        const remotePlaceholder = document.getElementById('remotePlaceholder');
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const cameraOffPlaceholder = document.getElementById('cameraOffPlaceholder');
-        const toggleLobbyCamBtn = document.getElementById('toggleLobbyCamBtn');
-        const toggleLobbyMicBtn = document.getElementById('toggleLobbyMicBtn');
-        const lobbyCamIcon = document.getElementById('lobbyCamIcon');
-        const lobbyMicIcon = document.getElementById('lobbyMicIcon');
-        const chatSidebar = document.getElementById('chatSidebar');
+        const lobbyScreen = document.getElementById('lobbyScreen');
+        const callScreen = document.getElementById('callScreen');
+        
+        const lobbyPreviewVideo = document.getElementById('lobbyPreview');
+        const localVideoFrame = document.getElementById('localVideo');
+        const remoteVideoFrame = document.getElementById('remoteVideo');
+        
+        const myPeerIdField = document.getElementById('myPeerIdField');
+        const targetPeerIdInput = document.getElementById('targetPeerId');
+        const shareRoomLabel = document.getElementById('shareRoomLabel');
+        const partnerStatusLabel = document.getElementById('partnerStatusLabel');
+        const remoteStreamLoader = document.getElementById('remoteStreamLoader');
 
-        // Setup Lobby Preview On Load
-        window.addEventListener('load', async () => {
-            await startLobbyMedia();
-            initPeer();
-        });
+        // Log diagnostics directly on the application screen UI
+        function logDiag(message) {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-slate-500">[${time}]</span> ${message}`;
+            diagLogContainer.appendChild(logEntry);
+            diagLogContainer.scrollTop = diagLogContainer.scrollHeight;
+            console.log(`[WebRTC-Diag] ${message}`);
+        }
 
-        // Acquire Local Media for Preview
-        async function startLobbyMedia() {
+        // Initialize User's Media stream (Camera & Mic)
+        async function captureUserMedia() {
+            logDiag("Requesting user device permissions (Video/Audio)...");
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 1280, height: 720, facingMode: "user" },
-                    audio: true
+                // Enforce proper constraints for smooth call
+                localMediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    }
                 });
-                lobbyPreviewVideo.srcObject = localStream;
-                localVideo.srcObject = localStream;
-            } catch (err) {
-                console.error("Camera access denied or missing media components:", err);
-                showToast("Please allow camera and mic permissions to run video call app.", "fa-solid fa-triangle-exclamation", "text-rose-400");
+                
+                logDiag("Camera & Audio devices acquired successfully.");
+                lobbyPreviewVideo.srcObject = localMediaStream;
+                localVideoFrame.srcObject = localMediaStream;
+            } catch (error) {
+                logDiag(`Permission Error: ${error.message}`);
+                showToast("Camera/Mic access denied. Enable permissions!", "fa-solid fa-triangle-exclamation", "text-rose-500");
             }
         }
 
-        // Initialize PeerJS Connection Setup
-        function initPeer() {
-            // Initiate unique Peer instance using PeerJS Cloud service infrastructure
-            peer = new Peer(null, {
-                debug: 2
-            });
-
-            peer.on('open', (id) => {
-                myPeerId = id;
-                myPeerIdDisplay.value = id;
-                roomShareId.innerText = `Call ID: ${id}`;
-                
-                // Update Network indicator
-                connectionStatus.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Live Online: Peer Cloud Secure
-                `;
-                connectionStatus.className = "flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3.5 py-1.5 rounded-full text-xs font-semibold";
-            });
-
-            // Handle Incoming Connection Request (Audio/Video Call)
-            peer.on('call', (incomingCall) => {
-                console.log("Receiving call from peer:", incomingCall.peer);
-                
-                // Set stream before answering
-                incomingCall.answer(localStream);
-                handleCallStreamEvents(incomingCall);
-            });
-
-            // Handle Incoming Text Chat connection
-            peer.on('connection', (conn) => {
-                activeConn = conn;
-                handleDataConnectionEvents(conn);
-            });
-
-            peer.on('error', (err) => {
-                console.error("PeerJS setup error:", err);
-                showToast("Connection Error occurred. Reconnecting...", "fa-solid fa-circle-exclamation", "text-rose-500");
-                connectionStatus.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    Connection Failure
-                `;
-                connectionStatus.className = "flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-1.5 rounded-full text-xs font-semibold";
-            });
-        }
-
-        // Host a Room (Creating state trigger)
-        function createRoom() {
-            if (!myPeerId) {
-                showToast("Generating Peer network. Try again in a second...", "fa-solid fa-circle-notch animate-spin", "text-amber-500");
-                return;
-            }
+        // Build Connection to Peer Cloud with Advanced ICE stun servers
+        function setupPeerNetwork() {
+            logDiag("Connecting to SENTERNET Peer Traversal Network...");
             
-            // Switch screen and wait for caller
-            switchToCallScreen("Host System Waiting");
-            showToast("Instant Room Created! Invite someone using your ID.", "fa-solid fa-circle-check", "text-emerald-500");
-        }
-
-        // Connect/Call a specific Peer Client ID
-        function connectToPeer() {
-            const targetId = targetPeerIdInput.value.trim();
-            if (!targetId) {
-                showToast("Please enter a valid Host Call ID to join", "fa-solid fa-triangle-exclamation", "text-amber-500");
-                return;
-            }
-
-            if (targetId === myPeerId) {
-                showToast("You cannot dial your own system client ID.", "fa-solid fa-circle-exclamation", "text-rose-400");
-                return;
-            }
-
-            // Start Audio/Video Dial Connection
-            const call = peer.call(targetId, localStream);
-            handleCallStreamEvents(call);
-
-            // Establish Text Messaging Connection alongside WebRTC Media
-            const conn = peer.connect(targetId);
-            activeConn = conn;
-            handleDataConnectionEvents(conn);
-
-            switchToCallScreen(`Connected to: ${targetId}`);
-            showToast("Calling Peer Host...", "fa-solid fa-phone-flip animate-pulse", "text-indigo-400");
-        }
-
-        // Manage Media Calling Streaming Event Handlers
-        function handleCallStreamEvents(call) {
-            activeCall = call;
-
-            call.on('stream', (stream) => {
-                console.log("Received remote stream.");
-                remoteStream = stream;
-                remoteVideo.srcObject = stream;
-                
-                // Hide Stream Pending loader once remote video begins
-                remotePlaceholder.classList.add('hidden');
-                showToast("Secure connection successfully established!", "fa-solid fa-shield-halved", "text-emerald-500");
+            // Initializing PeerJS with explicitly configured Google STUN servers for NAT Traversal
+            peerInstance = new Peer(null, {
+                debug: 2,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
+                    ],
+                    sdpSemantics: 'unified-plan'
+                }
             });
 
+            peerInstance.on('open', (id) => {
+                currentPeerId = id;
+                myPeerIdField.value = id;
+                shareRoomLabel.innerText = `Call ID: ${id}`;
+                logDiag(`Peer Network Ready. Assumed ID: ${id}`);
+                
+                connectionStatus.innerHTML = `
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Ready for Peer Communication
+                `;
+                connectionStatus.className = "flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-bold";
+            });
+
+            // Triggered when another user is dialling this ID
+            peerInstance.on('call', (incomingCall) => {
+                logDiag(`Receiving incoming WebRTC connection from: ${incomingCall.peer}`);
+                
+                // Switch call screen, show waiting, auto-answer call with local stream
+                switchUiToCall();
+                partnerStatusLabel.innerText = `Connecting with caller...`;
+                
+                incomingCall.answer(localMediaStream);
+                bindCallStreamEvents(incomingCall);
+            });
+
+            peerInstance.on('error', (err) => {
+                logDiag(`PeerInstance Error Encountered: ${err.type} - ${err.message}`);
+                showToast(`Network Error: ${err.type}`, "fa-solid fa-circle-exclamation", "text-rose-400");
+            });
+
+            peerInstance.on('disconnected', () => {
+                logDiag("Disconnected from Peer Server. Attempting reconnection...");
+                peerInstance.reconnect();
+            });
+        }
+
+        // Connect media tracks and event handlers
+        function bindCallStreamEvents(call) {
+            callConnection = call;
+
+            call.on('stream', (remoteStream) => {
+                logDiag("Success! Remote video/audio stream packets received.");
+                remoteMediaStream = remoteStream;
+                remoteVideoFrame.srcObject = remoteStream;
+                
+                // Remove waiting loading layout and show active partner view
+                remoteStreamLoader.classList.add('hidden');
+                partnerStatusLabel.innerText = `Connected to: ${call.peer}`;
+                showToast("Video Connection Secured!", "fa-solid fa-lock", "text-emerald-400");
+            });
+
+            // Fire events if connection closes/drops
             call.on('close', () => {
-                resetCallUI();
+                logDiag("Call connection closed by peer.");
+                teardownCurrentCall();
             });
 
             call.on('error', (err) => {
-                console.error("Media call stream encountered errors:", err);
-                resetCallUI();
+                logDiag(`Stream Connection Error: ${err.message}`);
+                teardownCurrentCall();
             });
         }
 
-        // Handle Chat Data Event Connection Triggers
-        function handleDataConnectionEvents(conn) {
-            conn.on('open', () => {
-                console.log("Chat connection channel opened.");
-            });
-
-            conn.on('data', (data) => {
-                if (data.type === 'chat') {
-                    appendMessage("Guest", data.message, "bg-slate-100 text-slate-800 self-start");
-                }
-            });
-
-            conn.on('close', () => {
-                showToast("Peer has ended or dropped calling session", "fa-solid fa-circle-exclamation", "text-amber-500");
-            });
+        // Host room mode action
+        function hostMeetingRoom() {
+            if (!currentPeerId) {
+                showToast("Generating ID, please wait a second...", "fa-solid fa-hourglass-start animate-spin", "text-amber-500");
+                return;
+            }
+            switchUiToCall();
+            partnerStatusLabel.innerText = "Host Mode: Awaiting callers...";
+            logDiag("Waiting for peer to initiate video feed...");
         }
 
-        // Append Chat message bubble to view screen
-        function appendMessage(sender, text, classes) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow-sm flex flex-col ${classes}`;
+        // Dial an outgoing peer call
+        function dialOutgoingPeer() {
+            const remoteId = targetPeerIdInput.value.trim();
+            if (!remoteId) {
+                showToast("Input valid remote client ID!", "fa-solid fa-triangle-exclamation", "text-amber-500");
+                return;
+            }
+
+            if (remoteId === currentPeerId) {
+                showToast("Cannot dial your own local Peer ID!", "fa-solid fa-circle-exclamation", "text-rose-400");
+                return;
+            }
+
+            logDiag(`Dialling out to Remote Peer ID: ${remoteId}`);
+            switchUiToCall();
+            partnerStatusLabel.innerText = `Dialling ID: ${remoteId}`;
+
+            // Make WebRTC call passing local camera & mic stream
+            const outgoingCall = peerInstance.call(remoteId, localMediaStream);
+            bindCallStreamEvents(outgoingCall);
+        }
+
+        // Stop call tracks and return back to Lobby interface
+        function teardownCurrentCall() {
+            logDiag("Teardown active WebRTC call. Purging streams...");
             
-            const senderSpan = document.createElement('span');
-            senderSpan.className = "font-bold tracking-wide uppercase text-[9px] mb-1 text-indigo-700 block";
-            senderSpan.innerText = sender;
-
-            const textSpan = document.createElement('span');
-            textSpan.className = "font-medium break-all";
-            textSpan.innerText = text;
-
-            msgDiv.appendChild(senderSpan);
-            msgDiv.appendChild(textSpan);
-            chatMessages.appendChild(msgDiv);
-            
-            // Auto-scroll chat board
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Send Outgoing Chat Messages
-        function sendChatMessage(event) {
-            event.preventDefault();
-            const text = chatInput.value.trim();
-            if (!text) return;
-
-            if (activeConn && activeConn.open) {
-                activeConn.send({
-                    type: 'chat',
-                    message: text
-                });
-                appendMessage("You", text, "bg-indigo-600 text-white self-end items-end");
-                chatInput.value = "";
-            } else {
-                showToast("Chat channel offline. Connect with peer first.", "fa-solid fa-triangle-exclamation", "text-rose-500");
-            }
-        }
-
-        // Media Control 1: Toggle Mic (Mute Audio)
-        function toggleLocalAudio() {
-            audioEnabled = !audioEnabled;
-            if (localStream) {
-                localStream.getAudioTracks().forEach(track => {
-                    track.enabled = audioEnabled;
-                });
-            }
-            
-            // Update Control Icon UI Styling
-            const btn = document.getElementById('btnToggleAudio');
-            const icon = document.getElementById('controlMicIcon');
-            if (audioEnabled) {
-                btn.className = "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all";
-                icon.className = "fa-solid fa-microphone text-lg";
-                showToast("Microphone is unmuted", "fa-solid fa-microphone", "text-indigo-500");
-            } else {
-                btn.className = "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all";
-                icon.className = "fa-solid fa-microphone-slash text-lg";
-                showToast("Microphone is muted", "fa-solid fa-microphone-slash", "text-rose-500");
-            }
-        }
-
-        // Media Control 2: Toggle Cam (Video On/Off)
-        function toggleLocalVideo() {
-            videoEnabled = !videoEnabled;
-            if (localStream) {
-                localStream.getVideoTracks().forEach(track => {
-                    track.enabled = videoEnabled;
-                });
+            if (callConnection) {
+                callConnection.close();
+                callConnection = null;
             }
 
-            // Update Control Icon UI Styling
-            const btn = document.getElementById('btnToggleVideo');
-            const icon = document.getElementById('controlCamIcon');
-            if (videoEnabled) {
-                btn.className = "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all";
-                icon.className = "fa-solid fa-video text-lg";
-                showToast("Camera stream is resumed", "fa-solid fa-video", "text-indigo-500");
-            } else {
-                btn.className = "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all";
-                icon.className = "fa-solid fa-video-slash text-lg";
-                showToast("Camera stream stopped", "fa-solid fa-video-slash", "text-rose-500");
-            }
-        }
-
-        // Media Control 3: Screen Sharing Integration
-        async function toggleScreenShare() {
-            const screenBtn = document.getElementById('btnScreenShare');
-            const screenIcon = document.getElementById('controlScreenIcon');
-
-            if (!screenStream) {
-                try {
-                    // Request screen capture permissions on browser level
-                    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                    
-                    // Replace video track in current active peer stream
-                    const videoTrack = screenStream.getVideoTracks()[0];
-                    
-                    if (activeCall) {
-                        const sender = activeCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
-                        if (sender) sender.replaceTrack(videoTrack);
-                    }
-
-                    // Update UI Preview Locally
-                    localVideo.srcObject = screenStream;
-
-                    // Handle Screen Share ending via default browser popup bar
-                    videoTrack.onended = () => {
-                        stopScreenShare();
-                    };
-
-                    screenBtn.className = "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all";
-                    screenIcon.className = "fa-solid fa-stop text-lg";
-                    showToast("Screen sharing session started", "fa-solid fa-desktop", "text-emerald-500");
-
-                } catch (err) {
-                    console.error("Error securing display media: ", err);
-                    showToast("Screen Share canceled or not permitted", "fa-solid fa-circle-exclamation", "text-rose-400");
-                }
-            } else {
-                stopScreenShare();
-            }
-        }
-
-        // Gracefully stop sharing screen & recover system camera stream
-        function stopScreenShare() {
-            if (screenStream) {
-                screenStream.getTracks().forEach(track => track.stop());
-                screenStream = null;
-            }
-
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (activeCall) {
-                const sender = activeCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
-                if (sender) sender.replaceTrack(videoTrack);
-            }
-
-            localVideo.srcObject = localStream;
-
-            const screenBtn = document.getElementById('btnScreenShare');
-            const screenIcon = document.getElementById('controlScreenIcon');
-            screenBtn.className = "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 w-12 h-12 rounded-xl flex items-center justify-center transition-all";
-            screenIcon.className = "fa-solid fa-desktop text-lg";
-            showToast("Camera source restored", "fa-solid fa-video", "text-indigo-500");
-        }
-
-        // Lobby Preview Handlers (Before Dialing Call)
-        toggleLobbyCamBtn.addEventListener('click', () => {
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled;
-                if (videoTrack.enabled) {
-                    lobbyCamIcon.className = "fa-solid fa-video";
-                    cameraOffPlaceholder.classList.add('hidden');
-                    lobbyPreviewVideo.classList.remove('hidden');
-                } else {
-                    lobbyCamIcon.className = "fa-solid fa-video-slash text-rose-500";
-                    cameraOffPlaceholder.classList.remove('hidden');
-                    lobbyPreviewVideo.classList.add('hidden');
-                }
-            }
-        });
-
-        toggleLobbyMicBtn.addEventListener('click', () => {
-            const audioTrack = localStream.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = !audioTrack.enabled;
-                if (audioTrack.enabled) {
-                    lobbyMicIcon.className = "fa-solid fa-microphone";
-                } else {
-                    lobbyMicIcon.className = "fa-solid fa-microphone-slash text-rose-500";
-                }
-            }
-        });
-
-        // Toggle Chat Drawer Display on Mobile Interfaces
-        function toggleChatPanel() {
-            chatSidebar.classList.toggle('hidden');
-        }
-
-        // Switch App Layout State
-        function switchToCallScreen(partnerLabel) {
-            lobbyScreen.classList.add('hidden');
-            callContainer.classList.remove('hidden');
-            document.getElementById('callPartnerLabel').innerText = partnerLabel;
-        }
-
-        // Reset App to Lobby State when Call Ends
-        function resetCallUI() {
-            showToast("Calling session closed.", "fa-solid fa-phone-slash", "text-slate-400");
-            
-            // Close active system calls & messaging channels
-            if (activeCall) {
-                activeCall.close();
-                activeCall = null;
-            }
-            if (activeConn) {
-                activeConn.close();
-                activeConn = null;
-            }
-            if (screenStream) {
-                stopScreenShare();
-            }
-
-            remoteVideo.srcObject = null;
-            remotePlaceholder.classList.remove('hidden');
-            callContainer.classList.add('hidden');
+            remoteVideoFrame.srcObject = null;
+            remoteStreamLoader.classList.remove('hidden');
+            callScreen.classList.add('hidden');
             lobbyScreen.classList.remove('hidden');
-            chatMessages.innerHTML = `
-                <div class="text-center text-xs text-slate-400 font-medium my-2">
-                    Peer connection chats are secured & end-to-end peer encrypted.
-                </div>
-            `;
+            
+            partnerStatusLabel.innerText = "Connection inactive";
+            showToast("Video session closed.", "fa-solid fa-phone-slash", "text-slate-400");
         }
 
-        function hangUp() {
-            resetCallUI();
+        function terminateActiveCall() {
+            teardownCurrentCall();
         }
 
-        // Utilities: Clipboard Copy Helpers (iframe Secure Method)
-        function copyMyId() {
-            if (!myPeerId) return;
+        // UI Management Helpers
+        function switchUiToCall() {
+            lobbyScreen.classList.add('hidden');
+            callScreen.classList.remove('hidden');
+        }
+
+        // Lobby Cam/Mic Pre-set controls
+        function toggleLobbyCam() {
+            lobbyVideoEnabled = !lobbyVideoEnabled;
+            const videoTrack = localMediaStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = lobbyVideoEnabled;
+                document.getElementById('lobbyCamIcon').className = lobbyVideoEnabled ? "fa-solid fa-video text-emerald-600" : "fa-solid fa-video-slash text-rose-500";
+                document.getElementById('lobbyCamOff').classList.toggle('hidden', lobbyVideoEnabled);
+                lobbyPreviewVideo.classList.toggle('hidden', !lobbyVideoEnabled);
+                logDiag(`Lobby Camera ${lobbyVideoEnabled ? "enabled" : "muted"}`);
+            }
+        }
+
+        function toggleLobbyMic() {
+            lobbyAudioEnabled = !lobbyAudioEnabled;
+            const audioTrack = localMediaStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = lobbyAudioEnabled;
+                document.getElementById('lobbyMicIcon').className = lobbyAudioEnabled ? "fa-solid fa-microphone text-emerald-600" : "fa-solid fa-microphone-slash text-rose-500";
+                logDiag(`Lobby Microphone ${lobbyAudioEnabled ? "enabled" : "muted"}`);
+            }
+        }
+
+        // Active Call Media controls
+        function toggleActiveCallCam() {
+            callVideoEnabled = !callVideoEnabled;
+            const videoTrack = localMediaStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = callVideoEnabled;
+                document.getElementById('callCamIcon').className = callVideoEnabled ? "fa-solid fa-video text-base" : "fa-solid fa-video-slash text-base text-rose-500";
+                logDiag(`Active Call Camera ${callVideoEnabled ? "enabled" : "muted"}`);
+                showToast(`Camera ${callVideoEnabled ? "Enabled" : "Disabled"}`, "fa-solid fa-video", "text-indigo-400");
+            }
+        }
+
+        function toggleActiveCallMic() {
+            callAudioEnabled = !callAudioEnabled;
+            const audioTrack = localMediaStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = callAudioEnabled;
+                document.getElementById('callMicIcon').className = callAudioEnabled ? "fa-solid fa-microphone text-base" : "fa-solid fa-microphone-slash text-base text-rose-500";
+                logDiag(`Active Call Mic ${callAudioEnabled ? "enabled" : "muted"}`);
+                showToast(`Microphone ${callAudioEnabled ? "Enabled" : "Muted"}`, "fa-solid fa-microphone", "text-indigo-400");
+            }
+        }
+
+        // Copy ID to Clipboard (using iframe fallback safety method)
+        function copyMyPeerId() {
+            if (!currentPeerId) return;
             const input = document.createElement('input');
-            input.value = myPeerId;
+            input.value = currentPeerId;
             document.body.appendChild(input);
             input.select();
             document.execCommand('copy');
             document.body.removeChild(input);
-            showToast("My calling ID copied to clipboard!", "fa-regular fa-clipboard", "text-emerald-400");
+            showToast("Your Call ID Copied!", "fa-regular fa-clipboard", "text-emerald-400");
         }
 
-        function copyRoomId() {
-            if (!myPeerId) return;
+        function copyShareLink() {
+            if (!currentPeerId) return;
             const input = document.createElement('input');
-            input.value = myPeerId;
+            input.value = currentPeerId;
             document.body.appendChild(input);
             input.select();
             document.execCommand('copy');
             document.body.removeChild(input);
-            showToast("Room ID copied! Send to guest client.", "fa-regular fa-clipboard", "text-indigo-400");
+            showToast("Call room ID copied to clipboard!", "fa-regular fa-clipboard", "text-indigo-400");
         }
 
-        // Custom Dynamic Premium Toaster
+        // Toast Notification System
         function showToast(message, iconClass, colorClass) {
-            const toast = document.getElementById('toastNotification');
+            const toast = document.getElementById('customToast');
             const icon = document.getElementById('toastIcon');
-            const msg = document.getElementById('toastMessage');
+            const text = document.getElementById('toastText');
 
             icon.className = `${iconClass} ${colorClass}`;
-            msg.innerText = message;
+            text.innerText = message;
 
-            // Trigger Animation Slide In
-            toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl flex items-center gap-3 shadow-lg";
+            toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 bg-slate-950 text-white px-5 py-3 rounded-xl flex items-center gap-3 shadow-lg";
 
             setTimeout(() => {
-                // Trigger Slide Out
-                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl flex items-center gap-3 shadow-lg";
+                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-950 text-white px-5 py-3 rounded-xl flex items-center gap-3 shadow-lg";
             }, 3000);
         }
+
+        // Trigger App initialization chain
+        window.addEventListener('load', async () => {
+            await captureUserMedia();
+            setupPeerNetwork();
+        });
     </script>
 </body>
 </html>
+
