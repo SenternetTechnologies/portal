@@ -40,7 +40,7 @@
             background-color: #b58863;
         }
         .square-selected {
-            box-shadow: inset 0 0 0 4px #4f46e5 !important;
+            box-shadow: inset 0 0 0 6px #4f46e5 !important;
         }
         .square-highlight::after {
             content: '';
@@ -61,7 +61,7 @@
             pointer-events: none;
         }
         .chess-piece {
-            font-size: clamp(1.8rem, 6vw, 3.2rem);
+            font-size: clamp(2.2rem, 7vw, 4.2rem);
             font-weight: 400;
             line-height: 1;
             z-index: 10;
@@ -69,7 +69,20 @@
             filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
         }
         .chess-piece:hover {
-            transform: scale(1.1);
+            transform: scale(1.15);
+        }
+        /* Fullscreen Board Styles */
+        #chessboard-wrapper:fullscreen {
+            background-color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #chessboard-wrapper:fullscreen #chessboard {
+            max-width: 90vh;
+            max-height: 90vh;
+            border-width: 8px;
         }
         /* Mobile scrollbars */
         ::-webkit-scrollbar {
@@ -105,7 +118,7 @@
             <!-- Peer Connection Status -->
             <div id="connectionStatus" class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-                Connecting to PeerJS Cloud...
+                PeerJS Cloud-lekk bandhippikkunnu...
             </div>
         </div>
     </header>
@@ -116,11 +129,11 @@
         <!-- Real-time Diagnostics Log Bar -->
         <div class="w-full max-w-4xl bg-slate-900 text-slate-300 rounded-xl p-3 text-xs font-mono shadow-inner border border-slate-800 flex flex-col gap-1">
             <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-1.5">
-                <span class="text-indigo-400 font-bold"><i class="fa-solid fa-bug mr-1"></i> WebRTC & Engine Status logs</span>
-                <span id="playerRoleBadge" class="text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded font-bold">Waiting Role assignment</span>
+                <span class="text-indigo-400 font-bold"><i class="fa-solid fa-bug mr-1"></i> WebRTC & Engine Status Live Vivaranyangal</span>
+                <span id="playerRoleBadge" class="text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded font-bold">Role assignment-nu vendi kaathirikkunnu</span>
             </div>
             <div id="diagnosticsLog" class="max-h-20 overflow-y-auto space-y-1">
-                <div>[System] Loading chess state engine...</div>
+                <div>[System] Chess state engine load cheyyunnu...</div>
             </div>
         </div>
 
@@ -129,9 +142,9 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 <!-- Left: Quick Info -->
                 <div class="md:col-span-6 space-y-4">
-                    <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full font-extrabold uppercase tracking-wider">Premium WebRTC Game</span>
+                    <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full font-extrabold uppercase tracking-wider">Premium WebRTC Kali</span>
                     <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Direct P2P Chess</h2>
-                    <p class="text-slate-500 text-sm leading-relaxed">Play realistic chess with friends. No middle-man servers. Realtime, zero-lag peer transmission using Google WebRTC STUN network channels.</p>
+                    <p class="text-slate-500 text-sm leading-relaxed">Koottukaaroppam real-time-il chess kalikkuka. Server illathe, nerittu bandhappettukondulla zero-lag kalikal.</p>
                     <div class="flex flex-col gap-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
                         <div class="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-base"></i> Real-time instant move sync
@@ -151,7 +164,7 @@
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
                         <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest block mb-1">Your Local Connection Peer ID</span>
                         <div class="flex gap-2">
-                            <input id="myPeerIdField" type="text" readonly class="bg-white text-slate-800 font-mono text-sm border border-slate-300 rounded-lg px-3 py-2 w-full font-bold focus:outline-none" value="Configuring connection...">
+                            <input id="myPeerIdField" type="text" readonly class="bg-white text-slate-800 font-mono text-sm border border-slate-300 rounded-lg px-3 py-2 w-full font-bold focus:outline-none" value="Bandham thudangunnu...">
                             <button onclick="copyMyPeerId()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-lg transition-colors flex items-center justify-center" title="Copy Connection ID">
                                 <i class="fa-regular fa-copy"></i>
                             </button>
@@ -163,7 +176,7 @@
                         <div>
                             <span class="block text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">Action 1: Start New Board (White)</span>
                             <button onclick="hostNewGame()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 text-sm">
-                                <i class="fa-solid fa-chess-board"></i> Host Board & Await Guest
+                                <i class="fa-solid fa-chess-board"></i> Host Cheyyuka & Guest-ine Nokkuka
                             </button>
                         </div>
 
@@ -177,9 +190,9 @@
                         <div class="space-y-2">
                             <span class="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">Action 2: Enter Friend's Board ID (Black)</span>
                             <div class="flex gap-2">
-                                <input id="targetPeerId" type="text" placeholder="Paste host Call ID here" class="border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs w-full font-mono outline-none transition-all">
+                                <input id="targetPeerId" type="text" placeholder="Paste host ID here" class="border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs w-full font-mono outline-none transition-all">
                                 <button onclick="connectToHost()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs">
-                                    <i class="fa-solid fa-chess-knight"></i> Join
+                                    <i class="fa-solid fa-chess-knight"></i> Join Cheyyuka
                                 </button>
                             </div>
                         </div>
@@ -189,7 +202,7 @@
         </div>
 
         <!-- ================= LIVE GAME SCREEN ================= -->
-        <div id="gameScreen" class="w-full max-w-6xl flex flex-col lg:flex-row gap-6 hidden transition-all duration-300">
+        <div id="gameScreen" class="w-full max-w-7xl flex flex-col lg:flex-row gap-6 hidden transition-all duration-300">
             
             <!-- Chessboard Column -->
             <div class="flex-grow bg-white rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-100 flex flex-col gap-4">
@@ -198,19 +211,24 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="flex flex-wrap items-center gap-2">
                         <span id="turnIndicator" class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-                            <i class="fa-solid fa-spinner animate-spin"></i> Wait Guest...
+                            <i class="fa-solid fa-spinner animate-spin"></i> Guest-ine Nokkunnu...
                         </span>
                         <span id="playerSideLabel" class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                            Color: Pending
+                            Niram: Kaathirikkunnu
                         </span>
                     </div>
 
-                    <!-- Fast copy code -->
-                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-                        <span class="text-[10px] font-mono text-slate-500 px-2" id="gameShareLabel">ID: ...</span>
-                        <button onclick="copyGameCode()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2.5 py-1 rounded font-bold transition-all">
-                            Copy ID
+                    <!-- Full Screen and Fast Copy ID -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleBoardFullScreen()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1" title="Full Screen Board">
+                            <i class="fa-solid fa-expand"></i> Full Screen Board
                         </button>
+                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                            <span class="text-[10px] font-mono text-slate-500 px-2" id="gameShareLabel">ID: ...</span>
+                            <button onclick="copyGameCode()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2.5 py-1 rounded font-bold transition-all">
+                                Copy ID
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -230,9 +248,9 @@
                 </div>
 
                 <!-- Live Board Wrapper -->
-                <div class="max-w-xl mx-auto w-full relative">
+                <div id="chessboard-wrapper" class="w-full flex justify-center items-center">
                     <!-- The Interactive Chess Grid -->
-                    <div id="chessboard" class="chess-grid border-4 border-slate-800 rounded-lg overflow-hidden shadow-2xl"></div>
+                    <div id="chessboard" class="chess-grid border-4 border-slate-800 rounded-lg overflow-hidden shadow-2xl w-full max-w-[80vh]"></div>
                 </div>
 
                 <!-- Local Player Card -->
@@ -251,10 +269,10 @@
                 <!-- Game Controls -->
                 <div class="flex justify-between items-center py-2 border-t border-slate-100 mt-2">
                     <button onclick="requestNewMatch()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs px-4 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-rotate-left"></i> Restart Board
+                        <i class="fa-solid fa-rotate-left"></i> Board veendum thudanguka
                     </button>
                     <button onclick="quitGameSession()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-5 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Quit Game
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Kali nirthi pokuka
                     </button>
                 </div>
             </div>
@@ -265,11 +283,11 @@
                 <div class="bg-white rounded-2xl p-4 shadow-xl border border-slate-100 flex flex-col h-48">
                     <div class="border-b border-slate-100 pb-2 mb-2">
                         <span class="text-xs font-bold tracking-wide text-slate-800 uppercase flex items-center gap-1.5">
-                            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Moves History
+                            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Move-ukalude charithram
                         </span>
                     </div>
                     <div id="movesList" class="flex-grow overflow-y-auto text-xs font-mono space-y-1 text-slate-500 pr-1">
-                        <div class="text-[10px] text-slate-400 italic">No moves registered yet.</div>
+                        <div class="text-[10px] text-slate-400 italic">Oru move-um ithuvare nadannitilla.</div>
                     </div>
                 </div>
 
@@ -277,7 +295,7 @@
                 <div class="bg-white rounded-2xl p-4 shadow-xl border border-slate-100 flex flex-col h-[340px] justify-between">
                     <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
                         <span class="text-xs font-bold tracking-wide text-slate-800 uppercase flex items-center gap-1.5">
-                            <i class="fa-solid fa-comments text-indigo-600"></i> P2P Chat Stream
+                            <i class="fa-solid fa-comments text-indigo-600"></i> P2P Live Chat
                         </span>
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     </div>
@@ -299,14 +317,14 @@
         </div>
     </main>
 
-    <!-- UI Modal Alerts (Replaces browser Alert) -->
+    <!-- UI Modal Alerts -->
     <div id="alertModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] hidden transition-all">
         <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full border border-slate-100 mx-4 transform scale-95 transition-all duration-200">
             <div class="flex items-center gap-3 text-indigo-600 mb-3">
                 <i id="modalIcon" class="fa-solid fa-trophy text-2xl"></i>
-                <h3 id="modalTitle" class="text-lg font-extrabold text-slate-900">Match Announcement</h3>
+                <h3 id="modalTitle" class="text-lg font-extrabold text-slate-900">Announcement</h3>
             </div>
-            <p id="modalBody" class="text-sm text-slate-500 mb-5 leading-relaxed">Announcement details go here.</p>
+            <p id="modalBody" class="text-sm text-slate-500 mb-5 leading-relaxed">Vivarangal...</p>
             <div class="flex justify-end">
                 <button onclick="closeAlertModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg text-xs transition-colors">
                     Close Notice
@@ -395,7 +413,7 @@
 
         // Initialize WebRTC Peer network config with stable STUNs
         function initPeerServer() {
-            writeLog("Starting Peer server protocols...");
+            writeLog("Peer server thudangunnu...");
             
             peerInstance = new Peer(null, {
                 debug: 2,
@@ -413,11 +431,11 @@
                 myPeerId = id;
                 myPeerIdField.value = id;
                 gameShareLabel.innerText = `Call ID: ${id}`;
-                writeLog(`Peer handshake established. Local ID assigned: ${id}`);
+                writeLog(`Peer handshake thudangi. Local ID: ${id}`);
                 
                 connectionStatus.innerHTML = `
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Live Cloud: Connection Secure
+                    Live Cloud: Bandham sthiram
                 `;
                 connectionStatus.className = "flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm";
             });
@@ -425,19 +443,18 @@
             // Handshake for receiving connection (Host Side)
             peerInstance.on('connection', (conn) => {
                 if (p2pConnection) {
-                    // Prevent multiple joins
                     conn.close();
                     return;
                 }
-                writeLog(`Inbound connection request detected from Peer: ${conn.peer}`);
+                writeLog(`Peer-il ninnu incoming connection vannu: ${conn.peer}`);
                 p2pConnection = conn;
-                localColor = 'w'; // Host defaults to White pieces
+                localColor = 'w'; // Host eppozhum White pieces aayirikkum
                 setupDataChannels(conn);
                 startActiveGameUI();
             });
 
             peerInstance.on('error', (err) => {
-                writeLog(`Peer Instance encountered error state: ${err.message}`);
+                writeLog(`PeerInstance prashnam undakki: ${err.message}`);
                 showToast("Connection handshake error.", "fa-solid fa-triangle-exclamation", "text-rose-500");
             });
         }
@@ -445,9 +462,9 @@
         // Setup Chat & Move Event bindings
         function setupDataChannels(conn) {
             conn.on('open', () => {
-                writeLog("Data communications channel secure and synchronized.");
+                writeLog("Data communications channel secure aayi bandhippichu.");
                 
-                // If Guest, we need to send a ready packet to alert host
+                // Guest aano ennu check cheyyuka
                 if (localColor === 'b') {
                     conn.send({ type: 'ready' });
                 }
@@ -459,13 +476,13 @@
             });
 
             conn.on('close', () => {
-                writeLog("Data channel communication severed.");
+                writeLog("Data channel bandham nirthalaakki.");
                 showToast("Opponent left the session.", "fa-solid fa-person-walking-arrow-right", "text-amber-500");
                 exitGameEnvironment();
             });
 
             conn.on('error', (err) => {
-                writeLog(`Data channel connection error: ${err.message}`);
+                writeLog(`Data channel connection-il prashnam: ${err.message}`);
             });
         }
 
@@ -473,13 +490,13 @@
         function handleIncomingData(data) {
             switch(data.type) {
                 case 'ready':
-                    writeLog("Guest joined and verified ready. Playing White.");
+                    writeLog("Guest join cheythu, White aayi kalikkunnu.");
                     updateGameStatusIndicators();
                     renderChessboard();
-                    showToast("Guest connected! Match begins.", "fa-solid fa-chess", "text-emerald-400");
+                    showToast("Guest connected! Match thudangunnu.", "fa-solid fa-chess", "text-emerald-400");
                     break;
                 case 'move':
-                    writeLog(`Remote move packet parsed: ${data.from} -> ${data.to}`);
+                    writeLog(`Opponent move cheythu: ${data.from} -> ${data.to}`);
                     chess.move({ from: data.from, to: data.to, promotion: data.promotion || 'q' });
                     renderChessboard();
                     updateGameStatusIndicators();
@@ -490,12 +507,12 @@
                     appendChatMessage("Guest", data.message, "bg-slate-100 text-slate-800 self-start");
                     break;
                 case 'restart':
-                    writeLog("Opponent initiated clean game reset.");
+                    writeLog("Opponent board reset cheyyan thudangi.");
                     chess.reset();
                     renderChessboard();
                     updateGameStatusIndicators();
-                    movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">No moves registered yet.</div>';
-                    showToast("Board Reset Completed!", "fa-solid fa-rotate-left", "text-indigo-400");
+                    movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">Oru move-um ithuvare nadannitilla.</div>';
+                    showToast("Board Reset cheythittundu!", "fa-solid fa-rotate-left", "text-indigo-400");
                     break;
             }
         }
@@ -503,41 +520,41 @@
         // Host Role Init
         function hostNewGame() {
             if (!myPeerId) {
-                showToast("Awaiting Cloud handshake. Please retry in 2 seconds...", "fa-solid fa-hourglass-start animate-spin", "text-amber-500");
+                showToast("Cloud handshake-nu vendi kaathirikkuka...", "fa-solid fa-hourglass-start animate-spin", "text-amber-500");
                 return;
             }
             localColor = 'w';
             playerRoleBadge.innerText = "Host Board Mode (White)";
-            playerSideLabel.innerText = "Color: White Pieces";
+            playerSideLabel.innerText = "Niram: White Pieces";
             myRoleLabel.innerText = "LOCAL HOST (WHITE)";
             oppName.innerText = "Guest Challenger";
             oppRole.innerText = "GUEST PLAYER (BLACK)";
             
             switchToGameLayout();
             renderChessboard();
-            writeLog("Board hosted. Awaiting remote challenger connection link...");
+            writeLog("Board host cheythu. Guest connecting ID-kkaayi kaathirikkuka...");
         }
 
         // Guest Role Init & Handshake dial
         function connectToHost() {
             const hostId = targetPeerIdInput.value.trim();
             if (!hostId) {
-                showToast("Please enter a valid Host Board ID", "fa-solid fa-triangle-exclamation", "text-amber-500");
+                showToast("Correct Host ID nalkuka", "fa-solid fa-triangle-exclamation", "text-amber-500");
                 return;
             }
             if (hostId === myPeerId) {
-                showToast("You cannot join your own hosted ID", "fa-solid fa-circle-exclamation", "text-rose-400");
+                showToast("Swantham ID join cheyyan kazhiyilla", "fa-solid fa-circle-exclamation", "text-rose-400");
                 return;
             }
 
             localColor = 'b'; // Guest is Black
             playerRoleBadge.innerText = "Guest Board Mode (Black)";
-            playerSideLabel.innerText = "Color: Black Pieces";
+            playerSideLabel.innerText = "Niram: Black Pieces";
             myRoleLabel.innerText = "GUEST PLAYER (BLACK)";
             oppName.innerText = "Host Player";
             oppRole.innerText = "HOST PLAYER (WHITE)";
 
-            writeLog(`Dialling connection out to Host Board: ${hostId}`);
+            writeLog(`Host Board-ilekk bandham thudangunnu: ${hostId}`);
             
             p2pConnection = peerInstance.connect(hostId);
             setupDataChannels(p2pConnection);
@@ -554,7 +571,7 @@
         function startActiveGameUI() {
             updateGameStatusIndicators();
             renderChessboard();
-            showToast("Challenger Connected! Board Active.", "fa-solid fa-people-arrows", "text-emerald-400");
+            showToast("Challenger join cheythu! Board active aayi.", "fa-solid fa-people-arrows", "text-emerald-400");
         }
 
         // Render Chessboard with flip capability depending on localColor
@@ -562,8 +579,11 @@
             chessboardDiv.innerHTML = '';
             
             const board = chess.board();
-            const ranks = localColor === 'b' ? Array.from({length: 8}, (_, i) => i) : Array.from({length: 8}, (_, i) => 7 - i);
-            const files = localColor === 'b' ? Array.from({length: 8}, (_, i) => 7 - i) : Array.from({length: 8}, (_, i) => i);
+            // In modern unified perspective:
+            // For White: Rank 8 is at top (r=0), Rank 1 is at bottom (r=7). files are a to h (0 to 7).
+            // For Black: Rank 1 is at top (r=7), Rank 8 is at bottom (r=0). files are h to a (7 to 0).
+            const ranks = localColor === 'b' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+            const files = localColor === 'b' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
 
             for (let r of ranks) {
                 for (let f of files) {
@@ -603,13 +623,11 @@
 
         // Calculate and display captures
         function updateCapturedPiecesCounters() {
-            // Standard piece set
             const initialPieces = {
                 w: { p: 8, r: 2, n: 2, b: 2, q: 1 },
                 b: { p: 8, r: 2, n: 2, b: 2, q: 1 }
             };
             
-            // Count current board remaining pieces
             const currentPieces = {
                 w: { p: 0, r: 0, n: 0, b: 0, q: 0 },
                 b: { p: 0, r: 0, n: 0, b: 0, q: 0 }
@@ -623,11 +641,9 @@
                 });
             });
 
-            // Calculate captured
             let capturedByWhite = [];
             let capturedByBlack = [];
 
-            // Captured Black Pieces (Held by White)
             for (let type in initialPieces.b) {
                 const diff = initialPieces.b[type] - currentPieces.b[type];
                 if (diff > 0) {
@@ -635,7 +651,6 @@
                 }
             }
 
-            // Captured White Pieces (Held by Black)
             for (let type in initialPieces.w) {
                 const diff = initialPieces.w[type] - currentPieces.w[type];
                 if (diff > 0) {
@@ -643,7 +658,6 @@
                 }
             }
 
-            // Assign to matching layout depending on role
             if (localColor === 'w') {
                 capturedByLocalDiv.innerHTML = capturedByWhite.join('');
                 capturedByOpponentDiv.innerHTML = capturedByBlack.join('');
@@ -653,23 +667,21 @@
             }
         }
 
-        // Chessboard coords helpers
+        // Chessboard coords mapper - FIX: r=0 (top) represents Rank 8, so (8 - r) maps perfectly to chess.js standard array
         function getSquareStringFromCoords(r, f) {
             const filesLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-            return filesLetters[f] + (r + 1);
+            return filesLetters[f] + (8 - r);
         }
 
         // Selection / Move Engine Interfacing logic
         function handleSquareInteraction(square) {
-            // Block move inputs if communication channel isn't live
             if (!p2pConnection || !p2pConnection.open) {
-                showToast("Match waiting for Opponent Client connect...", "fa-solid fa-hourglass", "text-amber-500");
+                showToast("Ethirali join cheyyunnathinnaayi kaathirikkuka...", "fa-solid fa-hourglass", "text-amber-500");
                 return;
             }
 
-            // Prevent picking on opponent turn
             if (chess.turn() !== localColor) {
-                showToast("It is Opponent's turn to move!", "fa-solid fa-hourglass-half", "text-indigo-400");
+                showToast("Ithu ethiralide turn aanu!", "fa-solid fa-hourglass-half", "text-indigo-400");
                 return;
             }
 
@@ -680,7 +692,7 @@
                 return;
             }
 
-            // Execute move if click matches highlighted destination square
+            // Move coordinate trigger checking
             if (possibleMoves.includes(square)) {
                 executeLocalMove(selectedSquare, square);
                 selectedSquare = null;
@@ -689,15 +701,12 @@
             }
 
             const piece = chess.get(square);
-            // Initiate select piece only if belonging to current player
             if (piece && piece.color === localColor) {
                 selectedSquare = square;
-                // Query library engine for legal move options
                 const moves = chess.moves({ square: square, verbose: true });
                 possibleMoves = moves.map(m => m.to);
                 renderChessboard();
             } else {
-                // Clear selection on empty clicking
                 selectedSquare = null;
                 possibleMoves = [];
                 renderChessboard();
@@ -706,15 +715,13 @@
 
         // Local Chess Move trigger
         function executeLocalMove(fromSquare, toSquare) {
-            // Check for Pawn Promotion scenario
             const piece = chess.get(fromSquare);
             let promotionPiece = undefined;
             if (piece && piece.type === 'p') {
                 const rank = toSquare[1];
                 if ((localColor === 'w' && rank === '8') || (localColor === 'b' && rank === '1')) {
-                    // Auto-promote to Queen for clean P2P experience
-                    promotionPiece = 'q';
-                    writeLog("Auto Pawn Promotion triggered: Queen.");
+                    promotionPiece = 'q'; // Queen promotion automatic
+                    writeLog("Auto Pawn Promotion: Queen aayi maari.");
                 }
             }
 
@@ -727,11 +734,9 @@
             if (moveOutput) {
                 renderChessboard();
                 updateGameStatusIndicators();
-                
-                // Track Moves History
                 appendMoveHistory(moveOutput.san);
 
-                // Broadcast move to P2P connected client
+                // Send move details to connected player
                 if (p2pConnection && p2pConnection.open) {
                     p2pConnection.send({
                         type: 'move',
@@ -774,35 +779,48 @@
             if (chess.in_checkmate()) {
                 const loser = chess.turn();
                 const winner = loser === 'w' ? 'Black' : 'White';
-                triggerAlertModal("fa-solid fa-trophy", "Checkmate!", `${winner} wins the chess match by Checkmate! 🎉`);
-                writeLog(`Engine: Checkmate verified. Match closed. Winner: ${winner}`);
+                triggerAlertModal("fa-solid fa-trophy", "Checkmate!", `${winner} ee kali jayichittundu! 🎉`);
+                writeLog(`Engine: Checkmate confirmed. Winner: ${winner}`);
             } else if (chess.in_stalemate()) {
-                triggerAlertModal("fa-solid fa-handshake-simple", "Stalemate", "Draw! The match has terminated in a Stalemate.");
+                triggerAlertModal("fa-solid fa-handshake-simple", "Stalemate", "Draw! Kali Stalemate-il thasmarichu.");
                 writeLog("Engine: Draw by Stalemate.");
             } else if (chess.in_draw()) {
-                triggerAlertModal("fa-solid fa-scale-balanced", "Match Draw", "Match ended in a Draw (Rule validation limit reached).");
+                triggerAlertModal("fa-solid fa-scale-balanced", "Match Draw", "Kali Draw aayittundu.");
                 writeLog("Engine: Draw confirmed.");
             } else if (chess.in_check()) {
-                showToast("Warning: King is under Check!", "fa-solid fa-triangle-exclamation animate-bounce", "text-rose-500");
-                writeLog("Engine: King checked.");
+                showToast("Warning: King checked!", "fa-solid fa-triangle-exclamation animate-bounce", "text-rose-500");
+                writeLog("Engine: King checked aayirikkunnu.");
             }
         }
 
         // Side Panels and Turn status updates
         function updateGameStatusIndicators() {
             if (!p2pConnection || !p2pConnection.open) {
-                turnIndicator.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Wait Guest Join...`;
+                turnIndicator.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Guest join cheyyunnathinayi kaathirikkuka...`;
                 turnIndicator.className = "bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1.5";
                 return;
             }
 
             const currentTurn = chess.turn();
             if (currentTurn === localColor) {
-                turnIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Your Turn`;
+                turnIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Ningalude Turn`;
                 turnIndicator.className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1.5";
             } else {
-                turnIndicator.innerHTML = `Opponent's Turn`;
+                turnIndicator.innerHTML = `Ethiralide Turn`;
                 turnIndicator.className = "bg-slate-100 text-slate-600 text-xs px-3 py-1 rounded-full font-bold";
+            }
+        }
+
+        // Toggle Full Screen Chess Board Mode
+        function toggleBoardFullScreen() {
+            const wrapper = document.getElementById('chessboard-wrapper');
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().catch(err => {
+                    writeLog(`Full-screen error: ${err.message}`);
+                    showToast("Full-screen mode pravarthichilla.", "fa-solid fa-circle-exclamation", "text-rose-500");
+                });
+            } else {
+                document.exitFullscreen();
             }
         }
 
@@ -820,7 +838,7 @@
                 appendChatMessage("You", textMsg, "bg-indigo-600 text-white self-end items-end");
                 chatInput.value = '';
             } else {
-                showToast("Failed to send: Session link is offline.", "fa-solid fa-circle-exclamation", "text-rose-500");
+                showToast("Send cheyyan kazhinjilla: Session offline aanu.", "fa-solid fa-circle-exclamation", "text-rose-500");
             }
         }
 
@@ -854,15 +872,15 @@
                 chess.reset();
                 renderChessboard();
                 updateGameStatusIndicators();
-                movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">No moves registered yet.</div>';
-                showToast("Request sent: Board Cleaned!", "fa-solid fa-rotate-left", "text-indigo-500");
-                writeLog("Local Board reset & synced.");
+                movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">Oru move-um ithuvare nadannitilla.</div>';
+                showToast("Request sent: Board reset cheythittundu!", "fa-solid fa-rotate-left", "text-indigo-500");
+                writeLog("Local Board reset cheythittundu.");
             } else {
                 chess.reset();
                 renderChessboard();
                 updateGameStatusIndicators();
-                movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">No moves registered yet.</div>';
-                showToast("Board Reset Done!", "fa-solid fa-rotate-left", "text-emerald-500");
+                movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">Oru move-um ithuvare nadannitilla.</div>';
+                showToast("Board Reset cheythittundu!", "fa-solid fa-rotate-left", "text-emerald-500");
             }
         }
 
@@ -873,13 +891,13 @@
                 p2pConnection = null;
             }
             chess.reset();
-            movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">No moves registered yet.</div>';
+            movesListDiv.innerHTML = '<div class="text-[10px] text-slate-400 italic">Oru move-um ithuvare nadannitilla.</div>';
             chatLogsDiv.innerHTML = '<div class="text-center text-[10px] text-slate-400 italic my-2">Secure end-to-end direct game chat active.</div>';
             
             gameScreen.classList.add('hidden');
             lobbyScreen.classList.remove('hidden');
-            playerRoleBadge.innerText = "Waiting Role assignment";
-            writeLog("Game Session cleared. Returned back to Pairing Lobby.");
+            playerRoleBadge.innerText = "Role assignment-nu vendi kaathirikkunnu";
+            writeLog("Kali nirthalaakki. Lobby-lekk thirichu poyi.");
         }
 
         function quitGameSession() {
@@ -895,7 +913,7 @@
             tempBox.select();
             document.execCommand('copy');
             document.body.removeChild(tempBox);
-            showToast("Calling Board ID copied to clipboard!", "fa-regular fa-clipboard", "text-emerald-400");
+            showToast("Calling Board ID copy cheythittundu!", "fa-regular fa-clipboard", "text-emerald-400");
         }
 
         function copyGameCode() {
@@ -906,7 +924,7 @@
             tempBox.select();
             document.execCommand('copy');
             document.body.removeChild(tempBox);
-            showToast("Match Board ID copied to clipboard!", "fa-regular fa-clipboard", "text-indigo-400");
+            showToast("Match Board ID copy cheythittundu!", "fa-regular fa-clipboard", "text-indigo-400");
         }
 
         // Modern Custom Non-blocking Alert Modals
@@ -951,4 +969,3 @@
     </script>
 </body>
 </html>
-
